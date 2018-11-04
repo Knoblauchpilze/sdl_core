@@ -59,6 +59,28 @@ namespace sdl {
 
     inline
     void
+    SdlWidget::addWidget(std::shared_ptr<SdlWidget> child,
+                         const unsigned& x,
+                         const unsigned& y,
+                         const unsigned& w,
+                         const unsigned& h)
+    {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      if (child == nullptr) {
+        throw SdlException(std::string("Cannot add null child to \"") + getName() + "\"");
+      }
+      
+      m_children[child->getName()] = child;
+      child->setParent(this);
+
+      if (m_layout != nullptr) {
+        m_layout->addItem(child, x, y, w, h);
+      }
+    }
+
+    inline
+    void
     SdlWidget::removeWidget(std::shared_ptr<SdlWidget> child) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 

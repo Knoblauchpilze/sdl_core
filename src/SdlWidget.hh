@@ -42,6 +42,13 @@ namespace sdl {
         addWidget(std::shared_ptr<SdlWidget> child);
 
         virtual void
+        addWidget(std::shared_ptr<SdlWidget> child,
+                  const unsigned& x,
+                  const unsigned& y,
+                  const unsigned& w,
+                  const unsigned& h);
+
+        virtual void
         removeWidget(std::shared_ptr<SdlWidget> child);
 
         virtual void

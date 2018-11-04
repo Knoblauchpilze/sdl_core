@@ -6,6 +6,7 @@
 # include <unordered_map>
 # include <SDL2/SDL.h>
 # include "Box.hh"
+# include "SdlLayout.hh"
 
 namespace sdl {
   namespace core {
@@ -38,16 +39,19 @@ namespace sdl {
         draw(SDL_Renderer* renderer);
 
         virtual void
-        addChild(std::shared_ptr<SdlWidget> child);
+        addWidget(std::shared_ptr<SdlWidget> child);
 
         virtual void
-        removeChild(std::shared_ptr<SdlWidget> child);
+        removeWidget(std::shared_ptr<SdlWidget> child);
 
         virtual void
-        removeChild(const std::string& name);
+        removeWidget(const std::string& name);
 
         unsigned
-        getChildCount() const noexcept;
+        getWidgetsCount() const noexcept;
+
+        void
+        setLayout(std::shared_ptr<SdlLayout> layout) noexcept;
 
       protected:
 
@@ -85,9 +89,11 @@ namespace sdl {
 
         bool m_dirty;
         SDL_Texture* m_content;
-        std::mutex m_drawingLocker;
+        mutable std::mutex m_drawingLocker;
 
         WidgetMap m_children;
+
+        std::shared_ptr<SdlLayout> m_layout;
     };
 
     using SdlWidgetShPtr = std::shared_ptr<SdlWidget>;

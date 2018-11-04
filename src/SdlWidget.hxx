@@ -42,34 +42,51 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::addChild(std::shared_ptr<SdlWidget> child) {
+    SdlWidget::addWidget(std::shared_ptr<SdlWidget> child) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
       if (child == nullptr) {
         throw SdlException(std::string("Cannot add null child to \"") + getName() + "\"");
       }
       
       m_children[child->getName()] = child;
       child->setParent(this);
+
+      if (m_layout != nullptr) {
+        m_layout->addItem(child);
+      }
     }
 
     inline
     void
-    SdlWidget::removeChild(std::shared_ptr<SdlWidget> child) {
+    SdlWidget::removeWidget(std::shared_ptr<SdlWidget> child) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
       if (child == nullptr) {
         throw SdlException(std::string("Cannot remove null child from \"") + getName() + "\"");
       }
-      removeChild(child->getName());
+      removeWidget(child->getName());
     }
 
     inline
     void
-    SdlWidget::removeChild(const std::string& name) {
+    SdlWidget::removeWidget(const std::string& name) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
       m_children.erase(name);
     }
 
     inline
     unsigned
-    SdlWidget::getChildCount() const noexcept {
+    SdlWidget::getWidgetsCount() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_children.size();
+    }
+
+    inline
+    void
+    SdlWidget::setLayout(std::shared_ptr<SdlLayout> layout) noexcept {
+      m_layout = layout;
     }
 
     inline

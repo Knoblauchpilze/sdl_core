@@ -18,7 +18,9 @@ namespace sdl {
       m_content(nullptr),
       m_drawingLocker(),
 
-      m_children()
+      m_children(),
+
+      m_layout()
     {}
 
     SDL_Texture*
@@ -35,6 +37,11 @@ namespace sdl {
 
         SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);
         SDL_SetRenderTarget(renderer, m_content);
+
+        // Update layout if any.
+        if (m_layout != nullptr) {
+          m_layout->update();
+        }
 
         // Proceed to update of children containers if any.
         for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {

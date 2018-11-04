@@ -10,6 +10,7 @@ find_package (SDL2_ttf REQUIRED)
 
 set (SOURCES
   SdlWidget.cc
+  SdlLayout.cc
   )
 
 add_library (sdl_core SHARED

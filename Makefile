@@ -13,7 +13,7 @@ d: debug
 
 install:
 	sudo cp build/Release/lib/libsdl_core.so /usr/local/lib
-	sudo mkdir /usr/local/include/sdl_core
+	sudo mkdir -p /usr/local/include/sdl_core
 	sudo cp src/*.hh /usr/local/include/sdl_core
 	sudo cp src/*.hxx /usr/local/include/sdl_core
 

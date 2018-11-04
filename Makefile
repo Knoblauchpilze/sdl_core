@@ -11,3 +11,8 @@ r: release
 
 d: debug
 
+install:
+	sudo cp build/Release/lib/libsdl_core.so /usr/local/lib
+	sudo cp src/*.hh /usr/local/include
+	sudo cp src/*.hxx /usr/local/include
+

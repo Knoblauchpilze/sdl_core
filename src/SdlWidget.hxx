@@ -9,8 +9,10 @@ namespace sdl {
 
     inline
     SdlWidget::~SdlWidget() {
+      
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       clearTexture();
+      
     }
 
     inline
@@ -22,22 +24,24 @@ namespace sdl {
     inline
     const Boxf&
     SdlWidget::getRenderingArea() const noexcept {
-      std::lock_guard<std::mutex> guard(m_propsLocker);
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
     }
 
     inline
     void
     SdlWidget::setRenderingArea(const Boxf& area) noexcept {
-      std::lock_guard<std::mutex> guard(m_propsLocker);
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_area = area;
+      makeDirty();
     }
 
     inline
     void
     SdlWidget::setBackgroundColor(const SDL_Color& color) noexcept {
-      std::lock_guard<std::mutex> guard(m_propsLocker);
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_background = color;
+      makeDirty();
     }
 
     inline
@@ -48,13 +52,15 @@ namespace sdl {
       if (child == nullptr) {
         throw SdlException(std::string("Cannot add null child to \"") + getName() + "\"");
       }
-      
+
       m_children[child->getName()] = child;
       child->setParent(this);
 
       if (m_layout != nullptr) {
         m_layout->addItem(child);
       }
+
+      makeDirty();
     }
 
     inline
@@ -70,20 +76,20 @@ namespace sdl {
       if (child == nullptr) {
         throw SdlException(std::string("Cannot add null child to \"") + getName() + "\"");
       }
-      
+
       m_children[child->getName()] = child;
       child->setParent(this);
 
       if (m_layout != nullptr) {
         m_layout->addItem(child, x, y, w, h);
       }
+
+      makeDirty();
     }
 
     inline
     void
     SdlWidget::removeWidget(std::shared_ptr<SdlWidget> child) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-
       if (child == nullptr) {
         throw SdlException(std::string("Cannot remove null child from \"") + getName() + "\"");
       }
@@ -96,6 +102,8 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       m_children.erase(name);
+
+      makeDirty();
     }
 
     inline
@@ -108,7 +116,9 @@ namespace sdl {
     inline
     void
     SdlWidget::setLayout(std::shared_ptr<SdlLayout> layout) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_layout = layout;
+      makeDirty();
     }
 
     inline
@@ -120,9 +130,7 @@ namespace sdl {
     inline
     SDL_Texture*
     SdlWidget::createContentPrivate(SDL_Renderer* renderer) const {
-      m_propsLocker.lock();
       const SDL_Rect areaAsRect = m_area.toSDLRect();
-      m_propsLocker.unlock();
 
       SDL_Texture* content = SDL_CreateTexture(
         renderer,
@@ -135,6 +143,9 @@ namespace sdl {
       if (content == nullptr) {
         throw SdlException(std::string("Could not create content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
       }
+
+      // Clear the content (i.e. fill with color).
+      clearContentPrivate(renderer, content);
       
       return content;
     }
@@ -155,8 +166,20 @@ namespace sdl {
     inline
     void
     SdlWidget::setParent(SdlWidget* parent) {
-      std::lock_guard<std::mutex> guard(m_propsLocker);
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_parent = parent;
+    }
+
+    inline
+    void
+    SdlWidget::makeDirty() noexcept {
+      m_dirty = true;
+    }
+
+    inline
+    std::mutex&
+    SdlWidget::getLocker() noexcept {
+      return m_drawingLocker;
     }
 
     inline

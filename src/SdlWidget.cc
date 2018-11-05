@@ -12,7 +12,6 @@ namespace sdl {
       m_parent(parent),
       m_area(area),
       m_background(color),
-      m_propsLocker(),
 
       m_dirty(true),
       m_content(nullptr),
@@ -29,18 +28,16 @@ namespace sdl {
 
       // Repaint if needed.
       if (hasChanged()) {
-
         clearTexture();
 
         m_content = createContentPrivate(renderer);
-        clearContentPrivate(renderer, m_content);
 
         SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);
         SDL_SetRenderTarget(renderer, m_content);
 
         // Update layout if any.
         if (m_layout != nullptr) {
-          m_layout->update();
+          m_layout->update(m_area);
         }
 
         // Proceed to update of children containers if any.

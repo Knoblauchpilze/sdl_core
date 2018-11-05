@@ -16,7 +16,7 @@ namespace sdl {
       }
     }
 
-    void SdlLayout::update() {
+    void SdlLayout::update(const Boxf& area) {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
         return;
@@ -27,11 +27,8 @@ namespace sdl {
         return;
       }
 
-      // Retrieve available dimensions.
-      const Boxf& window = m_widget->getRenderingArea();
-
       // Update with private handler.
-      updatePrivate(window);
+      updatePrivate(area);
     }
 
   }

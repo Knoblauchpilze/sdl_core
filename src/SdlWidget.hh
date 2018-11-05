@@ -75,6 +75,12 @@ namespace sdl {
         void
         setParent(SdlWidget* parent);
 
+        void
+        makeDirty() noexcept;
+
+        std::mutex&
+        getLocker() noexcept;
+
       private:
 
         void
@@ -92,7 +98,6 @@ namespace sdl {
         SdlWidget* m_parent;
         Boxf m_area;
         SDL_Color m_background;
-        mutable std::mutex m_propsLocker;
 
         bool m_dirty;
         SDL_Texture* m_content;

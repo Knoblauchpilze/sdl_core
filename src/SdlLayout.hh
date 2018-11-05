@@ -21,7 +21,7 @@ namespace sdl {
         virtual ~SdlLayout();
 
         void
-        update();
+        update(const Boxf& area);
 
         virtual int
         addItem(std::shared_ptr<SdlWidget> item);

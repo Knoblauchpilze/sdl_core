@@ -7,13 +7,14 @@
 # include <SDL2/SDL.h>
 # include "Box.hh"
 # include "SdlLayout.hh"
+# include "SdlEventListener.hh"
 
 namespace sdl {
   namespace core {
 
     using Boxf = sdl::utils::Box<float>;
 
-    class SdlWidget {
+    class SdlWidget: public SdlEventListener {
       public:
 
         SdlWidget(const std::string& name,
@@ -35,30 +36,41 @@ namespace sdl {
         void
         setBackgroundColor(const SDL_Color& color) noexcept;
 
+        bool
+        isDrawable() const noexcept;
+
+        void
+        setDrawable(bool isDrawable) noexcept;
+
         virtual SDL_Texture*
         draw(SDL_Renderer* renderer);
-
-        virtual void
-        addWidget(std::shared_ptr<SdlWidget> child);
-
-        virtual void
-        addWidget(std::shared_ptr<SdlWidget> child,
-                  const unsigned& x,
-                  const unsigned& y,
-                  const unsigned& w,
-                  const unsigned& h);
-
-        virtual void
-        removeWidget(std::shared_ptr<SdlWidget> child);
-
-        virtual void
-        removeWidget(const std::string& name);
 
         unsigned
         getWidgetsCount() const noexcept;
 
         void
         setLayout(std::shared_ptr<SdlLayout> layout) noexcept;
+
+        void
+        onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent);
+
+        void
+        onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent);
+
+        void
+        onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent);
+
+        void
+        onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent);
+
+        void
+        onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent);
+
+        void
+        onMouseWheelEvent(const SDL_MouseWheelEvent& event);
+
+        void
+        onQuitEvent(const SDL_QuitEvent& event);
 
       protected:
 
@@ -81,7 +93,18 @@ namespace sdl {
         std::mutex&
         getLocker() noexcept;
 
+        template <typename WidgetType>
+        WidgetType*
+        getChildAs(const std::string& name);
+
+        template <typename LayoutType>
+        LayoutType*
+        getLayoutAs() noexcept;
+
       private:
+
+        void
+        addWidget(SdlWidget* widget);
 
         void
         clearTexture();
@@ -91,7 +114,7 @@ namespace sdl {
 
       private:
 
-        using WidgetMap = std::unordered_map<std::string, std::shared_ptr<SdlWidget>>;
+        using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
         std::string m_name;
 
@@ -100,6 +123,7 @@ namespace sdl {
         SDL_Color m_background;
 
         bool m_dirty;
+        bool m_isDrawable;
         SDL_Texture* m_content;
         mutable std::mutex m_drawingLocker;
 

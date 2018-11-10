@@ -24,32 +24,39 @@ namespace sdl {
         update(const Boxf& area);
 
         virtual int
-        addItem(std::shared_ptr<SdlWidget> item);
+        addItem(SdlWidget* item);
 
         virtual int
-        addItem(std::shared_ptr<SdlWidget> item,
+        addItem(SdlWidget* item,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,
                 const unsigned& h);
 
         virtual void
-        removeItem(std::shared_ptr<SdlWidget> item);
+        removeItem(SdlWidget* item);
+
+        unsigned
+        getItemsCount() const noexcept;
 
       protected:
 
         virtual void
         updatePrivate(const Boxf& window) = 0;
 
+        void
+        makeDirty() noexcept;
+
       private:
 
-        std::shared_ptr<SdlWidget>
-        getContainerOrNull(std::shared_ptr<SdlWidget> item, int* index = nullptr) const;
+        SdlWidget*
+        getContainerOrNull(SdlWidget* item, int* index = nullptr) const;
 
       protected:
 
         SdlWidget* m_widget;
-        std::vector<std::shared_ptr<SdlWidget>> m_items;
+        std::vector<SdlWidget*> m_items;
+        bool m_dirty;
 
     };
 

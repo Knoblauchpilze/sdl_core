@@ -9,10 +9,17 @@ namespace sdl {
 
     inline
     SdlWidget::~SdlWidget() {
-      
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       clearTexture();
       
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        if (widget->second != nullptr) {
+          delete widget->second;
+        }
+      }
     }
 
     inline
@@ -45,65 +52,17 @@ namespace sdl {
     }
 
     inline
-    void
-    SdlWidget::addWidget(std::shared_ptr<SdlWidget> child) {
+    bool
+    SdlWidget::isDrawable() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-
-      if (child == nullptr) {
-        throw SdlException(std::string("Cannot add null child to \"") + getName() + "\"");
-      }
-
-      m_children[child->getName()] = child;
-      child->setParent(this);
-
-      if (m_layout != nullptr) {
-        m_layout->addItem(child);
-      }
-
-      makeDirty();
+      return m_isDrawable;
     }
 
     inline
     void
-    SdlWidget::addWidget(std::shared_ptr<SdlWidget> child,
-                         const unsigned& x,
-                         const unsigned& y,
-                         const unsigned& w,
-                         const unsigned& h)
-    {
+    SdlWidget::setDrawable(bool isDrawable) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-
-      if (child == nullptr) {
-        throw SdlException(std::string("Cannot add null child to \"") + getName() + "\"");
-      }
-
-      m_children[child->getName()] = child;
-      child->setParent(this);
-
-      if (m_layout != nullptr) {
-        m_layout->addItem(child, x, y, w, h);
-      }
-
-      makeDirty();
-    }
-
-    inline
-    void
-    SdlWidget::removeWidget(std::shared_ptr<SdlWidget> child) {
-      if (child == nullptr) {
-        throw SdlException(std::string("Cannot remove null child from \"") + getName() + "\"");
-      }
-      removeWidget(child->getName());
-    }
-
-    inline
-    void
-    SdlWidget::removeWidget(const std::string& name) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-
-      m_children.erase(name);
-
-      makeDirty();
+      m_isDrawable = isDrawable;
     }
 
     inline
@@ -122,9 +81,93 @@ namespace sdl {
     }
 
     inline
+    void
+    SdlWidget::onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onKeyReleasedEvent(keyEvent);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onKeyReleasedEvent(keyEvent);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onMouseMotionEvent(mouseMotionEvent);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onMouseButtonPressedEvent(mouseButtonEvent);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onMouseButtonReleasedEvent(mouseButtonEvent);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::onMouseWheelEvent(const SDL_MouseWheelEvent& event) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onMouseWheelEvent(event);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::onQuitEvent(const SDL_QuitEvent& event) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onQuitEvent(event);
+      }
+    }
+
+    inline
     bool
     SdlWidget::hasChanged() const noexcept {
-      return m_dirty;
+      return m_dirty && m_isDrawable;
     }
 
     inline
@@ -180,6 +223,38 @@ namespace sdl {
     std::mutex&
     SdlWidget::getLocker() noexcept {
       return m_drawingLocker;
+    }
+
+    template <typename WidgetType>
+    inline
+    WidgetType*
+    SdlWidget::getChildAs(const std::string& name) {
+      WidgetMap::const_iterator child = m_children.find(name);
+      if (child == m_children.cend()) {
+        throw SdlException(std::string("Cannot retrieve child widget ") + name + " in widget " + getName() + ", no such element");
+      }
+      return dynamic_cast<WidgetType*>(child->second);
+    }
+
+    template <typename LayoutType>
+    inline
+    LayoutType*
+    SdlWidget::getLayoutAs() noexcept {
+      return dynamic_cast<LayoutType*>(m_layout.get());
+    }
+
+    inline
+    void
+    SdlWidget::addWidget(SdlWidget* widget) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      if (widget == nullptr) {
+        throw SdlException(std::string("Cannot add null widget to \"") + getName() + "\"");
+      }
+      m_children[widget->getName()] = widget;
+
+      if (m_layout != nullptr) {
+        m_layout->addItem(widget);
+      }
     }
 
     inline

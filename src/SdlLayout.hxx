@@ -8,9 +8,10 @@ namespace sdl {
 
     inline
     int
-    SdlLayout::addItem(std::shared_ptr<SdlWidget> item) {
+    SdlLayout::addItem(SdlWidget* item) {
       if (item != nullptr && getContainerOrNull(item) == nullptr) {
         m_items.push_back(item);
+        makeDirty();
         return m_items.size() - 1;
       }
       return -1;
@@ -18,7 +19,7 @@ namespace sdl {
 
     inline
     int
-    SdlLayout::addItem(std::shared_ptr<SdlWidget> item,
+    SdlLayout::addItem(SdlWidget* item,
                     const unsigned& x,
                     const unsigned& y,
                     const unsigned& w,
@@ -30,18 +31,32 @@ namespace sdl {
 
     inline
     void
-    SdlLayout::removeItem(std::shared_ptr<SdlWidget> item) {
+    SdlLayout::removeItem(SdlWidget* item) {
       int index = m_items.size();
       getContainerOrNull(item, &index);
       if (index < m_items.size()) {
         m_items.erase(m_items.cbegin() + index);
+        makeDirty();
       }
     }
 
     inline
-    std::shared_ptr<SdlWidget>
-    SdlLayout::getContainerOrNull(std::shared_ptr<SdlWidget> item, int* index) const {
-      std::vector<std::shared_ptr<SdlWidget>>::const_iterator itemToFind = m_items.cbegin();
+    unsigned
+    SdlLayout::getItemsCount() const noexcept {
+      return m_items.size();
+    }
+
+    inline
+    void
+    SdlLayout::makeDirty() noexcept {
+      m_dirty = true;
+    }
+
+
+    inline
+    SdlWidget*
+    SdlLayout::getContainerOrNull(SdlWidget* item, int* index) const {
+      std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
       int itemId = 0;
       while (itemToFind != m_items.cend() && item != *itemToFind) {
         ++itemToFind;

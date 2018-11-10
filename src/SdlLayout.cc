@@ -7,7 +7,8 @@ namespace sdl {
 
     SdlLayout::SdlLayout(SdlWidget* container):
       m_widget(container),
-      m_items()
+      m_items(),
+      m_dirty(true)
     {}
 
     SdlLayout::~SdlLayout() {
@@ -22,6 +23,11 @@ namespace sdl {
         return;
       }
 
+      // Check if this layout is dirty.
+      if (!m_dirty) {
+        return;
+      }
+
       // And if some items are managed by this layout.
       if (m_items.empty()) {
         return;
@@ -29,6 +35,8 @@ namespace sdl {
 
       // Update with private handler.
       updatePrivate(area);
+
+      m_dirty = false;
     }
 
   }

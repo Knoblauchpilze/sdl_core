@@ -57,19 +57,19 @@ namespace sdl {
         setLayout(std::shared_ptr<SdlLayout> layout) noexcept;
 
         void
-        onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent);
+        onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) override;
 
         void
-        onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent);
+        onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) override;
 
         void
-        onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent);
+        onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent) override;
 
         void
-        onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent);
+        onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) override;
 
         void
-        onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent);
+        onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) override;
 
         void
         onMouseWheelEvent(const SDL_MouseWheelEvent& event);

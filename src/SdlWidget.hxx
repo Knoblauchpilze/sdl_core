@@ -29,7 +29,7 @@ namespace sdl {
     }
 
     inline
-    const Boxf&
+    Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
@@ -63,6 +63,13 @@ namespace sdl {
     SdlWidget::setDrawable(bool isDrawable) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_isDrawable = isDrawable;
+    }
+
+    inline
+    SDL_BlendMode
+    SdlWidget::getBlendMode() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      return m_blendMode;
     }
 
     inline
@@ -183,6 +190,8 @@ namespace sdl {
         areaAsRect.h
       );
 
+      SDL_SetTextureBlendMode(content, m_blendMode);
+
       if (content == nullptr) {
         throw SdlException(std::string("Could not create content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
       }
@@ -196,14 +205,22 @@ namespace sdl {
     inline
     void
     SdlWidget::clearContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
-      SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);
       SDL_Color currentDrawColor;
       SDL_GetRenderDrawColor(renderer, &currentDrawColor.r, &currentDrawColor.g, &currentDrawColor.b, &currentDrawColor.a);
+      SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);
+
       SDL_SetRenderTarget(renderer, texture);
       SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, m_background.a);
       SDL_RenderClear(renderer);
+
       SDL_SetRenderTarget(renderer, currentTarget);
       SDL_SetRenderDrawColor(renderer, currentDrawColor.r, currentDrawColor.g, currentDrawColor.b, currentDrawColor.a);
+    }
+
+    inline
+    void
+    SdlWidget::drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
+      // Nothing to do.
     }
 
     inline
@@ -274,6 +291,8 @@ namespace sdl {
       // Draw the picture at the corresponding place.
       const Boxf& render = child.getRenderingArea();
       SDL_Rect dstArea = render.toSDLRect();
+
+      SDL_SetTextureAlphaMod(picture, m_background.a);
 
       if (picture != nullptr) {
         SDL_RenderCopy(renderer, picture, nullptr, &dstArea);

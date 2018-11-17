@@ -7,13 +7,15 @@ namespace sdl {
     SdlWidget::SdlWidget(const std::string& name,
                          const Boxf& area,
                          SdlWidget* parent,
-                         const SDL_Color& color):
+                         const SDL_Color& color,
+                         const SDL_BlendMode& blendMode):
       SdlEventListener(SdlEventListener::Interaction::MouseButtonReleased),
 
       m_name(name),
       m_parent(parent),
       m_area(area),
       m_background(color),
+      m_blendMode(blendMode),
 
       m_dirty(true),
       m_isDrawable(true),
@@ -39,6 +41,10 @@ namespace sdl {
         clearTexture();
         m_content = createContentPrivate(renderer);
         m_dirty = false;
+      }
+      else {
+        clearContentPrivate(renderer, m_content);
+        drawContentPrivate(renderer, m_content);
       }
 
       SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);

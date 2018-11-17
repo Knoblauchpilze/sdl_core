@@ -20,14 +20,15 @@ namespace sdl {
         SdlWidget(const std::string& name,
                   const Boxf& area,
                   SdlWidget* parent = nullptr,
-                  const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
+                  const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE},
+                  const SDL_BlendMode& blendMode = SDL_BLENDMODE_BLEND);
 
         virtual ~SdlWidget();
 
         const std::string&
         getName() const noexcept;
 
-        const Boxf&
+        Boxf
         getRenderingArea() const noexcept;
 
         void
@@ -41,6 +42,10 @@ namespace sdl {
 
         void
         setDrawable(bool isDrawable) noexcept;
+
+        SDL_BlendMode
+        getBlendMode() const noexcept;
+
 
         virtual SDL_Texture*
         draw(SDL_Renderer* renderer);
@@ -84,6 +89,9 @@ namespace sdl {
         virtual void
         clearContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept;
 
+        virtual void
+        drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept;
+
         void
         setParent(SdlWidget* parent);
 
@@ -112,7 +120,7 @@ namespace sdl {
         void
         drawChild(SDL_Renderer* renderer, SdlWidget& child);
 
-      private:
+      protected:
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
@@ -121,6 +129,7 @@ namespace sdl {
         SdlWidget* m_parent;
         Boxf m_area;
         SDL_Color m_background;
+        SDL_BlendMode m_blendMode;
 
         bool m_dirty;
         bool m_isDrawable;

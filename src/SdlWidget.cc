@@ -63,7 +63,8 @@ namespace sdl {
         drawContentPrivate(renderer, m_content);
       }
 
-      SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);
+      // Save the current state of the renderer.
+      RendererState state(renderer);
       SDL_SetRenderTarget(renderer, m_content);
 
       // Update layout if any.
@@ -85,8 +86,6 @@ namespace sdl {
                     << std::endl;
         }
       }
-
-      SDL_SetRenderTarget(renderer, currentTarget);
 
       // Return the built-in texture.
       return m_content;

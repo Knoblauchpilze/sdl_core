@@ -3,6 +3,7 @@
 
 # include "SdlWidget.hh"
 # include "SdlException.hh"
+# include "RendererState.hh"
 
 namespace sdl {
   namespace core {
@@ -109,51 +110,6 @@ namespace sdl {
       {
         widget->second->onKeyReleasedEvent(keyEvent);
       }
-
-      if (getName() == "left_widget" && keyEvent.keysym.sym == SDLK_KP_7) {
-        m_background.a = std::min(m_background.a + 4, 255);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-      if (getName() == "left_widget" && keyEvent.keysym.sym == SDLK_KP_4) {
-        m_background.a = std::max(m_background.a - 4, 0);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-
-      if (getName() == "right_widget" && keyEvent.keysym.sym == SDLK_KP_8) {
-        m_background.a = std::min(m_background.a + 4, 255);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-      if (getName() == "right_widget" && keyEvent.keysym.sym == SDLK_KP_5) {
-        m_background.a = std::max(m_background.a - 4, 0);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-
-      if (getName() == "widget4" && keyEvent.keysym.sym == SDLK_KP_9) {
-        m_background.a = std::min(m_background.a + 4, 255);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-      if (getName() == "widget4" && keyEvent.keysym.sym == SDLK_KP_6) {
-        m_background.a = std::max(m_background.a - 4, 0);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-
-      if (getName() == "widget5" && keyEvent.keysym.sym == SDLK_KP_1) {
-        m_background.a = std::min(m_background.a + 4, 255);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-      if (getName() == "widget5" && keyEvent.keysym.sym == SDLK_KP_0) {
-        m_background.a = std::max(m_background.a - 4, 0);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-
-      if (getName() == "widget6" && keyEvent.keysym.sym == SDLK_KP_2) {
-        m_background.a = std::min(m_background.a + 4, 255);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
-      if (getName() == "widget6" && keyEvent.keysym.sym == SDLK_KP_COMMA) {
-        m_background.a = std::max(m_background.a - 4, 0);
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
-      }
     }
 
     inline
@@ -253,20 +209,12 @@ namespace sdl {
     inline
     void
     SdlWidget::clearContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
-      SDL_Color currentDrawColor;
-      SDL_GetRenderDrawColor(renderer, &currentDrawColor.r, &currentDrawColor.g, &currentDrawColor.b, &currentDrawColor.a);
-      SDL_Texture* currentTarget = SDL_GetRenderTarget(renderer);
-      SDL_BlendMode blendMode;
-      SDL_GetRenderDrawBlendMode(renderer, &blendMode);
+      // Save the current state of the renderer: this will automatically handle restoring the state upon destroying this object.
+      RendererState state(renderer);
 
       SDL_SetRenderTarget(renderer, texture);
-      SDL_SetRenderDrawBlendMode(renderer, m_blendMode);
       SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, m_background.a);
       SDL_RenderClear(renderer);
-
-      SDL_SetRenderTarget(renderer, currentTarget);
-      SDL_SetRenderDrawColor(renderer, currentDrawColor.r, currentDrawColor.g, currentDrawColor.b, currentDrawColor.a);
-      SDL_SetRenderDrawBlendMode(renderer, blendMode);
     }
 
     inline

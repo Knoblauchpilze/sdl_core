@@ -20,8 +20,7 @@ namespace sdl {
         SdlWidget(const std::string& name,
                   const Boxf& area,
                   SdlWidget* parent = nullptr,
-                  const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE},
-                  const SDL_BlendMode& blendMode = SDL_BLENDMODE_BLEND);
+                  const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
 
         virtual ~SdlWidget();
 
@@ -45,7 +44,6 @@ namespace sdl {
 
         SDL_BlendMode
         getBlendMode() const noexcept;
-
 
         virtual SDL_Texture*
         draw(SDL_Renderer* renderer);

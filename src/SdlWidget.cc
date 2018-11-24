@@ -7,6 +7,7 @@ namespace sdl {
     SdlWidget::SdlWidget(const std::string& name,
                          const Boxf& area,
                          SdlWidget* parent,
+                         const bool transparent,
                          const SDL_Color& color):
       SdlEventListener(SdlEventListener::Interaction::MouseButtonReleased),
 
@@ -34,7 +35,9 @@ namespace sdl {
       ),
 
       m_dirty(true),
-      m_isDrawable(true),
+      m_isVisible(true),
+      m_transparent(transparent),
+      m_clearContent(nullptr),
       m_content(nullptr),
       m_drawingLocker(),
 
@@ -55,7 +58,29 @@ namespace sdl {
       // Repaint if needed.
       if (hasChanged()) {
         clearTexture();
-        m_content = createContentPrivate(renderer);
+        m_clearContent = createContentPrivate(renderer);
+
+        const SDL_Rect areaAsRect = m_area.toSDLRect();
+        m_content = SDL_CreateTexture(
+          renderer,
+          SDL_PIXELFORMAT_RGBA8888,
+          SDL_TEXTUREACCESS_TARGET,
+          areaAsRect.w,
+          areaAsRect.h
+        );
+        if (m_content == nullptr) {
+          throw SdlException(std::string("Could not create content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+        }
+
+        // Assign the blend mode.
+        int retCode = SDL_SetTextureBlendMode(m_content, m_blendMode);
+        if (retCode != 0) {
+          throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+        }
+
+        clearContentPrivate(renderer, m_content);
+        drawContentPrivate(renderer, m_content);
+
         m_dirty = false;
       }
       else {
@@ -75,7 +100,7 @@ namespace sdl {
       // Proceed to update of children containers if any.
       for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         try {
-          if (child->second->isDrawable()) {
+          if (child->second->isVisible()) {
             drawChild(renderer, *child->second);
           }
         }

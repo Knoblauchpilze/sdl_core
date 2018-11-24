@@ -20,6 +20,7 @@ namespace sdl {
         SdlWidget(const std::string& name,
                   const Boxf& area,
                   SdlWidget* parent = nullptr,
+                  const bool transparent = false,
                   const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
 
         virtual ~SdlWidget();
@@ -37,10 +38,10 @@ namespace sdl {
         setBackgroundColor(const SDL_Color& color) noexcept;
 
         bool
-        isDrawable() const noexcept;
+        isVisible() const noexcept;
 
         void
-        setDrawable(bool isDrawable) noexcept;
+        setVisible(bool isVisible) noexcept;
 
         SDL_BlendMode
         getBlendMode() const noexcept;
@@ -70,10 +71,10 @@ namespace sdl {
         onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) override;
 
         void
-        onMouseWheelEvent(const SDL_MouseWheelEvent& event);
+        onMouseWheelEvent(const SDL_MouseWheelEvent& event) override;
 
         void
-        onQuitEvent(const SDL_QuitEvent& event);
+        onQuitEvent(const SDL_QuitEvent& event) override;
 
       protected:
 
@@ -130,7 +131,9 @@ namespace sdl {
         SDL_BlendMode m_blendMode;
 
         bool m_dirty;
-        bool m_isDrawable;
+        bool m_isVisible;
+        bool m_transparent;
+        SDL_Texture* m_clearContent;
         SDL_Texture* m_content;
         mutable std::mutex m_drawingLocker;
 

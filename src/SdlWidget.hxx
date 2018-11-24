@@ -54,16 +54,16 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::isDrawable() const noexcept {
+    SdlWidget::isVisible() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      return m_isDrawable;
+      return m_isVisible;
     }
 
     inline
     void
-    SdlWidget::setDrawable(bool isDrawable) noexcept {
+    SdlWidget::setVisible(bool isVisible) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      m_isDrawable = isDrawable;
+      m_isVisible = isVisible;
     }
 
     inline
@@ -175,7 +175,7 @@ namespace sdl {
     inline
     bool
     SdlWidget::hasChanged() const noexcept {
-      return m_dirty && m_isDrawable;
+      return m_dirty && m_isVisible;
     }
 
     inline
@@ -183,6 +183,29 @@ namespace sdl {
     SdlWidget::createContentPrivate(SDL_Renderer* renderer) const {
       const SDL_Rect areaAsRect = m_area.toSDLRect();
 
+      // // Create the initial surface.
+      SDL_Surface* rgbContent = SDL_CreateRGBSurface(0, areaAsRect.w, areaAsRect.h, 32, 0, 0, 0, 0);
+      if (rgbContent == nullptr) {
+        throw SdlException(std::string("Could not create rgb content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+      }
+
+      // Fill the created surface with the background color.
+      SDL_FillRect(rgbContent, nullptr, SDL_MapRGBA(rgbContent->format, m_background.r, m_background.g, m_background.b, m_background.a));
+
+      // Associate transparent color if needed.
+      if (m_transparent) {
+        SDL_SetColorKey(rgbContent, SDL_TRUE, SDL_MapRGBA(rgbContent->format, m_background.r, m_background.g, m_background.b, m_background.a));
+      }
+      SDL_SetSurfaceAlphaMod(rgbContent, m_background.a);
+
+      SDL_Texture* rgbTexture = SDL_CreateTextureFromSurface(renderer, rgbContent);
+      SDL_FreeSurface(rgbContent);
+      if (rgbTexture == nullptr) {
+        throw SdlException(std::string("Could not create rgb texture for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+      }
+
+      // The texture is created using SDL_TEXTUREACCESS_STATIC, which means we cannot use it as a render target. Thus we cannot use
+      // it directly, we first need to create a valid texture.
       SDL_Texture* content = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGBA8888,
@@ -190,19 +213,18 @@ namespace sdl {
         areaAsRect.w,
         areaAsRect.h
       );
-
-      int retCode = SDL_SetTextureBlendMode(content, m_blendMode);
-      if (retCode != 0) {
-        throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-      }
-
       if (content == nullptr) {
         throw SdlException(std::string("Could not create content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
       }
 
-      // Clear the content (i.e. fill with color).
-      clearContentPrivate(renderer, content);
-      
+      // Copy the texture to the one with valid access.
+      RendererState state(renderer);
+
+      // Perform the copy of the rgb texture to the output texture now that the transparency has been set.
+      SDL_SetRenderTarget(renderer, content);
+      SDL_RenderCopy(renderer, rgbTexture, nullptr, nullptr);
+      SDL_DestroyTexture(rgbTexture);
+
       return content;
     }
 
@@ -213,8 +235,7 @@ namespace sdl {
       RendererState state(renderer);
 
       SDL_SetRenderTarget(renderer, texture);
-      SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, m_background.a);
-      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, m_clearContent, nullptr, nullptr);
     }
 
     inline
@@ -279,6 +300,9 @@ namespace sdl {
     SdlWidget::clearTexture() {
       if (m_content != nullptr) {
         SDL_DestroyTexture(m_content);
+      }
+      if (m_clearContent != nullptr) {
+        SDL_DestroyTexture(m_clearContent);
       }
     }
 

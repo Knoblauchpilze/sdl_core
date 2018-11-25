@@ -119,6 +119,9 @@ namespace sdl {
         void
         drawChild(SDL_Renderer* renderer, SdlWidget& child);
 
+        SDL_Texture*
+        createClearContent(SDL_Renderer* renderer) const;
+
       protected:
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;

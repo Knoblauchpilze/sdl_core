@@ -28,8 +28,8 @@ namespace sdl {
           SDL_BLENDFACTOR_SRC_ALPHA,           // srcColorFactor
           SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, // dstColorFactor
           SDL_BLENDOPERATION_ADD,              // colorOperation
-          SDL_BLENDFACTOR_DST_ALPHA,           // srcAlphaFactor
-          SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, // dstAlphaFactor
+          SDL_BLENDFACTOR_ZERO,                // srcAlphaFactor
+          SDL_BLENDFACTOR_ONE,                 // dstAlphaFactor
           SDL_BLENDOPERATION_ADD               // alphaOperation
         )
       ),
@@ -58,25 +58,8 @@ namespace sdl {
       // Repaint if needed.
       if (hasChanged()) {
         clearTexture();
-        m_clearContent = createContentPrivate(renderer);
-
-        const SDL_Rect areaAsRect = m_area.toSDLRect();
-        m_content = SDL_CreateTexture(
-          renderer,
-          SDL_PIXELFORMAT_RGBA8888,
-          SDL_TEXTUREACCESS_TARGET,
-          areaAsRect.w,
-          areaAsRect.h
-        );
-        if (m_content == nullptr) {
-          throw SdlException(std::string("Could not create content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-        }
-
-        // Assign the blend mode.
-        int retCode = SDL_SetTextureBlendMode(m_content, m_blendMode);
-        if (retCode != 0) {
-          throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-        }
+        m_clearContent = createClearContent(renderer);
+        m_content = createContentPrivate(renderer);
 
         clearContentPrivate(renderer, m_content);
         drawContentPrivate(renderer, m_content);

@@ -132,6 +132,7 @@ namespace sdl {
         Boxf m_area;
         SDL_Color m_background;
         SDL_BlendMode m_blendMode;
+        SDL_BlendMode m_transparentBlendMode;
 
         bool m_dirty;
         bool m_isVisible;

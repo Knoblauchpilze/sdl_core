@@ -96,7 +96,7 @@ namespace sdl {
            widget != m_children.cend() ;
            ++widget)
       {
-        widget->second->onKeyReleasedEvent(keyEvent);
+        widget->second->onKeyPressedEvent(keyEvent);
       }
     }
 
@@ -158,6 +158,27 @@ namespace sdl {
       {
         widget->second->onMouseWheelEvent(event);
       }
+
+      if (getName() == "right_widget") {
+        if (event.y < 0) {
+          if (m_background.a < 10) {
+            m_background.a = 0;
+          }
+          else {
+            m_background.a = std::max(0, m_background.a - 10);
+          }
+        }
+        else {
+          if (m_background.a > 245) {
+            m_background.a = 255;
+          }
+          else {
+            m_background.a = std::min(255, m_background.a + 10);
+          }
+        }
+        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
+        makeDirty();
+      }
     }
 
     inline
@@ -209,9 +230,11 @@ namespace sdl {
       SDL_SetTextureAlphaMod(textureContent, m_background.a);
 
       // Assign the blend mode.
+      const SDL_BlendMode mode = (m_transparent ? m_transparentBlendMode : m_blendMode);
+
       int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
       if (retCode != 0) {
-        throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+        throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(mode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
       }
 
       // Return the texture.

@@ -33,6 +33,16 @@ namespace sdl {
           SDL_BLENDOPERATION_ADD               // alphaOperation
         )
       ),
+      m_transparentBlendMode(
+        SDL_ComposeCustomBlendMode(
+          SDL_BLENDFACTOR_SRC_ALPHA, // srcColorFactor
+          SDL_BLENDFACTOR_ZERO,      // dstColorFactor
+          SDL_BLENDOPERATION_ADD,    // colorOperation
+          SDL_BLENDFACTOR_ONE,       // srcAlphaFactor
+          SDL_BLENDFACTOR_ZERO,      // dstAlphaFactor
+          SDL_BLENDOPERATION_ADD     // alphaOperation
+        )
+      ),
 
       m_dirty(true),
       m_isVisible(true),
@@ -80,6 +90,13 @@ namespace sdl {
         m_layout->update(m_area);
       }
 
+      if (m_transparent) {
+        int retCode = SDL_SetTextureBlendMode(m_content, m_transparentBlendMode);
+        if (retCode != 0) {
+          throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_transparentBlendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+        }
+      }
+
       // Proceed to update of children containers if any.
       for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         try {
@@ -92,6 +109,13 @@ namespace sdl {
                     << " for container " << getName()
                     << std::endl << e.what()
                     << std::endl;
+        }
+      }
+
+      if (m_transparent) {
+        int retCode = SDL_SetTextureBlendMode(m_content, m_blendMode);
+        if (retCode != 0) {
+          throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
         }
       }
 

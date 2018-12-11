@@ -119,9 +119,6 @@ namespace sdl {
         void
         drawChild(SDL_Renderer* renderer, SdlWidget& child);
 
-        SDL_Texture*
-        createClearContent(SDL_Renderer* renderer) const;
-
       protected:
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
@@ -132,12 +129,10 @@ namespace sdl {
         Boxf m_area;
         SDL_Color m_background;
         SDL_BlendMode m_blendMode;
-        SDL_BlendMode m_transparentBlendMode;
 
         bool m_dirty;
         bool m_isVisible;
         bool m_transparent;
-        SDL_Texture* m_clearContent;
         SDL_Texture* m_content;
         mutable std::mutex m_drawingLocker;
 

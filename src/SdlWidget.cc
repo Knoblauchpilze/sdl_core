@@ -33,21 +33,10 @@ namespace sdl {
           SDL_BLENDOPERATION_ADD               // alphaOperation
         )
       ),
-      m_transparentBlendMode(
-        SDL_ComposeCustomBlendMode(
-          SDL_BLENDFACTOR_SRC_ALPHA, // srcColorFactor
-          SDL_BLENDFACTOR_ZERO,      // dstColorFactor
-          SDL_BLENDOPERATION_ADD,    // colorOperation
-          SDL_BLENDFACTOR_ONE,       // srcAlphaFactor
-          SDL_BLENDFACTOR_ZERO,      // dstAlphaFactor
-          SDL_BLENDOPERATION_ADD     // alphaOperation
-        )
-      ),
 
       m_dirty(true),
       m_isVisible(true),
       m_transparent(transparent),
-      m_clearContent(nullptr),
       m_content(nullptr),
       m_drawingLocker(),
 
@@ -68,33 +57,23 @@ namespace sdl {
       // Repaint if needed.
       if (hasChanged()) {
         clearTexture();
-        m_clearContent = createClearContent(renderer);
         m_content = createContentPrivate(renderer);
-
-        clearContentPrivate(renderer, m_content);
-        drawContentPrivate(renderer, m_content);
-
         m_dirty = false;
       }
-      else {
-        clearContentPrivate(renderer, m_content);
-        drawContentPrivate(renderer, m_content);
-      }
+
+      // Clear the content and draw the new version.
+      clearContentPrivate(renderer, m_content);
+      drawContentPrivate(renderer, m_content);
 
       // Save the current state of the renderer.
       RendererState state(renderer);
+
+      // The rendering target is now set to 'm_content'.
       SDL_SetRenderTarget(renderer, m_content);
 
       // Update layout if any.
       if (m_layout != nullptr) {
         m_layout->update(m_area);
-      }
-
-      if (m_transparent) {
-        int retCode = SDL_SetTextureBlendMode(m_content, m_transparentBlendMode);
-        if (retCode != 0) {
-          throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_transparentBlendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-        }
       }
 
       // Proceed to update of children containers if any.
@@ -109,13 +88,6 @@ namespace sdl {
                     << " for container " << getName()
                     << std::endl << e.what()
                     << std::endl;
-        }
-      }
-
-      if (m_transparent) {
-        int retCode = SDL_SetTextureBlendMode(m_content, m_blendMode);
-        if (retCode != 0) {
-          throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
         }
       }
 

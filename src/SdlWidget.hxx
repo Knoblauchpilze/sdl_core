@@ -226,16 +226,20 @@ namespace sdl {
         throw SdlException(std::string("Could not create texture for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
       }
 
+      // Assign the custom blend mode.
+      int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
+      if (retCode != 0) {
+        throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+      }
+
       // Assign alpha modulation to this texture based on the background color.
       SDL_SetTextureAlphaMod(textureContent, m_background.a);
 
-      // Assign the blend mode.
-      const SDL_BlendMode mode = (m_transparent ? m_transparentBlendMode : m_blendMode);
-
-      int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
-      if (retCode != 0) {
-        throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(mode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-      }
+      // Fill the texture with opaque background color, transparency being handled using alpha modulation.
+      RendererState state(renderer);
+      SDL_SetRenderTarget(renderer, textureContent);
+      SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, SDL_ALPHA_OPAQUE);
+      SDL_RenderClear(renderer);
 
       // Return the texture.
       return textureContent;
@@ -248,7 +252,8 @@ namespace sdl {
       RendererState state(renderer);
 
       SDL_SetRenderTarget(renderer, texture);
-      SDL_RenderCopy(renderer, m_clearContent, nullptr, nullptr);
+      SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, SDL_ALPHA_OPAQUE);
+      SDL_RenderClear(renderer);
     }
 
     inline
@@ -314,9 +319,6 @@ namespace sdl {
       if (m_content != nullptr) {
         SDL_DestroyTexture(m_content);
       }
-      if (m_clearContent != nullptr) {
-        SDL_DestroyTexture(m_clearContent);
-      }
     }
 
     inline
@@ -332,47 +334,6 @@ namespace sdl {
       if (picture != nullptr) {
         SDL_RenderCopy(renderer, picture, nullptr, &dstArea);
       }
-    }
-
-    inline
-    SDL_Texture*
-    SdlWidget::createClearContent(SDL_Renderer* renderer) const {
-      // What we want is to create a texture with a color corresponding to the internal
-      // background color, and which is transparent if needed.
-      // We cannot create a simple texture and then set a transparent key. To do so we need
-      // to use the good'ol surface system to create a transparent one, and then transform it
-      // into a texture.
-      // Note that the texture created from a surface has static access, which means we cannot use
-      // it as a render surface. This is not really a problem in our case because we use the
-      // 'm_content' texture as a render target (which is created in the 'createContentPrivate'
-      // method).
-
-      // Retrieve the dimensions of the area to create.
-      const SDL_Rect areaAsRect = m_area.toSDLRect();
-
-      // Create the initial surface with the corresponding dimensions.
-      SDL_Surface* surfaceContent = SDL_CreateRGBSurface(0, areaAsRect.w, areaAsRect.h, 32, 0, 0, 0, 0);
-      if (surfaceContent == nullptr) {
-        throw SdlException(std::string("Could not create content for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-      }
-
-      // Fill the created surface with the background color.
-      SDL_FillRect(surfaceContent, nullptr, SDL_MapRGB(surfaceContent->format, m_background.r, m_background.g, m_background.b));
-
-      // Associate transparent color if needed.
-      if (m_transparent) {
-        SDL_SetColorKey(surfaceContent, SDL_TRUE, SDL_MapRGB(surfaceContent->format, m_background.r, m_background.g, m_background.b));
-      }
-
-      // Create a texture from this surface.
-      SDL_Texture* staticTextureContent = SDL_CreateTextureFromSurface(renderer, surfaceContent);
-      SDL_FreeSurface(surfaceContent);
-      if (staticTextureContent == nullptr) {
-        throw SdlException(std::string("Could not create static texture for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
-      }
-
-      // Return it.
-      return staticTextureContent;
     }
 
   }

@@ -8,13 +8,13 @@ namespace sdl {
                          const Boxf& area,
                          SdlWidget* parent,
                          const bool transparent,
-                         const SDL_Color& color):
-      SdlEventListener(SdlEventListener::Interaction::MouseButtonReleased),
+                         const Palette& palette):
+      EventListener(EventListener::Interaction::MouseButtonReleased),
 
       m_name(name),
       m_parent(parent),
       m_area(area),
-      m_background(color),
+      m_palette(palette),
 
       // This custom blend mode is mainly used to be able to have additive alpha blending in children widget.
       // Basically if a widget has a transparency of 128 and one of its children has also a transparency of 128,

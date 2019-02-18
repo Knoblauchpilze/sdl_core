@@ -1,14 +1,14 @@
-#ifndef    SDLLAYOUT_HXX
-# define   SDLLAYOUT_HXX
+#ifndef    LAYOUT_HXX
+# define   LAYOUT_HXX
 
-# include "SdlLayout.hh"
+# include "Layout.hh"
 
 namespace sdl {
   namespace core {
 
     inline
     int
-    SdlLayout::addItem(SdlWidget* item) {
+    Layout::addItem(SdlWidget* item) {
       if (item != nullptr && getContainerOrNull(item) == nullptr) {
         m_items.push_back(item);
         makeDirty();
@@ -19,7 +19,7 @@ namespace sdl {
 
     inline
     int
-    SdlLayout::addItem(SdlWidget* item,
+    Layout::addItem(SdlWidget* item,
                     const unsigned& x,
                     const unsigned& y,
                     const unsigned& w,
@@ -31,7 +31,7 @@ namespace sdl {
 
     inline
     void
-    SdlLayout::removeItem(SdlWidget* item) {
+    Layout::removeItem(SdlWidget* item) {
       int index = m_items.size();
       getContainerOrNull(item, &index);
       if (index < m_items.size()) {
@@ -42,20 +42,20 @@ namespace sdl {
 
     inline
     unsigned
-    SdlLayout::getItemsCount() const noexcept {
+    Layout::getItemsCount() const noexcept {
       return m_items.size();
     }
 
     inline
     void
-    SdlLayout::makeDirty() noexcept {
+    Layout::makeDirty() noexcept {
       m_dirty = true;
     }
 
 
     inline
     SdlWidget*
-    SdlLayout::getContainerOrNull(SdlWidget* item, int* index) const {
+    Layout::getContainerOrNull(SdlWidget* item, int* index) const {
       std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
       int itemId = 0;
       while (itemToFind != m_items.cend() && item != *itemToFind) {
@@ -76,4 +76,4 @@ namespace sdl {
   }
 }
 
-#endif    /* SDLLAYOUT_HXX */
+#endif    /* LAYOUT_HXX */

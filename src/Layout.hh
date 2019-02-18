@@ -1,5 +1,5 @@
-#ifndef    SDLLAYOUT_HH
-# define   SDLLAYOUT_HH
+#ifndef    LAYOUT_HH
+# define   LAYOUT_HH
 
 # include <memory>
 # include <vector>
@@ -13,12 +13,12 @@ namespace sdl {
     class SdlWidget;
 
     // Slave class of SdlWidget.
-    class SdlLayout {
+    class Layout {
       public:
 
-        SdlLayout(SdlWidget* widget = nullptr);
+        Layout(SdlWidget* widget = nullptr);
 
-        virtual ~SdlLayout();
+        virtual ~Layout();
 
         void
         update(const Boxf& area);
@@ -60,10 +60,10 @@ namespace sdl {
 
     };
 
-    using SdlLayoutShPtr = std::shared_ptr<SdlLayout>;
+    using LayoutShPtr = std::shared_ptr<Layout>;
   }
 }
 
-# include "SdlLayout.hxx"
+# include "Layout.hxx"
 
-#endif    /* SDLLAYOUT_HH */
+#endif    /* LAYOUT_HH */

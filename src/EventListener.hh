@@ -1,12 +1,12 @@
-#ifndef    SDLEVENTLISTENER_HH
-# define   SDLEVENTLISTENER_HH
+#ifndef    EVENTLISTENER_HH
+# define   EVENTLISTENER_HH
 
 # include <SDL2/SDL.h>
 
 namespace sdl {
   namespace core {
 
-    class SdlEventListener {
+    class EventListener {
       public:
 
         struct Interaction {
@@ -38,9 +38,9 @@ namespace sdl {
 
       public:
 
-        SdlEventListener(const Interaction::Mask& mask);
+        EventListener(const Interaction::Mask& mask);
 
-        virtual ~SdlEventListener();
+        virtual ~EventListener();
 
         const Interaction::Mask&
         getInteractionMask() const noexcept;
@@ -80,6 +80,6 @@ namespace sdl {
   }
 }
 
-# include "SdlEventListener.hxx"
+# include "EventListener.hxx"
 
-#endif    /* SDLEVENTLISTENER_HH */
+#endif    /* EVENTLISTENER_HH */

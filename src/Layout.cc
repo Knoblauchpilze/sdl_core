@@ -1,23 +1,23 @@
 
-# include "SdlLayout.hh"
+# include "Layout.hh"
 # include "SdlWidget.hh"
 
 namespace sdl {
   namespace core {
 
-    SdlLayout::SdlLayout(SdlWidget* container):
+    Layout::Layout(SdlWidget* container):
       m_widget(container),
       m_items(),
       m_dirty(true)
     {}
 
-    SdlLayout::~SdlLayout() {
+    Layout::~Layout() {
       if (m_widget != nullptr) {
         m_widget->setLayout(nullptr);
       }
     }
 
-    void SdlLayout::update(const Boxf& area) {
+    void Layout::update(const Boxf& area) {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
         return;

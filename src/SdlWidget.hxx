@@ -46,9 +46,9 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setBackgroundColor(const SDL_Color& color) noexcept {
+    SdlWidget::setBackgroundColor(const Color& color) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      m_background = color;
+      m_palette.setBackgroundColor(color);
       makeDirty();
     }
 
@@ -82,7 +82,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setLayout(std::shared_ptr<SdlLayout> layout) noexcept {
+    SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_layout = layout;
       makeDirty();
@@ -160,23 +160,27 @@ namespace sdl {
       }
 
       if (getName() == "right_widget") {
+
+        SDL_Color bgColor = m_palette.getBackgroundColor()();
+
         if (event.y < 0) {
-          if (m_background.a < 10) {
-            m_background.a = 0;
+          if (bgColor.a < 10) {
+            bgColor.a = 0;
           }
           else {
-            m_background.a = std::max(0, m_background.a - 10);
+            bgColor.a = std::max(0, bgColor.a - 10);
           }
         }
         else {
-          if (m_background.a > 245) {
-            m_background.a = 255;
+          if (bgColor.a > 245) {
+            bgColor.a = 255;
           }
           else {
-            m_background.a = std::min(255, m_background.a + 10);
+            bgColor.a = std::min(255, bgColor.a + 10);
           }
         }
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(m_background.a) << std::endl;
+        m_palette.setBackgroundColor(Color(bgColor));
+        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(bgColor.a) << std::endl;
         makeDirty();
       }
     }
@@ -232,13 +236,15 @@ namespace sdl {
         throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
       }
 
+      SDL_Color bgColor = m_palette.getBackgroundColor()();
+
       // Assign alpha modulation to this texture based on the background color.
-      SDL_SetTextureAlphaMod(textureContent, m_background.a);
+      SDL_SetTextureAlphaMod(textureContent, bgColor.a);
 
       // Fill the texture with opaque background color, transparency being handled using alpha modulation.
       RendererState state(renderer);
       SDL_SetRenderTarget(renderer, textureContent);
-      SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, SDL_ALPHA_OPAQUE);
+      SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, SDL_ALPHA_OPAQUE);
       SDL_RenderClear(renderer);
 
       // Return the texture.
@@ -251,8 +257,10 @@ namespace sdl {
       // Save the current state of the renderer: this will automatically handle restoring the state upon destroying this object.
       RendererState state(renderer);
 
+      SDL_Color bgColor = m_palette.getBackgroundColor()();
+
       SDL_SetRenderTarget(renderer, texture);
-      SDL_SetRenderDrawColor(renderer, m_background.r, m_background.g, m_background.b, SDL_ALPHA_OPAQUE);
+      SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, SDL_ALPHA_OPAQUE);
       SDL_RenderClear(renderer);
     }
 

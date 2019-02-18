@@ -6,22 +6,24 @@
 # include <unordered_map>
 # include <SDL2/SDL.h>
 # include "Box.hh"
-# include "SdlLayout.hh"
-# include "SdlEventListener.hh"
+# include "Color.hh"
+# include "Layout.hh"
+# include "Palette.hh"
+# include "EventListener.hh"
 
 namespace sdl {
   namespace core {
 
     using Boxf = sdl::utils::Box<float>;
 
-    class SdlWidget: public SdlEventListener {
+    class SdlWidget: public EventListener {
       public:
 
         SdlWidget(const std::string& name,
                   const Boxf& area,
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
-                  const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
+                  const Palette& palette = Palette());
 
         virtual ~SdlWidget();
 
@@ -35,7 +37,7 @@ namespace sdl {
         setRenderingArea(const Boxf& area) noexcept;
 
         void
-        setBackgroundColor(const SDL_Color& color) noexcept;
+        setBackgroundColor(const Color& color) noexcept;
 
         bool
         isVisible() const noexcept;
@@ -53,7 +55,7 @@ namespace sdl {
         getWidgetsCount() const noexcept;
 
         void
-        setLayout(std::shared_ptr<SdlLayout> layout) noexcept;
+        setLayout(std::shared_ptr<Layout> layout) noexcept;
 
         void
         onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) override;
@@ -127,7 +129,7 @@ namespace sdl {
 
         SdlWidget* m_parent;
         Boxf m_area;
-        SDL_Color m_background;
+        Palette m_palette;
         SDL_BlendMode m_blendMode;
 
         bool m_dirty;
@@ -138,7 +140,7 @@ namespace sdl {
 
         WidgetMap m_children;
 
-        std::shared_ptr<SdlLayout> m_layout;
+        std::shared_ptr<Layout> m_layout;
     };
 
     using SdlWidgetShPtr = std::shared_ptr<SdlWidget>;

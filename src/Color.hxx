@@ -13,9 +13,9 @@ namespace sdl {
 
     inline
     Color::Color(const uint8_t& r,
-                       const uint8_t& g,
-                       const uint8_t& b,
-                       const uint8_t& a):
+                 const uint8_t& g,
+                 const uint8_t& b,
+                 const uint8_t& a):
       m_color(SDL_Color{r, g, b, a})
     {}
 
@@ -67,6 +67,24 @@ namespace sdl {
       return 0.299f * static_cast<float>(m_color.r) +
              0.587f * static_cast<float>(m_color.g) +
              0.114f * static_cast<float>(m_color.b);
+    }
+
+    inline
+    Color
+    Color::brighten(const float factor) noexcept {
+      const uint8_t r = static_cast<uint8_t>(std::min(255.0f, static_cast<float>(m_color.r) * factor));
+      const uint8_t g = static_cast<uint8_t>(std::min(255.0f, static_cast<float>(m_color.g) * factor));
+      const uint8_t b = static_cast<uint8_t>(std::min(255.0f, static_cast<float>(m_color.b) * factor));
+      return Color(r, g, b, m_color.a);
+    }
+
+    inline
+    Color
+    Color::darken(const float factor) noexcept {
+      const uint8_t r = static_cast<uint8_t>(std::min(255.0f, static_cast<float>(m_color.r) / factor));
+      const uint8_t g = static_cast<uint8_t>(std::min(255.0f, static_cast<float>(m_color.g) / factor));
+      const uint8_t b = static_cast<uint8_t>(std::min(255.0f, static_cast<float>(m_color.b) / factor));
+      return Color(r, g, b, m_color.a);
     }
 
   }

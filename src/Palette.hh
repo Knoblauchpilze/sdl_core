@@ -28,12 +28,6 @@ namespace sdl {
         setBackgroundColor(const Color& color);
 
         Color
-        getTextColor() const noexcept;
-
-        void
-        setTextColor(const Color& color);
-
-        Color
         getHoverColor() const noexcept;
 
         void
@@ -45,6 +39,22 @@ namespace sdl {
         void
         setSelectionColor(const Color& color);
 
+        Color
+        getTextColor() const noexcept;
+
+        void
+        setTextColor(const Color& color);
+
+        Color
+        getSelectedTextColor() const noexcept;
+
+        void
+        setSelectedTextColor(const Color& color);
+
+        static
+        Palette
+        fromBackgroundColor(const Color& color) noexcept;
+
       private:
 
         Color m_foregroundColor;
@@ -52,6 +62,7 @@ namespace sdl {
         Color m_hoverColor;
         Color m_selectionColor;
         Color m_textColor;
+        Color m_selectedTextColor;
 
     };
 

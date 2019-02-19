@@ -43,6 +43,32 @@ namespace sdl {
         float
         brightness() const noexcept;
 
+        Color
+        brighten(const float factor) noexcept;
+
+        Color
+        darken(const float factor) noexcept;
+
+      public:
+
+        static const Color White;
+        static const Color Black;
+        static const Color Red;
+        static const Color Green;
+        static const Color Blue;
+        static const Color Yellow;
+        static const Color Orange;
+        static const Color Cyan;
+        static const Color Magenta;
+        static const Color Silver;
+        static const Color Gray;
+        static const Color Maroon;
+        static const Color Olive;
+        static const Color Purple;
+        static const Color Teal;
+        static const Color Navy;
+        static const Color CorneFlowerBlue;
+
       private:
 
         SDL_Color m_color;

@@ -12,6 +12,7 @@ set (SOURCES
   SdlWidget.cc
   Layout.cc
   Font.cc
+  Color.cc
   EventListener.cc
   )
 

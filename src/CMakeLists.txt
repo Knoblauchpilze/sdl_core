@@ -13,6 +13,7 @@ set (SOURCES
   Layout.cc
   Font.cc
   Color.cc
+  SizePolicy.cc
   EventListener.cc
   )
 

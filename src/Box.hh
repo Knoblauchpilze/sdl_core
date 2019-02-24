@@ -24,6 +24,9 @@ namespace sdl {
             const CoordinateType& width = CoordinateType(),
             const CoordinateType& height = CoordinateType()) noexcept;
 
+        bool
+        valid() const noexcept;
+
         CoordinateType&
         x() noexcept;
 

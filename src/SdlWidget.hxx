@@ -90,6 +90,14 @@ namespace sdl {
 
     inline
     void
+    SdlWidget::setSizePolicy(const SizePolicy& policy) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      m_sizePolicy = policy;
+      makeDirty();
+    }
+
+    inline
+    void
     SdlWidget::onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;

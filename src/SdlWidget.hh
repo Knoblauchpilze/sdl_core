@@ -9,6 +9,7 @@
 # include "Color.hh"
 # include "Layout.hh"
 # include "Palette.hh"
+# include "SizePolicy.hh"
 # include "EventListener.hh"
 
 namespace sdl {
@@ -56,6 +57,9 @@ namespace sdl {
 
         void
         setLayout(std::shared_ptr<Layout> layout) noexcept;
+
+        void
+        setSizePolicy(const SizePolicy& policy) noexcept;
 
         void
         onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) override;
@@ -140,6 +144,7 @@ namespace sdl {
 
         WidgetMap m_children;
 
+        SizePolicy m_sizePolicy;
         std::shared_ptr<Layout> m_layout;
     };
 

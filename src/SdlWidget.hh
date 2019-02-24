@@ -21,7 +21,7 @@ namespace sdl {
       public:
 
         SdlWidget(const std::string& name,
-                  const Boxf& area,
+                  const Boxf& sizeHint = Boxf(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
                   const Palette& palette = Palette());
@@ -30,6 +30,15 @@ namespace sdl {
 
         const std::string&
         getName() const noexcept;
+
+        Boxf
+        getSizeHint() const noexcept;
+
+        SizePolicy
+        getSizePolicy() const noexcept;
+
+        void
+        setSizeHint(const Boxf& hint) noexcept;
 
         Boxf
         getRenderingArea() const noexcept;
@@ -127,11 +136,14 @@ namespace sdl {
 
       protected:
 
+        friend class Layout;
+
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
         std::string m_name;
 
         SdlWidget* m_parent;
+        Boxf m_sizeHint;
         Boxf m_area;
         Palette m_palette;
         SDL_BlendMode m_blendMode;

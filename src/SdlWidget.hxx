@@ -31,6 +31,28 @@ namespace sdl {
 
     inline
     Boxf
+    SdlWidget::getSizeHint() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      return m_sizeHint;
+    }
+
+    inline
+    SizePolicy
+    SdlWidget::getSizePolicy() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      return m_sizePolicy;
+    }
+
+    inline
+    void
+    SdlWidget::setSizeHint(const Boxf& hint) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      m_sizeHint = hint;
+      makeDirty();
+    }
+
+    inline
+    Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;

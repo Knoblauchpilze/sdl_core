@@ -5,7 +5,7 @@ namespace sdl {
   namespace core {
 
     SdlWidget::SdlWidget(const std::string& name,
-                         const Boxf& area,
+                         const Boxf& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
                          const Palette& palette):
@@ -13,7 +13,8 @@ namespace sdl {
 
       m_name(name),
       m_parent(parent),
-      m_area(area),
+      m_sizeHint(sizeHint),
+      m_area(sizeHint),
       m_palette(palette),
 
       // This custom blend mode is mainly used to be able to have additive alpha blending in children widget.
@@ -55,6 +56,11 @@ namespace sdl {
     SdlWidget::draw(SDL_Renderer* renderer) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
+      // Check whether a valid size is provided for this widget.
+      if (!m_area.valid()) {
+        throw SdlException(std::string("Could not repaint widget \"") + getName() + "\", invalid size");
+      }
+
       // Repaint if needed.
       if (hasChanged()) {
         clearTexture();
@@ -74,7 +80,7 @@ namespace sdl {
 
       // Update layout if any.
       if (m_layout != nullptr) {
-        m_layout->update(m_area);
+        m_layout->update();
       }
 
       // Proceed to update of children containers if any.

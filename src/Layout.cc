@@ -17,7 +17,7 @@ namespace sdl {
       }
     }
 
-    void Layout::update(const Boxf& area) {
+    void Layout::update() {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
         return;
@@ -34,9 +34,33 @@ namespace sdl {
       }
 
       // Update with private handler.
-      updatePrivate(area);
+      updatePrivate(m_widget->m_area);
 
       m_dirty = false;
+    }
+
+    int
+    Layout::addItem(SdlWidget* item) {
+      // Check for valid items.
+      if (item != nullptr) {
+        // Check for duplicated items.
+        if (getContainerOrNull(item) != nullptr) {
+          throw SdlException(std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\", duplicated item");
+        }
+
+        // Insert the item into the layout.
+        m_items.push_back(item);
+        invalidate();
+
+        // Assign the parent widhet for this item.
+        item->setParent(m_widget);
+
+        // Return the index of this item.
+        return m_items.size() - 1;
+      }
+
+      // Invalid item to add.
+      return -1;
     }
 
   }

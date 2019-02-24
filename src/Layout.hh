@@ -21,7 +21,7 @@ namespace sdl {
         virtual ~Layout();
 
         void
-        update(const Boxf& area);
+        update();
 
         virtual int
         addItem(SdlWidget* item);
@@ -45,7 +45,7 @@ namespace sdl {
         updatePrivate(const Boxf& window) = 0;
 
         void
-        makeDirty() noexcept;
+        invalidate() noexcept;
 
       private:
 

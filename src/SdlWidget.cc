@@ -42,6 +42,7 @@ namespace sdl {
 
       m_children(),
 
+      m_sizePolicy(),
       m_layout()
     {
       // Add a child to the parent widget if any.

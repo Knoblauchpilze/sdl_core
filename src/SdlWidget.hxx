@@ -305,6 +305,9 @@ namespace sdl {
     SdlWidget::setParent(SdlWidget* parent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_parent = parent;
+      if (m_parent != nullptr) {
+        m_parent->addWidget(this);
+      }
     }
 
     inline
@@ -341,14 +344,18 @@ namespace sdl {
     void
     SdlWidget::addWidget(SdlWidget* widget) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      // Check for null widget.
       if (widget == nullptr) {
         throw SdlException(std::string("Cannot add null widget to \"") + getName() + "\"");
       }
-      m_children[widget->getName()] = widget;
 
-      if (m_layout != nullptr) {
-        m_layout->addItem(widget);
+      // Check for duplicated widget
+      if (m_children.find(widget->getName()) != m_children.cend()) {
+        throw SdlException(std::string("Cannot add duplicated widget \"") + widget->getName() + "\" to \"" + getName() + "\"");
       }
+
+      m_children[widget->getName()] = widget;
     }
 
     inline

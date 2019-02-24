@@ -12,7 +12,7 @@ namespace sdl {
       EventListener(EventListener::Interaction::MouseButtonReleased),
 
       m_name(name),
-      m_parent(parent),
+      m_parent(nullptr),
       m_sizeHint(sizeHint),
       m_area(sizeHint),
       m_palette(palette),
@@ -46,9 +46,13 @@ namespace sdl {
       m_sizePolicy(),
       m_layout()
     {
-      // Add a child to the parent widget if any.
-      if (parent != nullptr) {
-        parent->addWidget(this);
+      // Register the parent widget: if a layout is registered in the parent widget
+      // we can use this, otherwise use the regular method.
+      if (parent != nullptr && parent->m_layout != nullptr) {
+        parent->m_layout->addItem(this);
+      }
+      else {
+        setParent(parent);
       }
     }
 

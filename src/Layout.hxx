@@ -8,17 +8,6 @@ namespace sdl {
 
     inline
     int
-    Layout::addItem(SdlWidget* item) {
-      if (item != nullptr && getContainerOrNull(item) == nullptr) {
-        m_items.push_back(item);
-        makeDirty();
-        return m_items.size() - 1;
-      }
-      return -1;
-    }
-
-    inline
-    int
     Layout::addItem(SdlWidget* item,
                     const unsigned& x,
                     const unsigned& y,
@@ -36,7 +25,7 @@ namespace sdl {
       getContainerOrNull(item, &index);
       if (index < m_items.size()) {
         m_items.erase(m_items.cbegin() + index);
-        makeDirty();
+        invalidate();
       }
     }
 
@@ -48,7 +37,7 @@ namespace sdl {
 
     inline
     void
-    Layout::makeDirty() noexcept {
+    Layout::invalidate() noexcept {
       m_dirty = true;
     }
 

@@ -20,10 +20,17 @@ namespace sdl {
 
     template <typename CoordinateType>
     inline
+    bool
+    Box<CoordinateType>::valid() const noexcept {
+      return m_w != CoordinateType() && m_h != CoordinateType();
+    }
+
+    template <typename CoordinateType>
+    inline
     CoordinateType&
     Box<CoordinateType>::x() noexcept {
       return m_x;
-    } 
+    }
 
     template <typename CoordinateType>
     inline

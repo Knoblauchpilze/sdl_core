@@ -6,6 +6,7 @@
 # include <unordered_map>
 # include <SDL2/SDL.h>
 # include "Box.hh"
+# include "Size.hh"
 # include "Color.hh"
 # include "Layout.hh"
 # include "Palette.hh"
@@ -16,12 +17,13 @@ namespace sdl {
   namespace core {
 
     using Boxf = sdl::utils::Box<float>;
+    using Sizef = sdl::utils::Size<float>;
 
     class SdlWidget: public EventListener {
       public:
 
         SdlWidget(const std::string& name,
-                  const Boxf& sizeHint = Boxf(),
+                  const Sizef& sizeHint = Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
                   const Palette& palette = Palette());
@@ -31,14 +33,26 @@ namespace sdl {
         const std::string&
         getName() const noexcept;
 
-        Boxf
+        Sizef
+        getMinSize() const noexcept;
+
+        Sizef
         getSizeHint() const noexcept;
+
+        Sizef
+        getMaxSize() const noexcept;
 
         SizePolicy
         getSizePolicy() const noexcept;
 
         void
-        setSizeHint(const Boxf& hint) noexcept;
+        setMinSize(const Sizef& size) noexcept;
+
+        void
+        setSizeHint(const Sizef& hint) noexcept;
+
+        void
+        setMaxSize(const Sizef& size) noexcept;
 
         Boxf
         getRenderingArea() const noexcept;
@@ -143,7 +157,9 @@ namespace sdl {
         std::string m_name;
 
         SdlWidget* m_parent;
-        Boxf m_sizeHint;
+        Sizef m_minSize;
+        Sizef m_sizeHint;
+        Sizef m_maxSize;
         Boxf m_area;
         Palette m_palette;
         SDL_BlendMode m_blendMode;

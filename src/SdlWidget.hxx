@@ -30,10 +30,24 @@ namespace sdl {
     }
 
     inline
-    Boxf
+    Sizef
+    SdlWidget::getMinSize() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      return m_minSize;
+    }
+
+    inline
+    Sizef
     SdlWidget::getSizeHint() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_sizeHint;
+    }
+
+    inline
+    Sizef
+    SdlWidget::getMaxSize() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      return m_maxSize;
     }
 
     inline
@@ -45,9 +59,25 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setSizeHint(const Boxf& hint) noexcept {
+    SdlWidget::setMinSize(const Sizef& size) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      m_minSize = size;
+      makeDirty();
+    }
+
+    inline
+    void
+    SdlWidget::setSizeHint(const Sizef& hint) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizeHint = hint;
+      makeDirty();
+    }
+
+    inline
+    void
+    SdlWidget::setMaxSize(const Sizef& size) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      m_maxSize = size;
       makeDirty();
     }
 

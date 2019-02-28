@@ -62,7 +62,7 @@ namespace sdl {
     SdlWidget::setMinSize(const Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_minSize = size;
-      makeDirty();
+      makeGeometryDirty();
     }
 
     inline
@@ -70,7 +70,7 @@ namespace sdl {
     SdlWidget::setSizeHint(const Sizef& hint) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizeHint = hint;
-      makeDirty();
+      makeGeometryDirty();
     }
 
     inline
@@ -78,7 +78,7 @@ namespace sdl {
     SdlWidget::setMaxSize(const Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_maxSize = size;
-      makeDirty();
+      makeGeometryDirty();
     }
 
     inline
@@ -91,9 +91,14 @@ namespace sdl {
     inline
     void
     SdlWidget::setRenderingArea(const Boxf& area) noexcept {
+      std::cout << "[WIG][" << getName() << "] Area is now ("
+                << area.x() << "x" << area.y()
+                << ", dims: " << area.w() << "x" << area.h()
+                << ")"
+                << std::endl;
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_area = area;
-      makeDirty();
+      makeContentDirty();
     }
 
     inline
@@ -101,7 +106,7 @@ namespace sdl {
     SdlWidget::setBackgroundColor(const Color& color) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_palette.setBackgroundColor(color);
-      makeDirty();
+      makeContentDirty();
     }
 
     inline
@@ -137,7 +142,7 @@ namespace sdl {
     SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_layout = layout;
-      makeDirty();
+      makeGeometryDirty();
     }
 
     inline
@@ -145,7 +150,7 @@ namespace sdl {
     SdlWidget::setSizePolicy(const SizePolicy& policy) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizePolicy = policy;
-      makeDirty();
+      makeGeometryDirty();
     }
 
     inline
@@ -241,7 +246,7 @@ namespace sdl {
         }
         m_palette.setBackgroundColor(Color(bgColor));
         std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(bgColor.a) << std::endl;
-        makeDirty();
+        makeContentDirty();
       }
     }
 
@@ -259,8 +264,14 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::hasChanged() const noexcept {
-      return m_dirty && m_isVisible;
+    SdlWidget::hasContentChanged() const noexcept {
+      return m_contentDirty && m_isVisible;
+    }
+
+    inline
+    bool
+    SdlWidget::hasGeometryChanged() const noexcept {
+      return m_geometryDirty && m_isVisible;
     }
 
     inline
@@ -342,8 +353,17 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::makeDirty() noexcept {
-      m_dirty = true;
+    SdlWidget::makeContentDirty() noexcept {
+      std::cout << "[WIG][" << getName() << "] Content dirty for widget" << std::endl;
+      m_contentDirty = true;
+    }
+
+    inline
+    void
+    SdlWidget::makeGeometryDirty() noexcept {
+      std::cout << "[WIG][" << getName() << "] Geometry dirty for widget" << std::endl;
+      makeContentDirty();
+      m_geometryDirty = true;
     }
 
     inline

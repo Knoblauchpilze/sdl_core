@@ -14,7 +14,7 @@ namespace {
 namespace sdl {
   namespace core {
 
-    const SizePolicy::Policy SizePolicy::Fixed(SizePolicy::Policy::Grow);
+    const SizePolicy::Policy SizePolicy::Fixed(SizePolicy::Policy::None);
     const SizePolicy::Policy SizePolicy::Minimum(SizePolicy::Policy::Grow);
     const SizePolicy::Policy SizePolicy::Maximum(SizePolicy::Policy::Shrink);
     const SizePolicy::Policy SizePolicy::Preferred(SizePolicy::Grow | SizePolicy::Policy::Shrink);

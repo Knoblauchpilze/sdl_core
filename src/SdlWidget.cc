@@ -37,7 +37,8 @@ namespace sdl {
         )
       ),
 
-      m_dirty(true),
+      m_contentDirty(true),
+      m_geometryDirty(true),
       m_isVisible(true),
       m_transparent(transparent),
       m_content(nullptr),
@@ -68,10 +69,11 @@ namespace sdl {
       }
 
       // Repaint if needed.
-      if (hasChanged()) {
+      if (hasContentChanged()) {
+        std::cout << "[WIG][" << getName() << "] Updating content for widget" << std::endl;
         clearTexture();
         m_content = createContentPrivate(renderer);
-        m_dirty = false;
+        m_contentDirty = false;
       }
 
       // Clear the content and draw the new version.
@@ -85,8 +87,12 @@ namespace sdl {
       SDL_SetRenderTarget(renderer, m_content);
 
       // Update layout if any.
-      if (m_layout != nullptr) {
-        m_layout->update();
+      if (hasGeometryChanged()) {
+        std::cout << "[WIG][" << getName() << "] Updating layout for widget" << std::endl;
+        if (m_layout != nullptr) {
+          m_layout->update();
+        }
+        m_geometryDirty = false;
       }
 
       // Proceed to update of children containers if any.

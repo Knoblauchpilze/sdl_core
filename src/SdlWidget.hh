@@ -109,7 +109,11 @@ namespace sdl {
 
         // We assume that this widget is already locked when we enter this method.
         virtual bool
-        hasChanged() const noexcept;
+        hasContentChanged() const noexcept;
+
+        // We assume that this widget is already locked when we enter this method.
+        virtual bool
+        hasGeometryChanged() const noexcept;
 
         virtual SDL_Texture*
         createContentPrivate(SDL_Renderer* renderer) const;
@@ -124,7 +128,10 @@ namespace sdl {
         setParent(SdlWidget* parent);
 
         void
-        makeDirty() noexcept;
+        makeContentDirty() noexcept;
+
+        void
+        makeGeometryDirty() noexcept;
 
         std::mutex&
         getLocker() noexcept;
@@ -164,7 +171,8 @@ namespace sdl {
         Palette m_palette;
         SDL_BlendMode m_blendMode;
 
-        bool m_dirty;
+        bool m_contentDirty;
+        bool m_geometryDirty;
         bool m_isVisible;
         bool m_transparent;
         SDL_Texture* m_content;

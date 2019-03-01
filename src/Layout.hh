@@ -8,8 +8,6 @@
 namespace sdl {
   namespace core {
 
-    using Boxf = sdl::utils::Box<float>;
-
     class SdlWidget;
 
     // Slave class of SdlWidget.
@@ -42,7 +40,7 @@ namespace sdl {
       protected:
 
         virtual void
-        updatePrivate(const Boxf& window) = 0;
+        updatePrivate(const sdl::utils::Boxf& window) = 0;
 
         void
         invalidate() noexcept;

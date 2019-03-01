@@ -136,6 +136,8 @@ namespace sdl {
         CoordinateType m_h;
     };
 
+    using Boxf = Box<float>;
+
   }
 }
 

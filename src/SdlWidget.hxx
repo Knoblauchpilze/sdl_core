@@ -30,21 +30,21 @@ namespace sdl {
     }
 
     inline
-    Sizef
+    sdl::utils::Sizef
     SdlWidget::getMinSize() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_minSize;
     }
 
     inline
-    Sizef
+    sdl::utils::Sizef
     SdlWidget::getSizeHint() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_sizeHint;
     }
 
     inline
-    Sizef
+    sdl::utils::Sizef
     SdlWidget::getMaxSize() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_maxSize;
@@ -59,7 +59,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setMinSize(const Sizef& size) noexcept {
+    SdlWidget::setMinSize(const sdl::utils::Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_minSize = size;
       makeGeometryDirty();
@@ -67,7 +67,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setSizeHint(const Sizef& hint) noexcept {
+    SdlWidget::setSizeHint(const sdl::utils::Sizef& hint) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizeHint = hint;
       makeGeometryDirty();
@@ -75,14 +75,14 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setMaxSize(const Sizef& size) noexcept {
+    SdlWidget::setMaxSize(const sdl::utils::Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_maxSize = size;
       makeGeometryDirty();
     }
 
     inline
-    Boxf
+    sdl::utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
@@ -90,7 +90,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setRenderingArea(const Boxf& area) noexcept {
+    SdlWidget::setRenderingArea(const sdl::utils::Boxf& area) noexcept {
       std::cout << "[WIG][" << getName() << "] Area is now ("
                 << area.x() << "x" << area.y()
                 << ", dims: " << area.w() << "x" << area.h()
@@ -423,7 +423,7 @@ namespace sdl {
       SDL_Texture* picture = child.draw(renderer);
 
       // Draw the picture at the corresponding place.
-      const Boxf& render = child.getRenderingArea();
+      const sdl::utils::Boxf& render = child.getRenderingArea();
       SDL_Rect dstArea = render.toSDLRect();
 
       if (picture != nullptr) {

@@ -5,7 +5,7 @@ namespace sdl {
   namespace core {
 
     SdlWidget::SdlWidget(const std::string& name,
-                         const Sizef& sizeHint,
+                         const sdl::utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
                          const Palette& palette):
@@ -15,8 +15,8 @@ namespace sdl {
       m_parent(nullptr),
       m_minSize(),
       m_sizeHint(sizeHint),
-      m_maxSize(Sizef::max()),
-      m_area(Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
+      m_maxSize(sdl::utils::Sizef::max()),
+      m_area(sdl::utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
       m_palette(palette),
 
       // This custom blend mode is mainly used to be able to have additive alpha blending in children widget.

@@ -16,14 +16,11 @@
 namespace sdl {
   namespace core {
 
-    using Boxf = sdl::utils::Box<float>;
-    using Sizef = sdl::utils::Size<float>;
-
     class SdlWidget: public EventListener {
       public:
 
         SdlWidget(const std::string& name,
-                  const Sizef& sizeHint = Sizef(),
+                  const sdl::utils::Sizef& sizeHint = sdl::utils::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
                   const Palette& palette = Palette());
@@ -33,32 +30,32 @@ namespace sdl {
         const std::string&
         getName() const noexcept;
 
-        Sizef
+        sdl::utils::Sizef
         getMinSize() const noexcept;
 
-        Sizef
+        sdl::utils::Sizef
         getSizeHint() const noexcept;
 
-        Sizef
+        sdl::utils::Sizef
         getMaxSize() const noexcept;
 
         SizePolicy
         getSizePolicy() const noexcept;
 
         void
-        setMinSize(const Sizef& size) noexcept;
+        setMinSize(const sdl::utils::Sizef& size) noexcept;
 
         void
-        setSizeHint(const Sizef& hint) noexcept;
+        setSizeHint(const sdl::utils::Sizef& hint) noexcept;
 
         void
-        setMaxSize(const Sizef& size) noexcept;
+        setMaxSize(const sdl::utils::Sizef& size) noexcept;
 
-        Boxf
+        sdl::utils::Boxf
         getRenderingArea() const noexcept;
 
         void
-        setRenderingArea(const Boxf& area) noexcept;
+        setRenderingArea(const sdl::utils::Boxf& area) noexcept;
 
         void
         setBackgroundColor(const Color& color) noexcept;
@@ -164,10 +161,10 @@ namespace sdl {
         std::string m_name;
 
         SdlWidget* m_parent;
-        Sizef m_minSize;
-        Sizef m_sizeHint;
-        Sizef m_maxSize;
-        Boxf m_area;
+        sdl::utils::Sizef m_minSize;
+        sdl::utils::Sizef m_sizeHint;
+        sdl::utils::Sizef m_maxSize;
+        sdl::utils::Boxf m_area;
         Palette m_palette;
         SDL_BlendMode m_blendMode;
 

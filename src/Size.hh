@@ -50,6 +50,8 @@ namespace sdl {
 
     };
 
+    using Sizef = Size<float>;
+
   }
 }
 

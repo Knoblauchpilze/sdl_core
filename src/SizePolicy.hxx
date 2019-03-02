@@ -9,9 +9,18 @@ namespace sdl {
     inline
     SizePolicy::SizePolicy():
       m_hPolicy(SizePolicy::Fixed),
-      m_hStretch(1),
+      m_hStretch(0),
       m_vPolicy(SizePolicy::Fixed),
-      m_vStretch(1)
+      m_vStretch(0)
+    {}
+
+    inline
+    SizePolicy::SizePolicy(const Policy& hPolicy,
+                           const Policy& vPolicy):
+      m_hPolicy(hPolicy),
+      m_hStretch(0),
+      m_vPolicy(vPolicy),
+      m_vStretch(0)
     {}
 
     inline

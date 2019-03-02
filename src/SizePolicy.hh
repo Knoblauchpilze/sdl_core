@@ -11,12 +11,6 @@ namespace sdl {
     class SizePolicy {
       public:
 
-        SizePolicy();
-
-        ~SizePolicy() = default;
-
-      public:
-
         enum Policy {
           None   = 0,
           Grow   = 1 << 0,
@@ -24,6 +18,15 @@ namespace sdl {
           Shrink = 1 << 2,
           Ignore = 1 << 3,
         };
+
+      public:
+
+        SizePolicy();
+
+        SizePolicy(const Policy& hPolicy,
+                   const Policy& vPolicy);
+
+        ~SizePolicy() = default;
 
         static const Policy Fixed;
         static const Policy Minimum;

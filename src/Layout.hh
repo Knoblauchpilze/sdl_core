@@ -75,6 +75,25 @@ namespace sdl {
         canExpand(const WidgetInfo& info,
                   const sdl::utils::Sizef& size) const;
 
+        sdl::utils::Sizef
+        computeSizeOfWidgets(const Direction& direction,
+                             const std::vector<sdl::utils::Boxf>& boxes) const;
+
+        sdl::core::SizePolicy::Policy
+        shrinkOrGrow(const Direction& direction,
+                     const sdl::utils::Sizef& desiredSize,
+                     const sdl::utils::Sizef& achievedSize) const;
+
+        bool
+        canBeUsedTo(const WidgetInfo& info,
+                    const sdl::utils::Boxf& box,
+                    const SizePolicy::Policy& action,
+                    const Direction& direction) const;
+
+        sdl::utils::Sizef
+        computeSpaceAdjustmentNeeded(const sdl::utils::Sizef& achieved,
+                                     const sdl::utils::Sizef& target) const;
+
       private:
 
         SdlWidget*

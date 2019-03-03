@@ -13,6 +13,15 @@ namespace sdl {
 
         ~Size() = default;
 
+        bool
+        operator==(const Size& rhs) const noexcept;
+
+        bool
+        operator!=(const Size& rhs) const noexcept;
+
+        Size
+        operator+(const Size& rhs) const noexcept;
+
         const DimsType&
         w() const noexcept;
 

@@ -17,6 +17,27 @@ namespace sdl {
 
     template <typename DimsType>
     inline
+    bool
+    Size<DimsType>::operator==(const Size& rhs) const noexcept {
+      return m_w == rhs.m_w && m_h == rhs.m_h;
+    }
+
+    template <typename DimsType>
+    inline
+    bool
+    Size<DimsType>::operator!=(const Size& rhs) const noexcept {
+      return !operator==(rhs);
+    }
+
+    template <typename DimsType>
+    inline
+    Size<DimsType>
+    Size<DimsType>::operator+(const Size& rhs) const noexcept {
+      return Size(m_w + rhs.m_w, m_h + rhs.m_h);
+    }
+
+    template <typename DimsType>
+    inline
     const DimsType&
     Size<DimsType>::w() const noexcept {
       return m_w;

@@ -16,6 +16,13 @@ namespace sdl {
     class Layout {
       public:
 
+        enum class Direction {
+          Horizontal,
+          Vertical
+        };
+
+      public:
+
         Layout(SdlWidget* widget = nullptr);
 
         virtual ~Layout();
@@ -59,6 +66,10 @@ namespace sdl {
 
         std::vector<WidgetInfo>
         computeWidgetsInfo() const noexcept;
+
+        sdl::utils::Sizef
+        computeIncompressibleSize(const Direction& direction,
+                                  const std::vector<WidgetInfo>& widgets) const;
 
       private:
 

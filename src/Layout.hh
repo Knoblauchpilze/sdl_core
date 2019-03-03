@@ -4,6 +4,8 @@
 # include <memory>
 # include <vector>
 # include "Box.hh"
+# include "Size.hh"
+# include "SizePolicy.hh"
 
 namespace sdl {
   namespace core {
@@ -44,6 +46,19 @@ namespace sdl {
 
         void
         invalidate() noexcept;
+
+      protected:
+
+        struct WidgetInfo {
+          sdl::core::SizePolicy policy;
+          sdl::utils::Sizef min;
+          sdl::utils::Sizef hint;
+          sdl::utils::Sizef max;
+          sdl::utils::Boxf area;
+        };
+
+        std::vector<WidgetInfo>
+        computeWidgetsInfo() const noexcept;
 
       private:
 

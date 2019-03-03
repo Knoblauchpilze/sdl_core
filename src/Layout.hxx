@@ -41,7 +41,6 @@ namespace sdl {
       m_dirty = true;
     }
 
-
     inline
     SdlWidget*
     Layout::getContainerOrNull(SdlWidget* item, int* index) const {

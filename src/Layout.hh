@@ -71,10 +71,19 @@ namespace sdl {
         computeIncompressibleSize(const Direction& direction,
                                   const std::vector<WidgetInfo>& widgets) const;
 
+        std::pair<bool, bool>
+        canExpand(const WidgetInfo& info,
+                  const sdl::utils::Sizef& size) const;
+
       private:
 
         SdlWidget*
         getContainerOrNull(SdlWidget* item, int* index = nullptr) const;
+
+        bool
+        canExpand(const WidgetInfo& info,
+                  const Direction& direction,
+                  const float& desiredSize) const;
 
       protected:
 

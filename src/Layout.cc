@@ -63,5 +63,24 @@ namespace sdl {
       return -1;
     }
 
+    std::vector<Layout::WidgetInfo>
+    Layout::computeWidgetsInfo() const noexcept {
+      // Create the return value.
+      std::vector<Layout::WidgetInfo> info(m_items.size());
+
+      // Fill each widget's info.
+      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
+        info[index] = {
+          m_items[index]->getSizePolicy(),
+          m_items[index]->getMinSize(),
+          m_items[index]->getSizeHint(),
+          m_items[index]->getMaxSize(),
+          m_items[index]->getRenderingArea()
+        };
+      }
+
+      return info;
+    }
+
   }
 }

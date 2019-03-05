@@ -82,5 +82,13 @@ namespace sdl {
       return info;
     }
 
+    void
+    Layout::assignRenderingAreas(const std::vector<sdl::utils::Boxf>& boxes) {
+      // Assign the rendering area to widgets.
+      for (unsigned index = 0u; index < boxes.size() ; ++index) {
+        m_items[index]->setRenderingArea(boxes[index]);
+      }
+    }
+
   }
 }

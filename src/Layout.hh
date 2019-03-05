@@ -71,6 +71,9 @@ namespace sdl {
         computeIncompressibleSize(const Direction& direction,
                                   const std::vector<WidgetInfo>& widgets) const;
 
+        void
+        assignRenderingAreas(const std::vector<sdl::utils::Boxf>& boxes);
+
         std::pair<bool, bool>
         canExpand(const WidgetInfo& info,
                   const sdl::utils::Sizef& size) const;
@@ -78,6 +81,11 @@ namespace sdl {
         sdl::utils::Sizef
         computeSizeOfWidgets(const Direction& direction,
                              const std::vector<sdl::utils::Boxf>& boxes) const;
+
+        sdl::utils::Sizef
+        computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
+                              const sdl::utils::Boxf& currentSize,
+                              const WidgetInfo& info) const;
 
         sdl::core::SizePolicy::Policy
         shrinkOrGrow(const Direction& direction,

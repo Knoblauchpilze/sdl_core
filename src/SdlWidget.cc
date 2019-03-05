@@ -104,7 +104,7 @@ namespace sdl {
         }
         catch (const SdlException& e) {
           std::cerr << "[WIDGET] Caught internal exception while repainting child " << child->first
-                    << " for container " << getName()
+                    << " for container " << getName() << ":"
                     << std::endl << e.what()
                     << std::endl;
         }

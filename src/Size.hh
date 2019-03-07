@@ -22,8 +22,14 @@ namespace sdl {
         Size
         operator+(const Size& rhs) const noexcept;
 
+        DimsType&
+        w() noexcept;
+
         const DimsType&
         w() const noexcept;
+
+        DimsType&
+        h() noexcept;
 
         const DimsType&
         h() const noexcept;

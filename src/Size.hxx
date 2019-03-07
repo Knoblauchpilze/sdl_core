@@ -37,10 +37,22 @@ namespace sdl {
     }
 
     template <typename DimsType>
+    DimsType&
+    Size<DimsType>::w() noexcept {
+      return m_w;
+    }
+
+    template <typename DimsType>
     inline
     const DimsType&
     Size<DimsType>::w() const noexcept {
       return m_w;
+    }
+
+    template <typename DimsType>
+    DimsType&
+    Size<DimsType>::h() noexcept {
+      return m_h;
     }
 
     template <typename DimsType>

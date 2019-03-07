@@ -87,10 +87,19 @@ namespace sdl {
                               const sdl::utils::Boxf& currentSize,
                               const WidgetInfo& info) const;
 
+        sdl::core::SizePolicy
+        shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
+                     const sdl::utils::Sizef& achievedSize) const;
+
         sdl::core::SizePolicy::Policy
         shrinkOrGrow(const Direction& direction,
                      const sdl::utils::Sizef& desiredSize,
                      const sdl::utils::Sizef& achievedSize) const;
+
+        bool
+        canBeUsedTo(const WidgetInfo& info,
+                    const sdl::utils::Boxf& box,
+                    const SizePolicy& action) const;
 
         bool
         canBeUsedTo(const WidgetInfo& info,

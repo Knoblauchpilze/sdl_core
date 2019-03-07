@@ -62,6 +62,30 @@ namespace sdl {
         void
         setVerticalStretch(const float& stretch) noexcept;
 
+        bool
+        canShrinkHorizontally() const noexcept;
+
+        bool
+        canGrowHorizontally() const noexcept;
+
+        bool
+        canExpandHorizontally() const noexcept;
+
+        bool
+        canExtendHorizontally() const noexcept;
+
+        bool
+        canShrinkVertically() const noexcept;
+
+        bool
+        canGrowVertically() const noexcept;
+
+        bool
+        canExpandVertically() const noexcept;
+
+        bool
+        canExtendVertically() const noexcept;
+
       private:
 
         Policy m_hPolicy;

@@ -332,29 +332,17 @@ namespace sdl {
       }
 
       // Check shrinking policy.
-      if (outputBox.w() < info.hint.w() && !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
+      if (outputBox.w() < info.hint.w() && !info.policy.canShrinkHorizontally()) {
         outputBox.setWidth(info.hint.w());
       }
-      if (outputBox.h() < info.hint.h() && !(info.policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
+      if (outputBox.h() < info.hint.h() && !info.policy.canShrinkVertically()) {
         outputBox.setHeight(info.hint.h());
       }
 
-      if (outputBox.w() > info.hint.w() &&
-          (
-          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Grow) &&
-          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)
-          )
-         )
-      {
+      if (outputBox.w() > info.hint.w() && !info.policy.canExtendHorizontally()) {
         outputBox.setWidth(info.hint.w());
       }
-      if (outputBox.h() > info.hint.h() &&
-          (
-          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Grow) &&
-          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)
-          )
-         )
-      {
+      if (outputBox.h() > info.hint.h() && !info.policy.canExtendVertically()) {
         outputBox.setHeight(info.hint.h());
       }
 

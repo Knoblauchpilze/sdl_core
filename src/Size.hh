@@ -17,6 +17,9 @@ namespace sdl {
         operator==(const Size& rhs) const noexcept;
 
         bool
+        fuzzyEqual(const Size& rhs) const noexcept;
+
+        bool
         operator!=(const Size& rhs) const noexcept;
 
         Size

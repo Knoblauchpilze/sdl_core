@@ -19,7 +19,17 @@ namespace sdl {
     inline
     bool
     Size<DimsType>::operator==(const Size& rhs) const noexcept {
-      return m_w == rhs.m_w && m_h == rhs.m_h;
+      return fuzzyEqual(rhs);
+    }
+
+    template <typename DimsType>
+    inline
+    bool
+    Size<DimsType>::fuzzyEqual(const Size& rhs) const noexcept {
+      return
+        std::abs(m_w - rhs.m_w) < (DimsType)(0.001f) &&
+        std::abs(m_h - rhs.m_h) < (DimsType)(0.001f) 
+      ;
     }
 
     template <typename DimsType>

@@ -282,9 +282,8 @@ namespace sdl {
         // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
         if (info.hint.isValid()) {
           outputBox.setWidth(info.hint.w());
+          widthDone = true;
         }
-
-        widthDone = true;
       }
       if (info.policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
         // Two distinct cases:
@@ -292,9 +291,8 @@ namespace sdl {
         // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
         if (info.hint.isValid()) {
           outputBox.setHeight(info.hint.h());
+          heightDone = true;
         }
-
-        heightDone = true;
       }
 
       // Check whether we should continue further.

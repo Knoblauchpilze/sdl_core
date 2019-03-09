@@ -74,10 +74,6 @@ namespace sdl {
         void
         assignRenderingAreas(const std::vector<sdl::utils::Boxf>& boxes);
 
-        std::pair<bool, bool>
-        canExpand(const WidgetInfo& info,
-                  const sdl::utils::Sizef& size) const;
-
         sdl::utils::Sizef
         computeSizeOfWidgets(const Direction& direction,
                              const std::vector<sdl::utils::Boxf>& boxes) const;
@@ -89,11 +85,6 @@ namespace sdl {
 
         sdl::core::SizePolicy
         shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
-                     const sdl::utils::Sizef& achievedSize) const;
-
-        sdl::core::SizePolicy::Policy
-        shrinkOrGrow(const Direction& direction,
-                     const sdl::utils::Sizef& desiredSize,
                      const sdl::utils::Sizef& achievedSize) const;
 
         bool
@@ -115,11 +106,6 @@ namespace sdl {
 
         SdlWidget*
         getContainerOrNull(SdlWidget* item, int* index = nullptr) const;
-
-        bool
-        canExpand(const WidgetInfo& info,
-                  const Direction& direction,
-                  const float& desiredSize) const;
 
       protected:
 

@@ -85,7 +85,8 @@ namespace sdl {
 
         sdl::core::SizePolicy
         shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
-                     const sdl::utils::Sizef& achievedSize) const;
+                     const sdl::utils::Sizef& achievedSize,
+                     const float& tolerance) const;
 
         std::pair<bool, bool>
         canBeUsedTo(const std::string& name,

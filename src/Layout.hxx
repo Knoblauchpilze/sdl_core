@@ -263,14 +263,19 @@ namespace sdl {
     inline
     sdl::core::SizePolicy
     Layout::shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
-                         const sdl::utils::Sizef& achievedSize) const
+                         const sdl::utils::Sizef& achievedSize,
+                         const float& tolerance) const
     {
       // Assume growing in both directions.
       SizePolicy policy(SizePolicy::Fixed, SizePolicy::Fixed);
 
       // Compare the `achievedSize` to the `desiredSize` and determine the action
       // to apply both horizontally and vertically.
-      if (desiredSize.w() < achievedSize.w()) {
+      if (std::abs(desiredSize.w() - achievedSize.w()) < tolerance) {
+        // Consider that the `achievedSize` is close enough from the `desiredSize`
+        // to keep it.
+      }
+      else if (desiredSize.w() < achievedSize.w()) {
         std::cout << "[LAY] desired.w() < achieved.w() (" << desiredSize.w() << " < " << achievedSize.w() << "), shrinking" << std::endl;
         policy.setHorizontalPolicy(SizePolicy::Policy::Shrink);
       }
@@ -279,7 +284,11 @@ namespace sdl {
         policy.setHorizontalPolicy(SizePolicy::Policy::Grow);
       }
 
-      if (desiredSize.h() < achievedSize.h()) {
+      if (std::abs(desiredSize.h() - achievedSize.h()) < tolerance) {
+        // Consider that the `achievedSize` is close enough from the `desiredSize`
+        // to keep it.
+      }
+      else if (desiredSize.h() < achievedSize.h()) {
         std::cout << "[LAY] desired.h() < achieved.h() (" << desiredSize.h() << " < " << achievedSize.h() << "), shrinking" << std::endl;
         policy.setVerticalPolicy(SizePolicy::Policy::Shrink);
       }

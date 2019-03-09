@@ -266,24 +266,34 @@ namespace sdl {
                          const sdl::utils::Sizef& achievedSize) const
     {
       // Assume growing in both directions.
-      SizePolicy policy(SizePolicy::Minimum, SizePolicy::Minimum);
+      SizePolicy policy(SizePolicy::Fixed, SizePolicy::Fixed);
 
       // Compare the `achievedSize` to the `desiredSize` and determine the action
       // to apply both horizontally and vertically.
       if (desiredSize.w() < achievedSize.w()) {
+        std::cout << "[LAY] desired.w() < achieved.w() (" << desiredSize.w() << " < " << achievedSize.w() << "), shrinking" << std::endl;
         policy.setHorizontalPolicy(SizePolicy::Policy::Shrink);
+      }
+      else if (desiredSize.w() > achievedSize.w()) {
+        std::cout << "[LAY] desired.w() > achieved.w() (" << desiredSize.w() << " > " << achievedSize.w() << "), growing" << std::endl;
+        policy.setHorizontalPolicy(SizePolicy::Policy::Grow);
       }
 
       if (desiredSize.h() < achievedSize.h()) {
+        std::cout << "[LAY] desired.h() < achieved.h() (" << desiredSize.h() << " < " << achievedSize.h() << "), shrinking" << std::endl;
         policy.setVerticalPolicy(SizePolicy::Policy::Shrink);
+      }
+      else if (desiredSize.h() > achievedSize.h()) {
+        std::cout << "[LAY] desired.h() > achieved.h() (" << desiredSize.h() << " > " << achievedSize.h() << "), growing" << std::endl;
+        policy.setVerticalPolicy(SizePolicy::Policy::Grow);
       }
 
       return policy;
     }
 
     inline
-    bool
-    Layout::canBeUsedTo(const WidgetInfo& info,
+    std::pair<bool, bool>
+    Layout::canBeUsedTo(const std::string& name, const WidgetInfo& info,
                         const sdl::utils::Boxf& box,
                         const SizePolicy& action) const
     {
@@ -294,6 +304,12 @@ namespace sdl {
       // We want to return true if the widget can be used to perform
       // at least one of the `action` described by the input
       // argument.
+      // The returned value corresponds to a pair describing in
+      // its first member whether the widget can be used to perform
+      // the `action.getHorizontalPolicy()` and on its second member
+      // whether the widget can be used to perform the action
+      // described by `action.getVerticalPolicy()`.
+      std::pair<bool, bool> usable = std::make_pair(false, false);
 
       // Let's first handle the case where no valid hint is provided.
       if (!info.hint.isValid()) {
@@ -305,18 +321,22 @@ namespace sdl {
 
         // Check for shrinking.
         if (action.canShrinkHorizontally() && box.w() > info.min.w()) {
-          return true;
+          std::cout << "[WIG] " << name << " can be used to h shrink (" << box.w() << " > " << info.min.w() << ")" << std::endl;
+          usable.first = true;
         }
         if (action.canShrinkVertically() && box.h() > info.min.h()) {
-          return true;
+          std::cout << "[WIG] " << name << " can be used to v shrink (" << box.h() << " > " << info.min.h() << ")" << std::endl;
+          usable.second = true;
         }
 
         // Check for growing.
         if (action.canExtendHorizontally() && box.w() < info.max.w()) {
-          return true;
+          std::cout << "[WIG] " << name << " can be used to h grow (" << box.w() << " < " << info.max.w() << ")" << std::endl;
+          usable.first = true;
         }
         if (action.canExtendVertically() && box.h() < info.max.h()) {
-          return true;
+          std::cout << "[WIG] " << name << " can be used to v grow (" << box.h() << " < " << info.max.h() << ")" << std::endl;
+          usable.second = true;
         }
       }
 
@@ -327,164 +347,79 @@ namespace sdl {
       // Respectively if the policy is set to `Grow` and an hint is
       // provided, the `hint` replaces the `min` size.
 
-      // Check for shrinking.
-      if (action.canShrinkHorizontally()) {
-        // The action requires to shrink: the widget can do that if
-        // its policy is set to `Shrink` and the current size is
-        // larger than the `min` or if the policy is NOT set with
-        // the `Shrink` flag, the `hint` replaces the value.
-        if (info.policy.canShrinkHorizontally() && box.w() > info.min.w()) {
-          return true;
-        }
-        if (!info.policy.canShrinkHorizontally() && box.w() > info.hint.w()) {
-          return true;
-        }
-      }
-      if (action.canShrinkVertically()) {
-        // The action requires to shrink: the widget can do that if
-        // its policy is set to `Shrink` and the current size is
-        // larger than the `min` or if the policy is NOT set with
-        // the `Shrink` flag, the `hint` replaces the value.
-        if (info.policy.canShrinkVertically() && box.h() > info.min.h()) {
-          return true;
-        }
-        if (!info.policy.canShrinkVertically() && box.h() > info.hint.h()) {
-          return true;
-        }
-      }
-
-      // Check for growing.
-      if (action.canExtendHorizontally()) {
-        // The action requires to shrink: the widget can do that if
-        // its policy is set to `Shrink` and the current size is
-        // larger than the `min` or if the policy is NOT set with
-        // the `Shrink` flag, the `hint` replaces the value.
-        if (info.policy.canExtendHorizontally() && box.w() < info.max.w()) {
-          return true;
-        }
-        if (!info.policy.canExtendHorizontally() && box.w() < info.hint.w()) {
-          return true;
-        }
-      }
-      if (action.canExtendVertically()) {
-        // The action requires to shrink: the widget can do that if
-        // its policy is set to `Shrink` and the current size is
-        // larger than the `min` or if the policy is NOT set with
-        // the `Shrink` flag, the `hint` replaces the value.
-        if (info.policy.canExtendVertically() && box.h() < info.max.h()) {
-          return true;
-        }
-        if (!info.policy.canExtendVertically() && box.h() < info.hint.h()) {
-          return true;
-        }
-      }
-
-      // At this point, we know that:
-      // 1) We don't have a valid hint but the widget can neither shrink
-      //    nor grow to match the desired size.
-      // 2) We have a valid hint but the widget can neither shrink nor
-      //    grow to match the desired size.
-      // It seems like we have a fixed size widget: thus there's no way
-      // the widget can be used to perform the desired `action`.
-      return false;
-    }
-
-    inline
-    bool
-    Layout::canBeUsedTo(const WidgetInfo& info,
-                        const sdl::utils::Boxf& box,
-                        const SizePolicy::Policy& action,
-                        const Direction& direction) const
-    {
-      // We want to determine if the widget described by its main
-      // information `info` can be used to perform the required
-      // operation described in the input `policy` action in the
-      // specified direction.
-
-      // First we need to retrieve the relevant operation based on
-      // the input direction.
-      float size = 0.0f;
-      SizePolicy::Policy policy;
-      float min = 0.0f;
-      float hint = 0.0f;
-      float max = 0.0f;
-
-      if (direction == Direction::Horizontal) {
-        size = box.w();
-        policy = info.policy.getHorizontalPolicy();
-        min = info.min.w();
-        hint = info.hint.w();
-        max = info.max.w();
-      }
-      else if (direction == Direction::Vertical) {
-        size = box.h();
-        policy = info.policy.getVerticalPolicy();
-        min = info.min.h();
-        hint = info.hint.h();
-        max = info.max.h();
-      }
-      else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
-      }
-
-      // Let's first handle the case where no valid hint is provided.
-      if (!info.hint.isValid()) {
-        // The result of this function is solely based on the current
-        // size of the widget versus the `min` and `max` size.
-        // Also, we need to consider both directions: as soon as a
-        // valid `action` can be performed, we need to return but
-        // failure to perform one action should not stop the process.
-
+      if (info.hint.isValid()) {
         // Check for shrinking.
-        if (action == SizePolicy::Policy::Shrink) {
-          return size > min;
+        if (action.canShrinkHorizontally()) {
+          // The action requires to shrink: the widget can do that if
+          // its policy is set to `Shrink` and the current size is
+          // larger than the `min` or if the policy is NOT set with
+          // the `Shrink` flag, the `hint` replaces the value.
+          if (info.policy.canShrinkHorizontally() && box.w() > info.min.w()) {
+            std::cout << "[WIG] " << name << " can be used to h shrink (" << box.w() << " > " << info.min.w() << ")" << std::endl;
+            usable.first = true;
+          }
+          if (!info.policy.canShrinkHorizontally() && box.w() > info.hint.w()) {
+            std::cout << "[WIG] " << name << " cannot be used to h shrink but (" << box.w() << " > " << info.hint.w() << ")" << std::endl;
+            usable.first = true;
+          }
+        }
+        if (action.canShrinkVertically()) {
+          // The action requires to shrink: the widget can do that if
+          // its policy is set to `Shrink` and the current size is
+          // larger than the `min` or if the policy is NOT set with
+          // the `Shrink` flag, the `hint` replaces the value.
+          if (info.policy.canShrinkVertically() && box.h() > info.min.h()) {
+            std::cout << "[WIG] " << name << " can be used to v shrink (" << box.h() << " > " << info.min.h() << ")" << std::endl;
+            usable.second = true;
+          }
+          if (!info.policy.canShrinkVertically() && box.h() > info.hint.h()) {
+            std::cout << "[WIG] " << name << " cannot be used to v shrink but (" << box.h() << " > " << info.hint.h() << ")" << std::endl;
+            usable.second = true;
+          }
         }
 
         // Check for growing.
-        if (action == SizePolicy::Policy::Grow || action == SizePolicy::Policy::Expand) {
-          return size < max;
+        if (action.canExtendHorizontally()) {
+          // The action requires to shrink: the widget can do that if
+          // its policy is set to `Shrink` and the current size is
+          // larger than the `min` or if the policy is NOT set with
+          // the `Shrink` flag, the `hint` replaces the value.
+          if (info.policy.canExtendHorizontally() && box.w() < info.max.w()) {
+            std::cout << "[WIG] " << name << " can be used to h grow (" << box.w() << " < " << info.max.w() << ")" << std::endl;
+            usable.first = true;
+          }
+          if (!info.policy.canExtendHorizontally() && box.w() < info.hint.w()) {
+            std::cout << "[WIG] " << name << " cannot be used to v grow but (" << box.w() << " < " << info.hint.w() << ")" << std::endl;
+            usable.first = true;
+          }
+        }
+        if (action.canExtendVertically()) {
+          // The action requires to shrink: the widget can do that if
+          // its policy is set to `Shrink` and the current size is
+          // larger than the `min` or if the policy is NOT set with
+          // the `Shrink` flag, the `hint` replaces the value.
+          if (info.policy.canExtendVertically() && box.h() < info.max.h()) {
+            std::cout << "[WIG] " << name << " can be used to v grow (" << box.h() << " < " << info.max.h() << ")" << std::endl;
+            usable.second = true;
+          }
+          if (!info.policy.canExtendVertically() && box.h() < info.hint.h()) {
+            std::cout << "[WIG] " << name << " cannot be used to h grow but (" << box.h() << " < " << info.hint.h() << ")" << std::endl;
+            usable.second = true;
+          }
         }
       }
 
-      // If an hint is provided, we also need to compare the box to the
-      // hint. Indeed in case the policy is set to `Shrink` for example,
-      // if an hint is provided if effectively replace the `max` size
-      // for all intent and purposes.
-      // Respectively if the policy is set to `Grow` and an hint is
-      // provided, the `hint` replaces the `min` size.
-
-      // Check for shrinking.
-      if (action == SizePolicy::Policy::Shrink) {
-        // The action requires to shrink: the widget can do that if
-        // its policy is set to `Shrink` and the current size is
-        // larger than the `min` or if the policy is NOT set with
-        // the `Shrink` flag, the `hint` replaces the value.
-        return
-          (size > min && policy & SizePolicy::Policy::Shrink) ||
-          (size > hint)
-        ;
-      }
-
-      // Check for growing.
-      if (action == SizePolicy::Policy::Grow || action == SizePolicy::Policy::Expand) {
-        // The action requires to shrink: the widget can do that if
-        // its policy is set to `Shrink` and the current size is
-        // larger than the `min` or if the policy is NOT set with
-        // the `Shrink` flag, the `hint` replaces the value.
-        return
-          (size < max && (policy & SizePolicy::Policy::Grow || policy & SizePolicy::Policy::Expand)) ||
-          (size < hint)
-        ;
-      }
-
-      // At this point, we know that:
+      // If at this point the `usable` pair is still uniformly `false`,
+      // we can deduce that:
       // 1) We don't have a valid hint but the widget can neither shrink
       //    nor grow to match the desired size.
       // 2) We have a valid hint but the widget can neither shrink nor
       //    grow to match the desired size.
       // It seems like we have a fixed size widget: thus there's no way
       // the widget can be used to perform the desired `action`.
-      return false;
+      // In any case the default values are correct so we can just return
+      // the status.
+      return usable;
     }
 
     inline

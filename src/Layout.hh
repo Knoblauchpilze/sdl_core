@@ -87,16 +87,11 @@ namespace sdl {
         shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
                      const sdl::utils::Sizef& achievedSize) const;
 
-        bool
-        canBeUsedTo(const WidgetInfo& info,
+        std::pair<bool, bool>
+        canBeUsedTo(const std::string& name,
+                    const WidgetInfo& info,
                     const sdl::utils::Boxf& box,
                     const SizePolicy& action) const;
-
-        bool
-        canBeUsedTo(const WidgetInfo& info,
-                    const sdl::utils::Boxf& box,
-                    const SizePolicy::Policy& action,
-                    const Direction& direction) const;
 
         sdl::utils::Sizef
         computeSpaceAdjustmentNeeded(const sdl::utils::Sizef& achieved,

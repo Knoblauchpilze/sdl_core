@@ -101,18 +101,6 @@ namespace sdl {
     }
 
     inline
-    std::pair<bool, bool>
-    Layout::canExpand(const WidgetInfo& info,
-                      const sdl::utils::Sizef& size) const
-    {
-      // We need to determine whether the widget can expand in each direction.
-      return std::make_pair(
-        canExpand(info, Direction::Horizontal, size.w()),
-        canExpand(info, Direction::Vertical, size.h())
-      );
-    }
-
-    inline
     SdlWidget*
     Layout::getContainerOrNull(SdlWidget* item, int* index) const {
       std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
@@ -130,82 +118,6 @@ namespace sdl {
       }
 
       return *itemToFind;
-    }
-
-    inline
-    bool
-    Layout::canExpand(const WidgetInfo& info,
-                      const Direction& direction,
-                      const float& desiredSize) const
-    {
-      // For the rest of this function we will distinguish between the
-      // two main cases (e.g. direction set to horizontal or vertical).
-      // Basically the same controls are applied, only on different sizes.
-
-      // Retrieve the relevant dimension and size policy.
-      bool hintValid = info.hint.isValid();
-      float dimension = 0.0f;
-      SizePolicy::Policy policy;
-      float min = 0.0f;
-      float hint = 0.0f;
-      float max = 0.0f;
-
-      if (direction == Direction::Horizontal) {
-        dimension = info.hint.w();
-        policy = info.policy.getHorizontalPolicy();
-        min = info.min.w();
-        hint = info.hint.w();
-        max = info.max.w();
-      }
-      else if (direction == Direction::Vertical) {
-        dimension = info.hint.h();
-        policy = info.policy.getVerticalPolicy();
-        min = info.min.h();
-        hint = info.hint.h();
-        max = info.max.h();
-      }
-      else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
-      }
-
-      // A widget cannot expand in a given direction if the size policy
-      // for this direction is set to `Fixed` and a valid size hint is
-      // provided.
-      // Unless the desired size corresponds to the provided hint.
-      if (hintValid && policy == SizePolicy::Fixed) {
-        if (desiredSize == dimension) {
-          return true;
-        }
-
-        return false;
-      }
-
-      // If the `desiredSize` is smaller than the `min`, the widget cannot
-      // use the provided size.
-      if (desiredSize < min) {
-        return false;
-      }
-
-      // Conversely if the `desiredSize` is larger than the `max`, the widget
-      // cannot use the provided size.
-      if (desiredSize > max) {
-        return false;
-      }
-
-      // If the `desiredSize` is in the range [`min`; `hint`] but the policy
-      // is not set to `Shrink`, the provided size is not valid.
-      if (desiredSize < hint && !(policy & SizePolicy::Policy::Shrink)) {
-        return false;
-      }
-
-      // If the `desiredSize` is in the range [`hint`; `max`] but the policy
-      // is not set to `Expand`, the provided size is not valid.
-      if (desiredSize > hint & !(policy & SizePolicy::Policy::Grow) && !(policy & SizePolicy::Policy::Expand)) {
-        return false;
-      }
-
-      // Otherwise the desired policy seems valid
-      return true;
     }
 
     inline
@@ -364,37 +276,6 @@ namespace sdl {
 
       if (desiredSize.h() < achievedSize.h()) {
         policy.setVerticalPolicy(SizePolicy::Policy::Shrink);
-      }
-
-      return policy;
-    }
-
-    inline
-    sdl::core::SizePolicy::Policy
-    Layout::shrinkOrGrow(const Direction& direction,
-                         const sdl::utils::Sizef& desiredSize,
-                         const sdl::utils::Sizef& achievedSize) const
-    {
-      // According to the direction, we have to check the correct dimension
-      // to determine whether we should shrink or grow.
-      SizePolicy::Policy policy;
-
-      if (direction == Direction::Horizontal) {
-        // Assume we need to grow.
-        policy = SizePolicy::Policy::Grow;
-        if (desiredSize.w() < achievedSize.w()) {
-          policy = SizePolicy::Policy::Shrink;
-        }
-      }
-      else if (direction == Direction::Vertical) {
-        // Assume we need to grow.
-        policy = SizePolicy::Policy::Grow;
-        if (desiredSize.h() < achievedSize.h()) {
-          policy = SizePolicy::Policy::Shrink;
-        }
-      }
-      else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
       }
 
       return policy;

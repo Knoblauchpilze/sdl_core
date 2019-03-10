@@ -9,12 +9,14 @@ find_package (SDL2 REQUIRED)
 find_package (SDL2_ttf REQUIRED)
 
 set (SOURCES
-  SdlWidget.cc
-  Layout.cc
-  Font.cc
+  SdlException.cc
   Color.cc
+  Font.cc
+  FontException.cc
   SizePolicy.cc
   EventListener.cc
+  Layout.cc
+  SdlWidget.cc
   )
 
 add_library (sdl_core SHARED

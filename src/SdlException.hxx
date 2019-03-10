@@ -8,9 +8,8 @@ namespace sdl {
 
     inline
     SdlException::SdlException(const std::string& message,
-                               const std::string& module,
                                const std::string& cause):
-      utils::core::CoreException(message, module, cause)
+      utils::core::CoreException(message, sk_moduleName, cause)
     {}
 
   }

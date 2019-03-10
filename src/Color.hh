@@ -10,6 +10,8 @@ namespace sdl {
     class Color {
       public:
 
+        Color();
+
         Color(const SDL_Color& color);
 
         Color(const uint8_t& r,

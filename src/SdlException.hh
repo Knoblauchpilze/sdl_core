@@ -6,7 +6,7 @@
 namespace sdl {
   namespace core {
 
-    class SdlException: public ::core::utils::CoreException {
+    class SdlException: public utils::core::CoreException {
       public:
 
         SdlException(const std::string& message,

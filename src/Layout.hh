@@ -3,8 +3,9 @@
 
 # include <memory>
 # include <vector>
-# include "Box.hh"
-# include "Size.hh"
+# include <maths_utils/Box.hh>
+# include <maths_utils/Size.hh>
+
 # include "SizePolicy.hh"
 
 namespace sdl {
@@ -49,7 +50,7 @@ namespace sdl {
       protected:
 
         virtual void
-        updatePrivate(const sdl::utils::Boxf& window) = 0;
+        updatePrivate(const utils::maths::Boxf& window) = 0;
 
         void
         invalidate() noexcept;
@@ -58,45 +59,45 @@ namespace sdl {
 
         struct WidgetInfo {
           sdl::core::SizePolicy policy;
-          sdl::utils::Sizef min;
-          sdl::utils::Sizef hint;
-          sdl::utils::Sizef max;
-          sdl::utils::Boxf area;
+          utils::maths::Sizef min;
+          utils::maths::Sizef hint;
+          utils::maths::Sizef max;
+          utils::maths::Boxf area;
         };
 
         std::vector<WidgetInfo>
         computeWidgetsInfo() const noexcept;
 
-        sdl::utils::Sizef
+        utils::maths::Sizef
         computeIncompressibleSize(const Direction& direction,
                                   const std::vector<WidgetInfo>& widgets) const;
 
         void
-        assignRenderingAreas(const std::vector<sdl::utils::Boxf>& boxes);
+        assignRenderingAreas(const std::vector<utils::maths::Boxf>& boxes);
 
-        sdl::utils::Sizef
+        utils::maths::Sizef
         computeSizeOfWidgets(const Direction& direction,
-                             const std::vector<sdl::utils::Boxf>& boxes) const;
+                             const std::vector<utils::maths::Boxf>& boxes) const;
 
-        sdl::utils::Sizef
-        computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
-                              const sdl::utils::Boxf& currentSize,
+        utils::maths::Sizef
+        computeSizeFromPolicy(const utils::maths::Sizef& desiredSize,
+                              const utils::maths::Boxf& currentSize,
                               const WidgetInfo& info) const;
 
         sdl::core::SizePolicy
-        shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
-                     const sdl::utils::Sizef& achievedSize,
+        shrinkOrGrow(const utils::maths::Sizef& desiredSize,
+                     const utils::maths::Sizef& achievedSize,
                      const float& tolerance) const;
 
         std::pair<bool, bool>
         canBeUsedTo(const std::string& name,
                     const WidgetInfo& info,
-                    const sdl::utils::Boxf& box,
+                    const utils::maths::Boxf& box,
                     const SizePolicy& action) const;
 
-        sdl::utils::Sizef
-        computeSpaceAdjustmentNeeded(const sdl::utils::Sizef& achieved,
-                                     const sdl::utils::Sizef& target) const;
+        utils::maths::Sizef
+        computeSpaceAdjustmentNeeded(const utils::maths::Sizef& achieved,
+                                     const utils::maths::Sizef& target) const;
 
       private:
 

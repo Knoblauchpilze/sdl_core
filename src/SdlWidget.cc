@@ -7,7 +7,7 @@ namespace sdl {
   namespace core {
 
     SdlWidget::SdlWidget(const std::string& name,
-                         const sdl::utils::Sizef& sizeHint,
+                         const utils::maths::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
                          const Palette& palette):
@@ -17,8 +17,8 @@ namespace sdl {
       m_parent(nullptr),
       m_minSize(),
       m_sizeHint(sizeHint),
-      m_maxSize(sdl::utils::Sizef::max()),
-      m_area(sdl::utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
+      m_maxSize(utils::maths::Sizef::max()),
+      m_area(utils::maths::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
       m_palette(palette),
 
       // This custom blend mode is mainly used to be able to have additive alpha blending in children widget.
@@ -72,7 +72,7 @@ namespace sdl {
 
       // Repaint if needed.
       if (hasContentChanged()) {
-        ::core::utils::Logger::getInstance().logDebug(
+        utils::core::Logger::getInstance().logDebug(
           std::string("Updating content for widget \"") + getName() + "\"",
           std::string("widget")
         );
@@ -94,7 +94,7 @@ namespace sdl {
 
       // Update layout if any.
       if (hasGeometryChanged()) {
-        ::core::utils::Logger::getInstance().logDebug(
+        utils::core::Logger::getInstance().logDebug(
           std::string("Updating layout for widget \"") + getName() + "\"",
           std::string("widget")
         );

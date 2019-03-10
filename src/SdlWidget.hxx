@@ -4,6 +4,7 @@
 # include "SdlWidget.hh"
 
 # include <core_utils/CoreWrapper.hh>
+# include "BoxUtils.hh"
 # include "SdlException.hh"
 # include "RendererState.hh"
 
@@ -32,21 +33,21 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
+    utils::maths::Sizef
     SdlWidget::getMinSize() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_minSize;
     }
 
     inline
-    sdl::utils::Sizef
+    utils::maths::Sizef
     SdlWidget::getSizeHint() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_sizeHint;
     }
 
     inline
-    sdl::utils::Sizef
+    utils::maths::Sizef
     SdlWidget::getMaxSize() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_maxSize;
@@ -61,7 +62,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setMinSize(const sdl::utils::Sizef& size) noexcept {
+    SdlWidget::setMinSize(const utils::maths::Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_minSize = size;
       makeGeometryDirty();
@@ -69,7 +70,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setSizeHint(const sdl::utils::Sizef& hint) noexcept {
+    SdlWidget::setSizeHint(const utils::maths::Sizef& hint) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizeHint = hint;
       makeGeometryDirty();
@@ -77,14 +78,14 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setMaxSize(const sdl::utils::Sizef& size) noexcept {
+    SdlWidget::setMaxSize(const utils::maths::Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_maxSize = size;
       makeGeometryDirty();
     }
 
     inline
-    sdl::utils::Boxf
+    utils::maths::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
@@ -92,8 +93,8 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setRenderingArea(const sdl::utils::Boxf& area) noexcept {
-      ::core::utils::Logger::getInstance().logDebug(
+    SdlWidget::setRenderingArea(const utils::maths::Boxf& area) noexcept {
+      utils::core::Logger::getInstance().logDebug(
         std::string("[") + getName() + "] Area is now (" +
         std::to_string(area.x()) + "x" + std::to_string(area.y()) +
         ", dims: " + std::to_string(area.w()) + "x" + std::to_string(area.h()) +
@@ -292,7 +293,7 @@ namespace sdl {
       // and then draw children as well.
 
       // Retrieve the dimensions of the area to create.
-      const SDL_Rect areaAsRect = m_area.toSDLRect();
+      const SDL_Rect areaAsRect = utils::sdl::toSDLRect(m_area);
 
       // Create the texture with correct access.
       SDL_Texture* textureContent = SDL_CreateTexture(
@@ -425,14 +426,14 @@ namespace sdl {
     void
     SdlWidget::drawChild(SDL_Renderer* renderer, SdlWidget& child) {
       // Protect against errors.
-      ::core::utils::launchProtected(
+      utils::core::launchProtected(
         [renderer, &child]() {
           // Draw this object (caching is handled by the object itself).
           SDL_Texture* picture = child.draw(renderer);
 
           // Draw the picture at the corresponding place.
-          const sdl::utils::Boxf& render = child.getRenderingArea();
-          SDL_Rect dstArea = render.toSDLRect();
+          const utils::maths::Boxf& render = child.getRenderingArea();
+          SDL_Rect dstArea = utils::sdl::toSDLRect(render);
 
           if (picture != nullptr) {
             SDL_RenderCopy(renderer, picture, nullptr, &dstArea);

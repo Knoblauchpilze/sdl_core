@@ -12,6 +12,10 @@ namespace sdl {
         FontException(const std::string& cause);
 
         virtual ~FontException() = default;
+
+      private:
+
+        static const char* sk_moduleName;
     };
 
   }

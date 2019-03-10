@@ -10,10 +10,13 @@ namespace sdl {
       public:
 
         SdlException(const std::string& message,
-                     const std::string& module = std::string("sdl"),
                      const std::string& cause = std::string());
 
         virtual ~SdlException() = default;
+
+      private:
+
+        static const char* sk_moduleName;
     };
 
   }

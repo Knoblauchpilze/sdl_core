@@ -10,7 +10,7 @@ namespace sdl {
     SdlException::SdlException(const std::string& message,
                                const std::string& module,
                                const std::string& cause):
-      ::core::utils::CoreException(message, module, cause)
+      utils::core::CoreException(message, module, cause)
     {}
 
   }

@@ -5,8 +5,8 @@
 # include <memory>
 # include <unordered_map>
 # include <SDL2/SDL.h>
-# include "Box.hh"
-# include "Size.hh"
+# include <maths_utils/Box.hh>
+# include <maths_utils/Size.hh>
 # include "Color.hh"
 # include "Layout.hh"
 # include "Palette.hh"
@@ -20,7 +20,7 @@ namespace sdl {
       public:
 
         SdlWidget(const std::string& name,
-                  const sdl::utils::Sizef& sizeHint = sdl::utils::Sizef(),
+                  const utils::maths::Sizef& sizeHint = utils::maths::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
                   const Palette& palette = Palette());
@@ -30,32 +30,32 @@ namespace sdl {
         const std::string&
         getName() const noexcept;
 
-        sdl::utils::Sizef
+        utils::maths::Sizef
         getMinSize() const noexcept;
 
-        sdl::utils::Sizef
+        utils::maths::Sizef
         getSizeHint() const noexcept;
 
-        sdl::utils::Sizef
+        utils::maths::Sizef
         getMaxSize() const noexcept;
 
         SizePolicy
         getSizePolicy() const noexcept;
 
         void
-        setMinSize(const sdl::utils::Sizef& size) noexcept;
+        setMinSize(const utils::maths::Sizef& size) noexcept;
 
         void
-        setSizeHint(const sdl::utils::Sizef& hint) noexcept;
+        setSizeHint(const utils::maths::Sizef& hint) noexcept;
 
         void
-        setMaxSize(const sdl::utils::Sizef& size) noexcept;
+        setMaxSize(const utils::maths::Sizef& size) noexcept;
 
-        sdl::utils::Boxf
+        utils::maths::Boxf
         getRenderingArea() const noexcept;
 
         void
-        setRenderingArea(const sdl::utils::Boxf& area) noexcept;
+        setRenderingArea(const utils::maths::Boxf& area) noexcept;
 
         void
         setBackgroundColor(const Color& color) noexcept;
@@ -161,10 +161,10 @@ namespace sdl {
         std::string m_name;
 
         SdlWidget* m_parent;
-        sdl::utils::Sizef m_minSize;
-        sdl::utils::Sizef m_sizeHint;
-        sdl::utils::Sizef m_maxSize;
-        sdl::utils::Boxf m_area;
+        utils::maths::Sizef m_minSize;
+        utils::maths::Sizef m_sizeHint;
+        utils::maths::Sizef m_maxSize;
+        utils::maths::Boxf m_area;
         Palette m_palette;
         SDL_BlendMode m_blendMode;
 

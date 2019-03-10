@@ -43,7 +43,7 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
+    utils::maths::Sizef
     Layout::computeIncompressibleSize(const Direction& direction,
                                       const std::vector<WidgetInfo>& widgets) const
     {
@@ -90,10 +90,10 @@ namespace sdl {
 
       // Create a valid size based on this layout's direction.
       if (direction == Direction::Horizontal) {
-        return sdl::utils::Sizef(flowingSize, perpendicularSize);
+        return utils::maths::Sizef(flowingSize, perpendicularSize);
       }
       else if (direction == Direction::Vertical) {
-        return sdl::utils::Sizef(perpendicularSize, flowingSize);
+        return utils::maths::Sizef(perpendicularSize, flowingSize);
       }
       else {
         throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
@@ -121,9 +121,9 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
+    utils::maths::Sizef
     Layout::computeSizeOfWidgets(const Direction& direction,
-                                 const std::vector<sdl::utils::Boxf>& boxes) const
+                                 const std::vector<utils::maths::Boxf>& boxes) const
     {
       float flowingSize = 0.0f;
       float perpendicularSize = 0.0f;
@@ -160,10 +160,10 @@ namespace sdl {
 
       // Create a valid size based on this layout's direction.
       if (direction == Direction::Horizontal) {
-        return sdl::utils::Sizef(flowingSize, perpendicularSize);
+        return utils::maths::Sizef(flowingSize, perpendicularSize);
       }
       else if (direction == Direction::Vertical) {
-        return sdl::utils::Sizef(perpendicularSize, flowingSize);
+        return utils::maths::Sizef(perpendicularSize, flowingSize);
       }
       else {
         throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
@@ -171,13 +171,13 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
-    Layout::computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
-                                  const sdl::utils::Boxf& currentSize,
+    utils::maths::Sizef
+    Layout::computeSizeFromPolicy(const utils::maths::Sizef& desiredSize,
+                                  const utils::maths::Boxf& currentSize,
                                   const WidgetInfo& info) const
     {
       // Create the return size and assume the desired size is valid.
-      sdl::utils::Sizef outputBox(
+      utils::maths::Sizef outputBox(
         currentSize.w() + desiredSize.w(),
         currentSize.h() + desiredSize.h()
       );
@@ -193,7 +193,7 @@ namespace sdl {
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
         if (info.hint.isValid()) {
-          outputBox.setWidth(info.hint.w());
+          outputBox.w() = info.hint.w();
           widthDone = true;
         }
       }
@@ -202,7 +202,7 @@ namespace sdl {
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
         if (info.hint.isValid()) {
-          outputBox.setHeight(info.hint.h());
+          outputBox.h() = info.hint.h();
           heightDone = true;
         }
       }
@@ -215,17 +215,17 @@ namespace sdl {
       // At least one of the dimension is not set to fixed, so we have to check for
       // min and max sizes.
       if (outputBox.w() < info.min.w()) {
-        outputBox.setWidth(info.min.w());
+        outputBox.w() = info.min.w();
       }
       if (outputBox.h() < info.min.h()) {
-        outputBox.setHeight(info.min.h());
+        outputBox.h() = info.min.h();
       }
 
       if (outputBox.w() > info.max.w()) {
-        outputBox.setWidth(info.max.w());
+        outputBox.w() = info.max.w();
       }
       if (outputBox.h() > info.max.h()) {
-        outputBox.setHeight(info.max.h());
+        outputBox.h() = info.max.h();
       }
 
       // The last thing to check concerns the size policy. For example if the `desiredSize`
@@ -243,17 +243,17 @@ namespace sdl {
 
       // Check shrinking policy.
       if (outputBox.w() < info.hint.w() && !info.policy.canShrinkHorizontally()) {
-        outputBox.setWidth(info.hint.w());
+        outputBox.w() = info.hint.w();
       }
       if (outputBox.h() < info.hint.h() && !info.policy.canShrinkVertically()) {
-        outputBox.setHeight(info.hint.h());
+        outputBox.h() = info.hint.h();
       }
 
       if (outputBox.w() > info.hint.w() && !info.policy.canExtendHorizontally()) {
-        outputBox.setWidth(info.hint.w());
+        outputBox.w() = info.hint.w();
       }
       if (outputBox.h() > info.hint.h() && !info.policy.canExtendVertically()) {
-        outputBox.setHeight(info.hint.h());
+        outputBox.h() = info.hint.h();
       }
 
       // We can return the computed box.
@@ -262,8 +262,8 @@ namespace sdl {
 
     inline
     sdl::core::SizePolicy
-    Layout::shrinkOrGrow(const sdl::utils::Sizef& desiredSize,
-                         const sdl::utils::Sizef& achievedSize,
+    Layout::shrinkOrGrow(const utils::maths::Sizef& desiredSize,
+                         const utils::maths::Sizef& achievedSize,
                          const float& tolerance) const
     {
       // Assume growing in both directions.
@@ -303,7 +303,7 @@ namespace sdl {
     inline
     std::pair<bool, bool>
     Layout::canBeUsedTo(const std::string& name, const WidgetInfo& info,
-                        const sdl::utils::Boxf& box,
+                        const utils::maths::Boxf& box,
                         const SizePolicy& action) const
     {
       // We want to determine if the widget described by its main
@@ -432,11 +432,11 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
-    Layout::computeSpaceAdjustmentNeeded(const sdl::utils::Sizef& achieved,
-                                         const sdl::utils::Sizef& target) const
+    utils::maths::Sizef
+    Layout::computeSpaceAdjustmentNeeded(const utils::maths::Sizef& achieved,
+                                         const utils::maths::Sizef& target) const
     {
-      return sdl::utils::Sizef(target.w() - achieved.w(), target.h() - achieved.h());
+      return utils::maths::Sizef(target.w() - achieved.w(), target.h() - achieved.h());
     }
 
   }

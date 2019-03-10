@@ -7,16 +7,11 @@ namespace sdl {
   namespace core {
 
     inline
-    SdlException::SdlException(const std::string& cause):
-      std::exception(),
-      m_cause(cause)
+    SdlException::SdlException(const std::string& message,
+                               const std::string& module,
+                               const std::string& cause):
+      ::core::utils::CoreException(message, module, cause)
     {}
-
-    inline
-    const char*
-    SdlException::what() const throw() {
-      return m_cause.c_str();
-    }
 
   }
 }

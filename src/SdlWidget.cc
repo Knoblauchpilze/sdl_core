@@ -1,6 +1,8 @@
 
 # include "SdlWidget.hh"
 
+# include <core_utils/CoreLogger.hh>
+
 namespace sdl {
   namespace core {
 
@@ -70,7 +72,11 @@ namespace sdl {
 
       // Repaint if needed.
       if (hasContentChanged()) {
-        std::cout << "[WIG][" << getName() << "] Updating content for widget" << std::endl;
+        ::core::utils::Logger::getInstance().logDebug(
+          std::string("Updating content for widget \"") + getName() + "\"",
+          std::string("widget")
+        );
+
         clearTexture();
         m_content = createContentPrivate(renderer);
         m_contentDirty = false;
@@ -88,7 +94,11 @@ namespace sdl {
 
       // Update layout if any.
       if (hasGeometryChanged()) {
-        std::cout << "[WIG][" << getName() << "] Updating layout for widget" << std::endl;
+        ::core::utils::Logger::getInstance().logDebug(
+          std::string("Updating layout for widget \"") + getName() + "\"",
+          std::string("widget")
+        );
+
         if (m_layout != nullptr) {
           m_layout->update();
         }
@@ -97,16 +107,8 @@ namespace sdl {
 
       // Proceed to update of children containers if any.
       for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        try {
-          if (child->second->isVisible()) {
-            drawChild(renderer, *child->second);
-          }
-        }
-        catch (const SdlException& e) {
-          std::cerr << "[WIDGET] Caught internal exception while repainting child " << child->first
-                    << " for container " << getName() << ":"
-                    << std::endl << e.what()
-                    << std::endl;
+        if (child->second->isVisible()) {
+          drawChild(renderer, *child->second);
         }
       }
 

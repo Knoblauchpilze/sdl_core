@@ -1,26 +1,19 @@
 #ifndef    SDLEXCEPTION_HH
 # define   SDLEXCEPTION_HH
 
-# include <stdexcept>
+# include <core_utils/CoreException.hh>
 
 namespace sdl {
   namespace core {
 
-    class SdlException: public std::exception {
+    class SdlException: public ::core::utils::CoreException {
       public:
 
-        SdlException(const std::string& cause);
+        SdlException(const std::string& message,
+                     const std::string& module = std::string("sdl"),
+                     const std::string& cause = std::string());
 
         virtual ~SdlException() = default;
-
-        const char*
-        what() const throw() override;
-
-      protected:
-
-      private:
-
-        std::string m_cause;
     };
 
   }

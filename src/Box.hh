@@ -11,7 +11,7 @@ namespace sdl {
     class Box {
       public:
 
-        /*
+        /**
          * @brief - Describes a box centered at coordinate (x, y) with the specified dimensions (width, height)
          * @param x - the x coordinate of the center.
          * @param y - the y coordinate of the center.
@@ -81,7 +81,7 @@ namespace sdl {
         CoordinateType
         getSurface() const noexcept;
 
-        /*
+        /**
          * @brief - Checks whether the input box is contained inside this box.
          * @param other - the other box to check for inclusion.
          * @return - true if the other box is contained inside this box, false otherwise.
@@ -89,7 +89,7 @@ namespace sdl {
         bool
         contains(const Box<CoordinateType>& other) const noexcept;
 
-        /*
+        /**
          * @brief - Checks whether the input box intersects this box.
          * @param other - the other box to check for inclusion.
          * @return - true if the other box is contained inside this box, false otherwise.
@@ -97,7 +97,7 @@ namespace sdl {
         bool
         intersects(const Box<CoordinateType>& other) const noexcept;
 
-        /*
+        /**
          * @brief - Checks whether the input box contains this box.
          * @param other - the box into which this box should be contained.
          * @return - true if the other box contains this box, false otherwise.
@@ -105,7 +105,7 @@ namespace sdl {
         bool
         isInside(const Box<CoordinateType>& other) const noexcept;
 
-        /*
+        /**
          * @brief - Checks whether the input point is inside this box.
          * @param point - the input point to check for inclusion in this box.
          * @return - true if the point lies inside this box, false otherwise.
@@ -113,7 +113,7 @@ namespace sdl {
         bool
         isInside(const Vector2<CoordinateType>& point) const noexcept;
 
-        /*
+        /**
          * @brief - Retrieves the nearest point to the input 'point' belonging to this box.
          * @param point - the point for which a box point should be retrieved.
          * @return - a vector representing the closest point belonging to this box relatively to the input point.
@@ -121,7 +121,7 @@ namespace sdl {
         Vector2<CoordinateType>
         getNearestPoint(const Vector2<CoordinateType>& point) const noexcept;
 
-        /*
+        /**
          * @brief - Builds a top left SDL_Rect object from this box.
          * @return - a sdl rect object based on the input type of this object.
          */

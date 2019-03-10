@@ -2,6 +2,8 @@
 # define   SDLWIDGET_HXX
 
 # include "SdlWidget.hh"
+
+# include <core_utils/CoreWrapper.hh>
 # include "SdlException.hh"
 # include "RendererState.hh"
 
@@ -91,11 +93,14 @@ namespace sdl {
     inline
     void
     SdlWidget::setRenderingArea(const sdl::utils::Boxf& area) noexcept {
-      std::cout << "[WIG][" << getName() << "] Area is now ("
-                << area.x() << "x" << area.y()
-                << ", dims: " << area.w() << "x" << area.h()
-                << ")"
-                << std::endl;
+      ::core::utils::Logger::getInstance().logDebug(
+        std::string("[") + getName() + "] Area is now (" +
+        std::to_string(area.x()) + "x" + std::to_string(area.y()) +
+        ", dims: " + std::to_string(area.w()) + "x" + std::to_string(area.h()) +
+        ")",
+        std::string("widget")
+      );
+
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_area = area;
       makeContentDirty();
@@ -419,16 +424,23 @@ namespace sdl {
     inline
     void
     SdlWidget::drawChild(SDL_Renderer* renderer, SdlWidget& child) {
-      // Draw this object (caching is handled by the object itself).
-      SDL_Texture* picture = child.draw(renderer);
+      // Protect against errors.
+      ::core::utils::launchProtected(
+        [renderer, &child]() {
+          // Draw this object (caching is handled by the object itself).
+          SDL_Texture* picture = child.draw(renderer);
 
-      // Draw the picture at the corresponding place.
-      const sdl::utils::Boxf& render = child.getRenderingArea();
-      SDL_Rect dstArea = render.toSDLRect();
+          // Draw the picture at the corresponding place.
+          const sdl::utils::Boxf& render = child.getRenderingArea();
+          SDL_Rect dstArea = render.toSDLRect();
 
-      if (picture != nullptr) {
-        SDL_RenderCopy(renderer, picture, nullptr, &dstArea);
-      }
+          if (picture != nullptr) {
+            SDL_RenderCopy(renderer, picture, nullptr, &dstArea);
+          }
+        },
+        std::string("draw_child"),
+        std::string("widget")
+      );
     }
 
   }

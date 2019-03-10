@@ -10,7 +10,9 @@ namespace sdl {
                          const utils::maths::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
-                         const Palette& palette):
+                         const Palette& palette,
+                         utils::core::LoggerShPtr logger,
+                         const WidgetFactory* factory):
       EventListener(EventListener::Interaction::MouseButtonReleased),
 
       m_name(name),
@@ -49,7 +51,10 @@ namespace sdl {
       m_children(),
 
       m_sizePolicy(),
-      m_layout()
+      m_layout(),
+
+      m_factory(factory),
+      m_logger(logger)
     {
       // Register the parent widget: if a layout is registered in the parent widget
       // we can use this, otherwise use the regular method.
@@ -72,10 +77,7 @@ namespace sdl {
 
       // Repaint if needed.
       if (hasContentChanged()) {
-        utils::core::Logger::getInstance().logDebug(
-          std::string("Updating content for widget \"") + getName() + "\"",
-          std::string("widget")
-        );
+        log(std::string("Updating content for widget"));
 
         clearTexture();
         m_content = createContentPrivate(renderer);
@@ -94,10 +96,7 @@ namespace sdl {
 
       // Update layout if any.
       if (hasGeometryChanged()) {
-        utils::core::Logger::getInstance().logDebug(
-          std::string("Updating layout for widget \"") + getName() + "\"",
-          std::string("widget")
-        );
+        log(std::string("Updating layout for widget"));
 
         if (m_layout != nullptr) {
           m_layout->update();

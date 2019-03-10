@@ -360,14 +360,14 @@ namespace sdl {
     inline
     void
     SdlWidget::makeContentDirty() noexcept {
-      std::cout << "[WIG][" << getName() << "] Content dirty for widget" << std::endl;
+      log(std::string("Content is now dirty"));
       m_contentDirty = true;
     }
 
     inline
     void
     SdlWidget::makeGeometryDirty() noexcept {
-      std::cout << "[WIG][" << getName() << "] Geometry dirty for widget" << std::endl;
+      log(std::string("Geometry is now dirty"));
       makeContentDirty();
       m_geometryDirty = true;
     }
@@ -394,6 +394,26 @@ namespace sdl {
     LayoutType*
     SdlWidget::getLayoutAs() noexcept {
       return dynamic_cast<LayoutType*>(m_layout.get());
+    }
+
+    inline
+    void
+    SdlWidget::log(const std::string& message,
+                   const utils::core::Level& level) const noexcept
+    {
+      if (m_logger != nullptr) {
+        m_logger->logMessage(
+          level,
+          message,
+          getName()
+        );
+      }
+    }
+
+    inline
+    const WidgetFactory*
+    SdlWidget::getFactory() const noexcept {
+      return m_factory;
     }
 
     inline

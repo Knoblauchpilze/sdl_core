@@ -7,6 +7,11 @@ namespace sdl {
   namespace core {
 
     inline
+    Color::Color():
+      m_color(SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE})
+    {}
+
+    inline
     Color::Color(const SDL_Color& color):
       m_color(color)
     {}

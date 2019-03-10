@@ -4,9 +4,13 @@
 # include <mutex>
 # include <memory>
 # include <unordered_map>
+
 # include <SDL2/SDL.h>
+
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
+# include <core_utils/CoreLogger.hh>
+
 # include "Color.hh"
 # include "Layout.hh"
 # include "Palette.hh"
@@ -16,6 +20,8 @@
 namespace sdl {
   namespace core {
 
+    class WidgetFactory;
+
     class SdlWidget: public EventListener {
       public:
 
@@ -23,7 +29,9 @@ namespace sdl {
                   const utils::maths::Sizef& sizeHint = utils::maths::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
-                  const Palette& palette = Palette());
+                  const Palette& palette = Palette(),
+                  utils::core::LoggerShPtr logger = nullptr,
+                  const WidgetFactory* factory = nullptr);
 
         virtual ~SdlWidget();
 
@@ -141,6 +149,13 @@ namespace sdl {
         LayoutType*
         getLayoutAs() noexcept;
 
+        void
+        log(const std::string& message,
+            const utils::core::Level& level = utils::core::Level::Debug) const noexcept;
+
+        const WidgetFactory*
+        getFactory() const noexcept;
+
       private:
 
         void
@@ -155,6 +170,7 @@ namespace sdl {
       protected:
 
         friend class Layout;
+        friend class WidgetFactory;
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
@@ -179,10 +195,12 @@ namespace sdl {
 
         SizePolicy m_sizePolicy;
         std::shared_ptr<Layout> m_layout;
+
+        const WidgetFactory* m_factory;
+        mutable utils::core::LoggerShPtr m_logger;
     };
 
     using SdlWidgetShPtr = std::shared_ptr<SdlWidget>;
-
   }
 }
 

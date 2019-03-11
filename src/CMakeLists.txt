@@ -17,6 +17,7 @@ set (SOURCES
   EventListener.cc
   Layout.cc
   SdlWidget.cc
+  WidgetBuilder.cc
   )
 
 add_library (sdl_core SHARED

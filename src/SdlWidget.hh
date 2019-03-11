@@ -16,22 +16,13 @@
 # include "Palette.hh"
 # include "SizePolicy.hh"
 # include "EventListener.hh"
+# include "WidgetBuilder.hh"
 
 namespace sdl {
   namespace core {
 
-    class WidgetFactory;
-
     class SdlWidget: public EventListener {
       public:
-
-        SdlWidget(const std::string& name,
-                  const utils::maths::Sizef& sizeHint = utils::maths::Sizef(),
-                  SdlWidget* parent = nullptr,
-                  const bool transparent = false,
-                  const Palette& palette = Palette(),
-                  utils::core::LoggerShPtr logger = nullptr,
-                  const WidgetFactory* factory = nullptr);
 
         virtual ~SdlWidget();
 
@@ -112,6 +103,13 @@ namespace sdl {
 
       protected:
 
+        SdlWidget(const std::string& name,
+                  const utils::maths::Sizef& sizeHint = utils::maths::Sizef(),
+                  SdlWidget* parent = nullptr,
+                  const bool transparent = false,
+                  const Palette& palette = Palette(),
+                  utils::core::LoggerShPtr logger = nullptr);
+
         // We assume that this widget is already locked when we enter this method.
         virtual bool
         hasContentChanged() const noexcept;
@@ -153,9 +151,6 @@ namespace sdl {
         log(const std::string& message,
             const utils::core::Level& level = utils::core::Level::Debug) const noexcept;
 
-        const WidgetFactory*
-        getFactory() const noexcept;
-
       private:
 
         void
@@ -170,7 +165,7 @@ namespace sdl {
       protected:
 
         friend class Layout;
-        friend class WidgetFactory;
+        friend class WidgetBuilder;
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
@@ -196,7 +191,6 @@ namespace sdl {
         SizePolicy m_sizePolicy;
         std::shared_ptr<Layout> m_layout;
 
-        const WidgetFactory* m_factory;
         mutable utils::core::LoggerShPtr m_logger;
     };
 

@@ -411,12 +411,6 @@ namespace sdl {
     }
 
     inline
-    const WidgetFactory*
-    SdlWidget::getFactory() const noexcept {
-      return m_factory;
-    }
-
-    inline
     void
     SdlWidget::addWidget(SdlWidget* widget) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
@@ -430,6 +424,9 @@ namespace sdl {
       if (m_children.find(widget->getName()) != m_children.cend()) {
         throw SdlException(std::string("Cannot add duplicated widget \"") + widget->getName() + "\" to \"" + getName() + "\"");
       }
+
+      // Pass the logger to children widget.
+      widget->m_logger = m_logger;
 
       m_children[widget->getName()] = widget;
     }

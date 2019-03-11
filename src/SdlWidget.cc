@@ -11,8 +11,7 @@ namespace sdl {
                          SdlWidget* parent,
                          const bool transparent,
                          const Palette& palette,
-                         utils::core::LoggerShPtr logger,
-                         const WidgetFactory* factory):
+                         utils::core::LoggerShPtr logger):
       EventListener(EventListener::Interaction::MouseButtonReleased),
 
       m_name(name),
@@ -53,7 +52,6 @@ namespace sdl {
       m_sizePolicy(),
       m_layout(),
 
-      m_factory(factory),
       m_logger(logger)
     {
       // Register the parent widget: if a layout is registered in the parent widget

@@ -7,6 +7,7 @@
 # include "BoxUtils.hh"
 # include "SdlException.hh"
 # include "RendererState.hh"
+# include <core_utils/LoggerLocator.hh>
 
 namespace sdl {
   namespace core {
@@ -33,21 +34,21 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
+    utils::Sizef
     SdlWidget::getMinSize() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_minSize;
     }
 
     inline
-    utils::maths::Sizef
+    utils::Sizef
     SdlWidget::getSizeHint() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_sizeHint;
     }
 
     inline
-    utils::maths::Sizef
+    utils::Sizef
     SdlWidget::getMaxSize() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_maxSize;
@@ -62,7 +63,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setMinSize(const utils::maths::Sizef& size) noexcept {
+    SdlWidget::setMinSize(const utils::Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_minSize = size;
       makeGeometryDirty();
@@ -70,7 +71,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setSizeHint(const utils::maths::Sizef& hint) noexcept {
+    SdlWidget::setSizeHint(const utils::Sizef& hint) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizeHint = hint;
       makeGeometryDirty();
@@ -78,14 +79,14 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setMaxSize(const utils::maths::Sizef& size) noexcept {
+    SdlWidget::setMaxSize(const utils::Sizef& size) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_maxSize = size;
       makeGeometryDirty();
     }
 
     inline
-    utils::maths::Boxf
+    utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
@@ -93,18 +94,18 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setRenderingArea(const utils::maths::Boxf& area) noexcept {
-      utils::core::Logger::getInstance().logDebug(
-        std::string("[") + getName() + "] Area is now (" +
-        std::to_string(area.x()) + "x" + std::to_string(area.y()) +
-        ", dims: " + std::to_string(area.w()) + "x" + std::to_string(area.h()) +
-        ")",
-        std::string("widget")
-      );
-
+    SdlWidget::setRenderingArea(const utils::Boxf& area) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_area = area;
       makeContentDirty();
+
+      log(
+        std::string("Area is now (") +
+        std::to_string(area.x()) + "x" + std::to_string(area.y()) +
+        ", dims: " + std::to_string(area.w()) + "x" + std::to_string(area.h()) +
+        ")",
+        utils::Level::Debug
+      );
     }
 
     inline
@@ -293,7 +294,7 @@ namespace sdl {
       // and then draw children as well.
 
       // Retrieve the dimensions of the area to create.
-      const SDL_Rect areaAsRect = utils::sdl::toSDLRect(m_area);
+      const SDL_Rect areaAsRect = utils::toSDLRect(m_area);
 
       // Create the texture with correct access.
       SDL_Texture* textureContent = SDL_CreateTexture(
@@ -304,13 +305,19 @@ namespace sdl {
         areaAsRect.h
       );
       if (textureContent == nullptr) {
-        throw SdlException(std::string("Could not create texture for widget \"") + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+        throw SdlException(
+          std::string("Could not create texture for widget (err: \"") + SDL_GetError() + "\")",
+          getName()
+        );
       }
 
       // Assign the custom blend mode.
       int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
       if (retCode != 0) {
-        throw SdlException(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " for widget \"" + getName() + "\" (err: \"" + SDL_GetError() + "\")");
+        throw SdlException(
+          std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " (err: \"" + SDL_GetError() + "\")",
+          getName()
+        );
       }
 
       SDL_Color bgColor = m_palette.getBackgroundColor()();
@@ -384,7 +391,10 @@ namespace sdl {
     SdlWidget::getChildAs(const std::string& name) {
       WidgetMap::const_iterator child = m_children.find(name);
       if (child == m_children.cend()) {
-        throw SdlException(std::string("Cannot retrieve child widget ") + name + " in widget " + getName() + ", no such element");
+        throw SdlException(
+          std::string("Cannot retrieve child widget ") + name + ", no such element",
+          getName()
+        );
       }
       return dynamic_cast<WidgetType*>(child->second);
     }
@@ -399,15 +409,14 @@ namespace sdl {
     inline
     void
     SdlWidget::log(const std::string& message,
-                   const utils::core::Level& level) const noexcept
+                   const utils::Level& level) const noexcept
     {
-      if (m_logger != nullptr) {
-        m_logger->logMessage(
-          level,
-          message,
-          getName()
-        );
-      }
+      utils::LoggerLocator::getLogger().logMessage(
+        level,
+        message,
+        sk_serviceName,
+        getName()
+      );
     }
 
     inline
@@ -417,16 +426,13 @@ namespace sdl {
 
       // Check for null widget.
       if (widget == nullptr) {
-        throw SdlException(std::string("Cannot add null widget to \"") + getName() + "\"");
+        throw SdlException(std::string("Cannot add null widget"), getName());
       }
 
       // Check for duplicated widget
       if (m_children.find(widget->getName()) != m_children.cend()) {
-        throw SdlException(std::string("Cannot add duplicated widget \"") + widget->getName() + "\" to \"" + getName() + "\"");
+        throw SdlException(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
       }
-
-      // Pass the logger to children widget.
-      widget->m_logger = m_logger;
 
       m_children[widget->getName()] = widget;
     }
@@ -443,21 +449,22 @@ namespace sdl {
     void
     SdlWidget::drawChild(SDL_Renderer* renderer, SdlWidget& child) {
       // Protect against errors.
-      utils::core::launchProtected(
+      utils::launchProtected(
         [renderer, &child]() {
           // Draw this object (caching is handled by the object itself).
           SDL_Texture* picture = child.draw(renderer);
 
           // Draw the picture at the corresponding place.
-          const utils::maths::Boxf& render = child.getRenderingArea();
-          SDL_Rect dstArea = utils::sdl::toSDLRect(render);
+          const utils::Boxf& render = child.getRenderingArea();
+          SDL_Rect dstArea = utils::toSDLRect(render);
 
           if (picture != nullptr) {
             SDL_RenderCopy(renderer, picture, nullptr, &dstArea);
           }
         },
         std::string("draw_child"),
-        std::string("widget")
+        getName(),
+        sk_serviceName
       );
     }
 

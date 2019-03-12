@@ -45,7 +45,7 @@ namespace sdl {
       if (item != nullptr) {
         // Check for duplicated items.
         if (getContainerOrNull(item) != nullptr) {
-          throw SdlException(std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\", duplicated item");
+          throw LayoutException(std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\", duplicated item");
         }
 
         // Insert the item into the layout.
@@ -83,7 +83,7 @@ namespace sdl {
     }
 
     void
-    Layout::assignRenderingAreas(const std::vector<utils::maths::Boxf>& boxes) {
+    Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes) {
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
         m_items[index]->setRenderingArea(boxes[index]);

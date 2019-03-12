@@ -18,31 +18,45 @@ namespace sdl {
 
     inline
     void
-    EventListener::onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) {}
+    EventListener::onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) {
+      // Empty implementation
+    }
 
     inline
     void
-    EventListener::onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) {}
+    EventListener::onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) {
+      // Empty implementation
+    }
 
     inline
     void
-    EventListener::onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent) {}
+    EventListener::onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent) {
+      // Empty implementation
+    }
 
     inline
     void
-    EventListener::onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {}
+    EventListener::onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
+      // Empty implementation
+    }
 
     inline
     void
-    EventListener::onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {}
+    EventListener::onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
+      // Empty implementation
+    }
 
     inline
     void
-    EventListener::onMouseWheelEvent(const SDL_MouseWheelEvent& event) {}
+    EventListener::onMouseWheelEvent(const SDL_MouseWheelEvent& event) {
+      // Empty implementation
+    }
 
     inline
     void
-    EventListener::onQuitEvent(const SDL_QuitEvent& event) {}
+    EventListener::onQuitEvent(const SDL_QuitEvent& event) {
+      // Empty implementation
+    }
 
     inline
     bool

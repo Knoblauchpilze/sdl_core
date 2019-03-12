@@ -1,25 +1,24 @@
 
 # include "SdlWidget.hh"
 
-# include <core_utils/CoreLogger.hh>
-
 namespace sdl {
   namespace core {
 
+    const char* SdlWidget::sk_serviceName = "widget";
+
     SdlWidget::SdlWidget(const std::string& name,
-                         const utils::maths::Sizef& sizeHint,
+                         const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
-                         const Palette& palette,
-                         utils::core::LoggerShPtr logger):
+                         const Palette& palette):
       EventListener(EventListener::Interaction::MouseButtonReleased),
 
       m_name(name),
       m_parent(nullptr),
       m_minSize(),
       m_sizeHint(sizeHint),
-      m_maxSize(utils::maths::Sizef::max()),
-      m_area(utils::maths::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
+      m_maxSize(utils::Sizef::max()),
+      m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
       m_palette(palette),
 
       // This custom blend mode is mainly used to be able to have additive alpha blending in children widget.
@@ -50,9 +49,7 @@ namespace sdl {
       m_children(),
 
       m_sizePolicy(),
-      m_layout(),
-
-      m_logger(logger)
+      m_layout()
     {
       // Register the parent widget: if a layout is registered in the parent widget
       // we can use this, otherwise use the regular method.
@@ -70,7 +67,7 @@ namespace sdl {
 
       // Check whether a valid size is provided for this widget.
       if (!m_area.valid()) {
-        throw SdlException(std::string("Could not repaint widget \"") + getName() + "\", invalid size");
+        throw SdlException(std::string("Could not repaint widget, invalid size"), getName());
       }
 
       // Repaint if needed.

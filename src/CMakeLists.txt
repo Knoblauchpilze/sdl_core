@@ -16,8 +16,8 @@ set (SOURCES
   SizePolicy.cc
   EventListener.cc
   Layout.cc
+  LayoutException.cc
   SdlWidget.cc
-  WidgetBuilder.cc
   )
 
 add_library (sdl_core SHARED

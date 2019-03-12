@@ -9,14 +9,12 @@
 
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
-# include <core_utils/CoreLogger.hh>
 
 # include "Color.hh"
 # include "Layout.hh"
 # include "Palette.hh"
 # include "SizePolicy.hh"
 # include "EventListener.hh"
-# include "WidgetBuilder.hh"
 
 namespace sdl {
   namespace core {
@@ -24,37 +22,43 @@ namespace sdl {
     class SdlWidget: public EventListener {
       public:
 
+        SdlWidget(const std::string& name,
+                  const utils::Sizef& sizeHint = utils::Sizef(),
+                  SdlWidget* parent = nullptr,
+                  const bool transparent = false,
+                  const Palette& palette = Palette());
+
         virtual ~SdlWidget();
 
         const std::string&
         getName() const noexcept;
 
-        utils::maths::Sizef
+        utils::Sizef
         getMinSize() const noexcept;
 
-        utils::maths::Sizef
+        utils::Sizef
         getSizeHint() const noexcept;
 
-        utils::maths::Sizef
+        utils::Sizef
         getMaxSize() const noexcept;
 
         SizePolicy
         getSizePolicy() const noexcept;
 
         void
-        setMinSize(const utils::maths::Sizef& size) noexcept;
+        setMinSize(const utils::Sizef& size) noexcept;
 
         void
-        setSizeHint(const utils::maths::Sizef& hint) noexcept;
+        setSizeHint(const utils::Sizef& hint) noexcept;
 
         void
-        setMaxSize(const utils::maths::Sizef& size) noexcept;
+        setMaxSize(const utils::Sizef& size) noexcept;
 
-        utils::maths::Boxf
+        utils::Boxf
         getRenderingArea() const noexcept;
 
         void
-        setRenderingArea(const utils::maths::Boxf& area) noexcept;
+        setRenderingArea(const utils::Boxf& area) noexcept;
 
         void
         setBackgroundColor(const Color& color) noexcept;
@@ -103,13 +107,6 @@ namespace sdl {
 
       protected:
 
-        SdlWidget(const std::string& name,
-                  const utils::maths::Sizef& sizeHint = utils::maths::Sizef(),
-                  SdlWidget* parent = nullptr,
-                  const bool transparent = false,
-                  const Palette& palette = Palette(),
-                  utils::core::LoggerShPtr logger = nullptr);
-
         // We assume that this widget is already locked when we enter this method.
         virtual bool
         hasContentChanged() const noexcept;
@@ -149,7 +146,7 @@ namespace sdl {
 
         void
         log(const std::string& message,
-            const utils::core::Level& level = utils::core::Level::Debug) const noexcept;
+            const utils::Level& level = utils::Level::Debug) const noexcept;
 
       private:
 
@@ -165,17 +162,18 @@ namespace sdl {
       protected:
 
         friend class Layout;
-        friend class WidgetBuilder;
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
+
+        static const char* sk_serviceName;
 
         std::string m_name;
 
         SdlWidget* m_parent;
-        utils::maths::Sizef m_minSize;
-        utils::maths::Sizef m_sizeHint;
-        utils::maths::Sizef m_maxSize;
-        utils::maths::Boxf m_area;
+        utils::Sizef m_minSize;
+        utils::Sizef m_sizeHint;
+        utils::Sizef m_maxSize;
+        utils::Boxf m_area;
         Palette m_palette;
         SDL_BlendMode m_blendMode;
 
@@ -190,8 +188,6 @@ namespace sdl {
 
         SizePolicy m_sizePolicy;
         std::shared_ptr<Layout> m_layout;
-
-        mutable utils::core::LoggerShPtr m_logger;
     };
 
     using SdlWidgetShPtr = std::shared_ptr<SdlWidget>;

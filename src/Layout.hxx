@@ -2,7 +2,7 @@
 # define   LAYOUT_HXX
 
 # include "Layout.hh"
-# include "SdlException.hh"
+# include "LayoutException.hh"
 
 namespace sdl {
   namespace core {
@@ -43,7 +43,7 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
+    utils::Sizef
     Layout::computeIncompressibleSize(const Direction& direction,
                                       const std::vector<WidgetInfo>& widgets) const
     {
@@ -75,7 +75,7 @@ namespace sdl {
           increment = widgets[index].hint.h();
         }
         else {
-          throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+          throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
         }
 
         // Increase the `flowingSize` with the provided `increment` (which may be
@@ -90,13 +90,13 @@ namespace sdl {
 
       // Create a valid size based on this layout's direction.
       if (direction == Direction::Horizontal) {
-        return utils::maths::Sizef(flowingSize, perpendicularSize);
+        return utils::Sizef(flowingSize, perpendicularSize);
       }
       else if (direction == Direction::Vertical) {
-        return utils::maths::Sizef(perpendicularSize, flowingSize);
+        return utils::Sizef(perpendicularSize, flowingSize);
       }
       else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+        throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
       }
     }
 
@@ -121,9 +121,9 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
+    utils::Sizef
     Layout::computeSizeOfWidgets(const Direction& direction,
-                                 const std::vector<utils::maths::Boxf>& boxes) const
+                                 const std::vector<utils::Boxf>& boxes) const
     {
       float flowingSize = 0.0f;
       float perpendicularSize = 0.0f;
@@ -145,7 +145,7 @@ namespace sdl {
           increment = boxes[index].h();
         }
         else {
-          throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+          throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
         }
 
         // Increase the `flowingSize` with the provided `increment` and
@@ -160,24 +160,24 @@ namespace sdl {
 
       // Create a valid size based on this layout's direction.
       if (direction == Direction::Horizontal) {
-        return utils::maths::Sizef(flowingSize, perpendicularSize);
+        return utils::Sizef(flowingSize, perpendicularSize);
       }
       else if (direction == Direction::Vertical) {
-        return utils::maths::Sizef(perpendicularSize, flowingSize);
+        return utils::Sizef(perpendicularSize, flowingSize);
       }
       else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+        throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
       }
     }
 
     inline
-    utils::maths::Sizef
-    Layout::computeSizeFromPolicy(const utils::maths::Sizef& desiredSize,
-                                  const utils::maths::Boxf& currentSize,
+    utils::Sizef
+    Layout::computeSizeFromPolicy(const utils::Sizef& desiredSize,
+                                  const utils::Boxf& currentSize,
                                   const WidgetInfo& info) const
     {
       // Create the return size and assume the desired size is valid.
-      utils::maths::Sizef outputBox(
+      utils::Sizef outputBox(
         currentSize.w() + desiredSize.w(),
         currentSize.h() + desiredSize.h()
       );
@@ -262,8 +262,8 @@ namespace sdl {
 
     inline
     sdl::core::SizePolicy
-    Layout::shrinkOrGrow(const utils::maths::Sizef& desiredSize,
-                         const utils::maths::Sizef& achievedSize,
+    Layout::shrinkOrGrow(const utils::Sizef& desiredSize,
+                         const utils::Sizef& achievedSize,
                          const float& tolerance) const
     {
       // Assume growing in both directions.
@@ -303,7 +303,7 @@ namespace sdl {
     inline
     std::pair<bool, bool>
     Layout::canBeUsedTo(const std::string& name, const WidgetInfo& info,
-                        const utils::maths::Boxf& box,
+                        const utils::Boxf& box,
                         const SizePolicy& action) const
     {
       // We want to determine if the widget described by its main
@@ -432,11 +432,11 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
-    Layout::computeSpaceAdjustmentNeeded(const utils::maths::Sizef& achieved,
-                                         const utils::maths::Sizef& target) const
+    utils::Sizef
+    Layout::computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
+                                         const utils::Sizef& target) const
     {
-      return utils::maths::Sizef(target.w() - achieved.w(), target.h() - achieved.h());
+      return utils::Sizef(target.w() - achieved.w(), target.h() - achieved.h());
     }
 
   }

@@ -9,7 +9,7 @@ namespace sdl {
     class FontException: public SdlException {
       public:
 
-        FontException(const std::string& cause);
+        FontException(const std::string& message);
 
         virtual ~FontException() = default;
 

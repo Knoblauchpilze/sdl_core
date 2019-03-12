@@ -24,6 +24,10 @@ namespace sdl {
         return font->second;
       }
 
+      // TODO: INvalid size usage: if several client share the same font pointer, we
+      // are not able to perform the rendering with the desired size.
+      // A better approach would be to effectively duplicate the font but to share the
+      // array of sizes.
       m_fonts[name] = std::make_shared<Font>(name, size);
 
       return m_fonts[name];

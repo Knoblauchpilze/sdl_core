@@ -7,8 +7,8 @@ namespace sdl {
   namespace core {
 
     inline
-    FontException::FontException(const std::string& cause):
-      sdl::core::SdlException(cause)
+    FontException::FontException(const std::string& message):
+      sdl::core::SdlException(message, sk_moduleName)
     {}
 
   }

@@ -6,17 +6,18 @@
 namespace sdl {
   namespace core {
 
-    class SdlException: public utils::core::CoreException {
+    class SdlException: public utils::CoreException {
       public:
 
         SdlException(const std::string& message,
+                     const std::string& module,
                      const std::string& cause = std::string());
 
         virtual ~SdlException() = default;
 
       private:
 
-        static const char* sk_moduleName;
+        static const char* sk_serviceName;
     };
 
   }

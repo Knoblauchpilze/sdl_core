@@ -4,7 +4,7 @@
 namespace sdl {
   namespace core {
 
-    const char* SdlException::sk_moduleName = "sdl";
+    const char* SdlException::sk_serviceName = "sdl";
 
   }
 }

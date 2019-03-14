@@ -26,7 +26,9 @@ namespace sdl {
 
     constexpr EventListener::Interaction::Mask EventListener::Interaction::FullInteraction;
 
-    EventListener::EventListener(const Interaction::Mask& mask):
+    EventListener::EventListener(const std::string& name,
+                                 const Interaction::Mask& mask):
+      utils::CoreObject(name),
       m_mask(mask)
     {
       // Nothing to do.

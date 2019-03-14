@@ -3,6 +3,7 @@
 
 # include <memory>
 # include <vector>
+# include <core_utils/CoreObject.hh>
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
 
@@ -14,7 +15,7 @@ namespace sdl {
     class SdlWidget;
 
     // Slave class of SdlWidget.
-    class Layout {
+    class Layout: public utils::CoreObject {
       public:
 
         enum class Direction {
@@ -24,7 +25,8 @@ namespace sdl {
 
       public:
 
-        Layout(SdlWidget* widget = nullptr);
+        Layout(SdlWidget* widget = nullptr,
+               const std::string& name = std::string("Layout"));
 
         virtual ~Layout();
 
@@ -102,7 +104,7 @@ namespace sdl {
       private:
 
         SdlWidget*
-        getContainerOrNull(SdlWidget* item, int* index = nullptr) const;
+        getContainerOrNull(SdlWidget* item, std::size_t* index = nullptr) const;
 
       protected:
 

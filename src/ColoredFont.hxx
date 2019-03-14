@@ -2,18 +2,20 @@
 # define   COLOREDFONT_HXX
 
 # include "ColoredFont.hh"
-# include "FontException.hh"
 
 namespace sdl {
   namespace core {
 
     inline
     ColoredFont::ColoredFont(FontShPtr font, const Color& color):
+      utils::CoreObject(font->getName()),
       m_font(font),
       m_color(color),
       m_dirty(true),
       m_text(nullptr)
-    {}
+    {
+      setService(std::string("font"));
+    }
 
     ColoredFont::~ColoredFont() {
       if (m_text != nullptr) {
@@ -58,13 +60,13 @@ namespace sdl {
 
         SDL_Surface* textAsSurface = m_font->render(text, m_color);
         if (textAsSurface == nullptr) {
-          throw FontException(std::string("Could not render text \"") + text + "\" with font \"" + m_font->getName() + "\"");
+          error(std::string("Could not render text \"") + text + "\" with font \"" + m_font->getName() + "\"");
         }
 
         m_text = SDL_CreateTextureFromSurface(renderer, textAsSurface);
         SDL_FreeSurface(textAsSurface);
         if (m_text == nullptr) {
-          throw FontException(std::string("Could not create texture from surface for text \"") + text + "\" and font \"" + m_font->getName() + "\"");
+          error(std::string("Could not create texture from surface for text \"") + text + "\" and font \"" + m_font->getName() + "\"");
         }
 
         SDL_SetTextureAlphaMod(m_text, m_color.a());

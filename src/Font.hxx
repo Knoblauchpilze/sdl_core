@@ -3,7 +3,6 @@
 
 # include <algorithm>
 # include "Font.hh"
-# include "FontException.hh"
 
 namespace sdl {
   namespace core {
@@ -41,7 +40,7 @@ namespace sdl {
       // Proceed to rendering.
       SDL_Surface* textSurface = TTF_RenderUTF8_Blended(m_font, text.c_str(), color());
       if (textSurface == nullptr) {
-        throw FontException(std::string("Could not render text ") + text + " with font \"" + getName() + "\"");
+        error(std::string("Could not render text ") + text + " with font \"" + getName() + "\"");
       }
 
       return textSurface;
@@ -69,9 +68,7 @@ namespace sdl {
 
         // Check that we could effectively load the font.
         if (newFont == nullptr) {
-          throw FontException(
-            std::string("Unable to create font \"") + getName() + "\": " + TTF_GetError()
-          );
+          error(std::string("Unable to create font \"") + getName() + "\": " + TTF_GetError());
         }
 
         m_fonts[getSize()] = newFont;
@@ -101,9 +98,7 @@ namespace sdl {
     Font::initializeTTFLib() {
       // Initialize the ttf lib.
       if (!TTF_WasInit() && TTF_Init() == -1) {
-        throw FontException(
-          std::string("Unable to initialize TTF lib, cannot create font \"") + getName() + "\": " + TTF_GetError()
-        );
+        error(std::string("Unable to initialize TTF lib, cannot create font \"") + getName() + "\": " + TTF_GetError());
       }
     }
 

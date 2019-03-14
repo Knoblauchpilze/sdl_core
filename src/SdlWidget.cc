@@ -4,16 +4,13 @@
 namespace sdl {
   namespace core {
 
-    const char* SdlWidget::sk_serviceName = "widget";
-
     SdlWidget::SdlWidget(const std::string& name,
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
                          const Palette& palette):
-      EventListener(EventListener::Interaction::MouseButtonReleased),
+      EventListener(name, EventListener::Interaction::MouseButtonReleased),
 
-      m_name(name),
       m_parent(nullptr),
       m_minSize(),
       m_sizeHint(sizeHint),
@@ -51,6 +48,9 @@ namespace sdl {
       m_sizePolicy(),
       m_layout()
     {
+      // Assign the service for this widget.
+      setService(std::string("widget"));
+
       // Register the parent widget: if a layout is registered in the parent widget
       // we can use this, otherwise use the regular method.
       if (parent != nullptr && parent->m_layout != nullptr) {
@@ -67,7 +67,7 @@ namespace sdl {
 
       // Check whether a valid size is provided for this widget.
       if (!m_area.valid()) {
-        throw SdlException(std::string("Could not repaint widget, invalid size"), getName());
+        error(std::string("Could not repaint widget, invalid size"), getName());
       }
 
       // Repaint if needed.

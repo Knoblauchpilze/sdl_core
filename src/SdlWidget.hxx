@@ -5,9 +5,7 @@
 
 # include <core_utils/CoreWrapper.hh>
 # include "BoxUtils.hh"
-# include "SdlException.hh"
 # include "RendererState.hh"
-# include <core_utils/LoggerLocator.hh>
 
 namespace sdl {
   namespace core {
@@ -25,12 +23,6 @@ namespace sdl {
           delete widget->second;
         }
       }
-    }
-
-    inline
-    const std::string&
-    SdlWidget::getName() const noexcept {
-      return m_name;
     }
 
     inline
@@ -99,13 +91,7 @@ namespace sdl {
       m_area = area;
       makeContentDirty();
 
-      log(
-        std::string("Area is now (") +
-        std::to_string(area.x()) + "x" + std::to_string(area.y()) +
-        ", dims: " + std::to_string(area.w()) + "x" + std::to_string(area.h()) +
-        ")",
-        utils::Level::Debug
-      );
+      log(std::string("Area is now ") + m_area.toString());
     }
 
     inline
@@ -305,19 +291,13 @@ namespace sdl {
         areaAsRect.h
       );
       if (textureContent == nullptr) {
-        throw SdlException(
-          std::string("Could not create texture for widget (err: \"") + SDL_GetError() + "\")",
-          getName()
-        );
+        error(std::string("Could not create texture for widget (err: \"") + SDL_GetError() + "\")");
       }
 
       // Assign the custom blend mode.
       int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
       if (retCode != 0) {
-        throw SdlException(
-          std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " (err: \"" + SDL_GetError() + "\")",
-          getName()
-        );
+        error(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " (err: \"" + SDL_GetError() + "\")");
       }
 
       SDL_Color bgColor = m_palette.getBackgroundColor()();
@@ -350,7 +330,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
+    SdlWidget::drawContentPrivate(SDL_Renderer* /*renderer*/, SDL_Texture* /*texture*/) const noexcept {
       // Nothing to do.
     }
 
@@ -391,10 +371,7 @@ namespace sdl {
     SdlWidget::getChildAs(const std::string& name) {
       WidgetMap::const_iterator child = m_children.find(name);
       if (child == m_children.cend()) {
-        throw SdlException(
-          std::string("Cannot retrieve child widget ") + name + ", no such element",
-          getName()
-        );
+        error(std::string("Cannot retrieve child widget ") + name + ", no such element");
       }
       return dynamic_cast<WidgetType*>(child->second);
     }
@@ -408,30 +385,17 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::log(const std::string& message,
-                   const utils::Level& level) const noexcept
-    {
-      utils::LoggerLocator::getLogger().logMessage(
-        level,
-        message,
-        sk_serviceName,
-        getName()
-      );
-    }
-
-    inline
-    void
     SdlWidget::addWidget(SdlWidget* widget) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Check for null widget.
       if (widget == nullptr) {
-        throw SdlException(std::string("Cannot add null widget"), getName());
+        error(std::string("Cannot add null widget"), getName());
       }
 
       // Check for duplicated widget
       if (m_children.find(widget->getName()) != m_children.cend()) {
-        throw SdlException(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
+        error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
       }
 
       m_children[widget->getName()] = widget;
@@ -449,7 +413,7 @@ namespace sdl {
     void
     SdlWidget::drawChild(SDL_Renderer* renderer, SdlWidget& child) {
       // Protect against errors.
-      utils::launchProtected(
+      withSafetyNet(
         [renderer, &child]() {
           // Draw this object (caching is handled by the object itself).
           SDL_Texture* picture = child.draw(renderer);
@@ -462,9 +426,7 @@ namespace sdl {
             SDL_RenderCopy(renderer, picture, nullptr, &dstArea);
           }
         },
-        std::string("draw_child"),
-        getName(),
-        sk_serviceName
+        std::string("draw_child")
       );
     }
 

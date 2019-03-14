@@ -30,9 +30,6 @@ namespace sdl {
 
         virtual ~SdlWidget();
 
-        const std::string&
-        getName() const noexcept;
-
         utils::Sizef
         getMinSize() const noexcept;
 
@@ -144,10 +141,6 @@ namespace sdl {
         LayoutType*
         getLayoutAs() noexcept;
 
-        void
-        log(const std::string& message,
-            const utils::Level& level = utils::Level::Debug) const noexcept;
-
       private:
 
         void
@@ -164,10 +157,6 @@ namespace sdl {
         friend class Layout;
 
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
-
-        static const char* sk_serviceName;
-
-        std::string m_name;
 
         SdlWidget* m_parent;
         utils::Sizef m_minSize;

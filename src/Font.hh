@@ -4,12 +4,13 @@
 # include <memory>
 # include <unordered_map>
 # include <SDL2/SDL_ttf.h>
+# include <core_utils/CoreObject.hh>
 # include "Color.hh"
 
 namespace sdl {
   namespace core {
 
-    class Font {
+    class Font: public utils::CoreObject {
       public:
 
         explicit

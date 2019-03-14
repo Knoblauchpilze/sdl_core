@@ -2,13 +2,14 @@
 # define   COLOREDFONT_HH
 
 # include <memory>
+# include <core_utils/CoreObject.hh>
 # include "Font.hh"
 # include "Color.hh"
 
 namespace sdl {
   namespace core {
 
-    class ColoredFont {
+    class ColoredFont: public utils::CoreObject {
       public:
 
         explicit

@@ -5,11 +5,15 @@
 namespace sdl {
   namespace core {
 
-    Layout::Layout(SdlWidget* container):
+    Layout::Layout(SdlWidget* container,
+                   const std::string& name):
+      utils::CoreObject(name),
       m_widget(container),
       m_items(),
       m_dirty(true)
-    {}
+    {
+      setService(std::string("layout"));
+    }
 
     Layout::~Layout() {
       if (m_widget != nullptr) {
@@ -45,7 +49,7 @@ namespace sdl {
       if (item != nullptr) {
         // Check for duplicated items.
         if (getContainerOrNull(item) != nullptr) {
-          throw LayoutException(std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\", duplicated item");
+          error(std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\", duplicated item");
         }
 
         // Insert the item into the layout.

@@ -2,7 +2,6 @@
 # define   LAYOUT_HXX
 
 # include "Layout.hh"
-# include "LayoutException.hh"
 
 namespace sdl {
   namespace core {
@@ -10,10 +9,10 @@ namespace sdl {
     inline
     int
     Layout::addItem(SdlWidget* item,
-                    const unsigned& x,
-                    const unsigned& y,
-                    const unsigned& w,
-                    const unsigned& h)
+                    const unsigned& /*x*/,
+                    const unsigned& /*y*/,
+                    const unsigned& /*w*/,
+                    const unsigned& /*h*/)
     {
       // No specialization at this level.
       return addItem(item);
@@ -22,7 +21,7 @@ namespace sdl {
     inline
     void
     Layout::removeItem(SdlWidget* item) {
-      int index = m_items.size();
+      std::size_t index = m_items.size();
       getContainerOrNull(item, &index);
       if (index < m_items.size()) {
         m_items.erase(m_items.cbegin() + index);
@@ -75,7 +74,7 @@ namespace sdl {
           increment = widgets[index].hint.h();
         }
         else {
-          throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+          error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
         }
 
         // Increase the `flowingSize` with the provided `increment` (which may be
@@ -96,15 +95,15 @@ namespace sdl {
         return utils::Sizef(perpendicularSize, flowingSize);
       }
       else {
-        throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+        error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
       }
     }
 
     inline
     SdlWidget*
-    Layout::getContainerOrNull(SdlWidget* item, int* index) const {
+    Layout::getContainerOrNull(SdlWidget* item, std::size_t* index) const {
       std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
-      int itemId = 0;
+      std::size_t itemId = 0;
       while (itemToFind != m_items.cend() && item != *itemToFind) {
         ++itemToFind;
         ++itemId;
@@ -145,7 +144,7 @@ namespace sdl {
           increment = boxes[index].h();
         }
         else {
-          throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+          error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
         }
 
         // Increase the `flowingSize` with the provided `increment` and
@@ -166,7 +165,7 @@ namespace sdl {
         return utils::Sizef(perpendicularSize, flowingSize);
       }
       else {
-        throw LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
+        error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
       }
     }
 

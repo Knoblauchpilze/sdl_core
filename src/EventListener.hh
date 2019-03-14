@@ -3,10 +3,12 @@
 
 # include <SDL2/SDL.h>
 
+# include <core_utils/CoreObject.hh>
+
 namespace sdl {
   namespace core {
 
-    class EventListener {
+    class EventListener: public utils::CoreObject {
       public:
 
         struct Interaction {
@@ -38,7 +40,8 @@ namespace sdl {
 
       public:
 
-        EventListener(const Interaction::Mask& mask);
+        EventListener(const std::string& name,
+                      const Interaction::Mask& mask);
 
         virtual ~EventListener();
 

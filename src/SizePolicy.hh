@@ -2,8 +2,6 @@
 # define   SIZEPOLICY_HH
 
 # include <memory>
-# include <vector>
-# include "Color.hh"
 
 namespace sdl {
   namespace core {

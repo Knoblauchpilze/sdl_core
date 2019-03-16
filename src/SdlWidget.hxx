@@ -96,7 +96,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setBackgroundColor(const Color& color) noexcept {
+    SdlWidget::setBackgroundColor(const engine::Color& color) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_palette.setBackgroundColor(color);
       makeContentDirty();
@@ -215,31 +215,6 @@ namespace sdl {
            ++widget)
       {
         widget->second->onMouseWheelEvent(event);
-      }
-
-      if (getName() == "right_widget") {
-
-        SDL_Color bgColor = m_palette.getBackgroundColor()();
-
-        if (event.y < 0) {
-          if (bgColor.a < 10) {
-            bgColor.a = 0;
-          }
-          else {
-            bgColor.a = std::max(0, bgColor.a - 10);
-          }
-        }
-        else {
-          if (bgColor.a > 245) {
-            bgColor.a = 255;
-          }
-          else {
-            bgColor.a = std::min(255, bgColor.a + 10);
-          }
-        }
-        m_palette.setBackgroundColor(Color(bgColor));
-        std::cout << "[WIG] " << getName() << " alpha: " << std::to_string(bgColor.a) << std::endl;
-        makeContentDirty();
       }
     }
 

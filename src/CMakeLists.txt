@@ -10,8 +10,6 @@ find_package (SDL2_ttf REQUIRED)
 
 set (SOURCES
   SdlObject.cc
-  Color.cc
-  Font.cc
   SizePolicy.cc
   EventListener.cc
   Layout.cc

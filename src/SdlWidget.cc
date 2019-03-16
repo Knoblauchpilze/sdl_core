@@ -8,7 +8,7 @@ namespace sdl {
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
-                         const Palette& palette):
+                         const engine::Palette& palette):
       EventListener(name, EventListener::Interaction::MouseButtonReleased),
 
       m_parent(nullptr),

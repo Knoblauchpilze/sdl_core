@@ -9,10 +9,10 @@
 
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
+# include <sdl_engine/Color.hh>
+# include <sdl_engine/Palette.hh>
 
-# include "Color.hh"
 # include "Layout.hh"
-# include "Palette.hh"
 # include "SizePolicy.hh"
 # include "EventListener.hh"
 
@@ -26,7 +26,7 @@ namespace sdl {
                   const utils::Sizef& sizeHint = utils::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
-                  const Palette& palette = Palette());
+                  const engine::Palette& palette = engine::Palette());
 
         virtual ~SdlWidget();
 
@@ -58,7 +58,7 @@ namespace sdl {
         setRenderingArea(const utils::Boxf& area) noexcept;
 
         void
-        setBackgroundColor(const Color& color) noexcept;
+        setBackgroundColor(const engine::Color& color) noexcept;
 
         bool
         isVisible() const noexcept;
@@ -163,7 +163,7 @@ namespace sdl {
         utils::Sizef m_sizeHint;
         utils::Sizef m_maxSize;
         utils::Boxf m_area;
-        Palette m_palette;
+        engine::Palette m_palette;
         SDL_BlendMode m_blendMode;
 
         bool m_contentDirty;

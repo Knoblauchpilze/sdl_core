@@ -61,8 +61,8 @@ namespace sdl {
       }
     }
 
-    SDL_Texture*
-    SdlWidget::draw(SDL_Renderer* renderer) {
+    engine::Texture::UUID
+    SdlWidget::draw() {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Check whether a valid size is provided for this widget.
@@ -75,19 +75,13 @@ namespace sdl {
         log(std::string("Updating content for widget"));
 
         clearTexture();
-        m_content = createContentPrivate(renderer);
+        m_content = createContentPrivate();
         m_contentDirty = false;
       }
 
       // Clear the content and draw the new version.
-      clearContentPrivate(renderer, m_content);
-      drawContentPrivate(renderer, m_content);
-
-      // Save the current state of the renderer.
-      RendererState state(renderer);
-
-      // The rendering target is now set to 'm_content'.
-      SDL_SetRenderTarget(renderer, m_content);
+      clearContentPrivate(*m_content);
+      drawContentPrivate(*m_content);
 
       // Update layout if any.
       if (hasGeometryChanged()) {
@@ -102,12 +96,12 @@ namespace sdl {
       // Proceed to update of children containers if any.
       for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         if (child->second->isVisible()) {
-          drawChild(renderer, *child->second);
+          drawChild(*child->second);
         }
       }
 
       // Return the built-in texture.
-      return m_content;
+      return *m_content;
     }
 
   }

@@ -11,6 +11,7 @@
 # include <maths_utils/Size.hh>
 # include <sdl_engine/Color.hh>
 # include <sdl_engine/Palette.hh>
+# include <sdl_engine/Texture.hh>
 
 # include "Layout.hh"
 # include "SizePolicy.hh"
@@ -69,8 +70,8 @@ namespace sdl {
         SDL_BlendMode
         getBlendMode() const noexcept;
 
-        virtual SDL_Texture*
-        draw(SDL_Renderer* renderer);
+        virtual engine::Texture::UUID
+        draw();
 
         unsigned
         getWidgetsCount() const noexcept;
@@ -112,14 +113,14 @@ namespace sdl {
         virtual bool
         hasGeometryChanged() const noexcept;
 
-        virtual SDL_Texture*
-        createContentPrivate(SDL_Renderer* renderer) const;
+        virtual std::shared_ptr<engine::Texture::UUID>
+        createContentPrivate() const;
 
         virtual void
-        clearContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept;
+        clearContentPrivate(const engine::Texture::UUID& uuid) const noexcept;
 
         virtual void
-        drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept;
+        drawContentPrivate(const engine::Texture::UUID& uuid) const noexcept;
 
         void
         setParent(SdlWidget* parent);
@@ -150,7 +151,7 @@ namespace sdl {
         clearTexture();
 
         void
-        drawChild(SDL_Renderer* renderer, SdlWidget& child);
+        drawChild(SdlWidget& child);
 
       protected:
 
@@ -170,7 +171,7 @@ namespace sdl {
         bool m_geometryDirty;
         bool m_isVisible;
         bool m_transparent;
-        SDL_Texture* m_content;
+        std::shared_ptr<engine::Texture::UUID> m_content;
         mutable std::mutex m_drawingLocker;
 
         WidgetMap m_children;

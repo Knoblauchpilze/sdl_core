@@ -4,8 +4,7 @@
 # include "SdlWidget.hh"
 
 # include <core_utils/CoreWrapper.hh>
-# include "BoxUtils.hh"
-# include "RendererState.hh"
+# include <sdl_engine/EngineLocator.hh>
 
 namespace sdl {
   namespace core {
@@ -243,8 +242,8 @@ namespace sdl {
     }
 
     inline
-    SDL_Texture*
-    SdlWidget::createContentPrivate(SDL_Renderer* renderer) const {
+    std::shared_ptr<engine::Texture::UUID>
+    SdlWidget::createContentPrivate() const {
       // So far we created the clear content texture which is stored in the
       // 'm_clearContent' texture and which contains a static texture filled
       // with the background color and made transaprent if needed.
@@ -254,58 +253,37 @@ namespace sdl {
       // access so that we can copy the internal 'm_clearContent' texture onto it
       // and then draw children as well.
 
-      // Retrieve the dimensions of the area to create.
-      const SDL_Rect areaAsRect = utils::toSDLRect(m_area);
+      // Create the texture using the engine. THe dmensions are retrieved from the
+      // internal area.
+      utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
+      engine::Texture::UUID uuid = engine::EngineLocator::getEngine().createTexture(size);
 
-      // Create the texture with correct access.
-      SDL_Texture* textureContent = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA8888,
-        SDL_TEXTUREACCESS_TARGET,
-        areaAsRect.w,
-        areaAsRect.h
-      );
-      if (textureContent == nullptr) {
-        error(std::string("Could not create texture for widget (err: \"") + SDL_GetError() + "\")");
-      }
-
+      // TODO: Restore blend mode.
       // Assign the custom blend mode.
-      int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
-      if (retCode != 0) {
-        error(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " (err: \"" + SDL_GetError() + "\")");
-      }
-
-      SDL_Color bgColor = m_palette.getBackgroundColor()();
+      // int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
+      // if (retCode != 0) {
+      //   error(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " (err: \"" + SDL_GetError() + "\")");
+      // }
 
       // Assign alpha modulation to this texture based on the background color.
-      SDL_SetTextureAlphaMod(textureContent, bgColor.a);
-
-      // Fill the texture with opaque background color, transparency being handled using alpha modulation.
-      RendererState state(renderer);
-      SDL_SetRenderTarget(renderer, textureContent);
-      SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, SDL_ALPHA_OPAQUE);
-      SDL_RenderClear(renderer);
+      engine::EngineLocator::getEngine().setTextureAlpha(uuid, m_palette.getActiveColor());
 
       // Return the texture.
-      return textureContent;
+      return std::make_shared<engine::Texture::UUID>(uuid);
     }
 
     inline
     void
-    SdlWidget::clearContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
-      // Save the current state of the renderer: this will automatically handle restoring the state upon destroying this object.
-      RendererState state(renderer);
-
-      SDL_Color bgColor = m_palette.getBackgroundColor()();
-
-      SDL_SetRenderTarget(renderer, texture);
-      SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, SDL_ALPHA_OPAQUE);
-      SDL_RenderClear(renderer);
+    SdlWidget::clearContentPrivate(const engine::Texture::UUID& uuid) const noexcept {
+      // Use the engine to fill the texture with the color provided by the
+      // internal palette. The state of the widget is stored in the palette
+      // so it will automatically be handled by the engine.
+      engine::EngineLocator::getEngine().fillTexture(uuid, m_palette);
     }
 
     inline
     void
-    SdlWidget::drawContentPrivate(SDL_Renderer* /*renderer*/, SDL_Texture* /*texture*/) const noexcept {
+    SdlWidget::drawContentPrivate(const engine::Texture::UUID& /*uuid*/) const noexcept {
       // Nothing to do.
     }
 
@@ -380,26 +358,29 @@ namespace sdl {
     void
     SdlWidget::clearTexture() {
       if (m_content != nullptr) {
-        SDL_DestroyTexture(m_content);
+        engine::EngineLocator::getEngine().destroyTexture(*m_content);
+        m_content.reset();
       }
     }
 
     inline
     void
-    SdlWidget::drawChild(SDL_Renderer* renderer, SdlWidget& child) {
+    SdlWidget::drawChild(SdlWidget& child) {
+      const engine::Texture::UUID& uuid = *m_content;
+
       // Protect against errors.
       withSafetyNet(
-        [renderer, &child]() {
+        [&child, &uuid]() {
           // Draw this object (caching is handled by the object itself).
-          SDL_Texture* picture = child.draw(renderer);
+          engine::Texture::UUID picture = child.draw();
 
           // Draw the picture at the corresponding place.
-          const utils::Boxf& render = child.getRenderingArea();
-          SDL_Rect dstArea = utils::toSDLRect(render);
-
-          if (picture != nullptr) {
-            SDL_RenderCopy(renderer, picture, nullptr, &dstArea);
-          }
+          utils::Boxf render = child.getRenderingArea();
+          engine::EngineLocator::getEngine().drawTexture(
+            picture,
+            uuid,
+            &render
+          );
         },
         std::string("draw_child")
       );

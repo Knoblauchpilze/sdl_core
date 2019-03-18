@@ -378,7 +378,7 @@ namespace sdl {
           utils::Boxf render = child.getRenderingArea();
           engine::EngineLocator::getEngine().drawTexture(
             picture,
-            uuid,
+            &uuid,
             &render
           );
         },

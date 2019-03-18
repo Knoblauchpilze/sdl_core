@@ -18,24 +18,6 @@ namespace sdl {
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
       m_palette(palette),
 
-      // This custom blend mode is mainly used to be able to have additive alpha blending in children widget.
-      // Basically if a widget has a transparency of 128 and one of its children has also a transparency of 128,
-      // we would want the final pixel to have a transparency of 64 (i.e. one fourth of totally opaque).
-      // This cannot be achieved using any of the proposed blend modes so we have to rely on custom blend mode.
-      // The custom blend mode can be composed as follows:
-      // dstRGB = colorOperation(srcRGB * srcColorFactor, dstRGB * dstColorFactor)
-      // dstA = alphaOperation(srcA * srcAlphaFactor, dstA * dstAlphaFactor)
-      m_blendMode(
-        SDL_ComposeCustomBlendMode(
-          SDL_BLENDFACTOR_SRC_ALPHA,           // srcColorFactor
-          SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, // dstColorFactor
-          SDL_BLENDOPERATION_ADD,              // colorOperation
-          SDL_BLENDFACTOR_ZERO,                // srcAlphaFactor
-          SDL_BLENDFACTOR_ONE,                 // dstAlphaFactor
-          SDL_BLENDOPERATION_ADD               // alphaOperation
-        )
-      ),
-
       m_contentDirty(true),
       m_geometryDirty(true),
       m_isVisible(true),

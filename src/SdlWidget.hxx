@@ -116,13 +116,6 @@ namespace sdl {
     }
 
     inline
-    SDL_BlendMode
-    SdlWidget::getBlendMode() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      return m_blendMode;
-    }
-
-    inline
     unsigned
     SdlWidget::getWidgetsCount() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
@@ -257,13 +250,6 @@ namespace sdl {
       // internal area.
       utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
       engine::Texture::UUID uuid = engine::EngineLocator::getEngine().createTexture(size);
-
-      // TODO: Restore blend mode.
-      // Assign the custom blend mode.
-      // int retCode = SDL_SetTextureBlendMode(textureContent, m_blendMode);
-      // if (retCode != 0) {
-      //   error(std::string("Cannot set blend mode to ") + std::to_string(m_blendMode) + " (err: \"" + SDL_GetError() + "\")");
-      // }
 
       // Assign alpha modulation to this texture based on the background color.
       engine::EngineLocator::getEngine().setTextureAlpha(uuid, m_palette.getActiveColor());

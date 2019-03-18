@@ -67,9 +67,6 @@ namespace sdl {
         void
         setVisible(bool isVisible) noexcept;
 
-        SDL_BlendMode
-        getBlendMode() const noexcept;
-
         virtual engine::Texture::UUID
         draw();
 
@@ -165,7 +162,6 @@ namespace sdl {
         utils::Sizef m_maxSize;
         utils::Boxf m_area;
         engine::Palette m_palette;
-        SDL_BlendMode m_blendMode;
 
         bool m_contentDirty;
         bool m_geometryDirty;

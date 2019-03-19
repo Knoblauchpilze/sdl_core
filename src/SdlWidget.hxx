@@ -249,10 +249,10 @@ namespace sdl {
       // Create the texture using the engine. THe dmensions are retrieved from the
       // internal area.
       utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
-      engine::Texture::UUID uuid = engine::EngineLocator::getEngine().createTexture(size);
+      engine::Texture::UUID uuid = m_engine->createTexture(size);
 
       // Assign alpha modulation to this texture based on the background color.
-      engine::EngineLocator::getEngine().setTextureAlpha(uuid, m_palette.getActiveColor());
+      m_engine->setTextureAlpha(uuid, m_palette.getActiveColor());
 
       // Return the texture.
       return std::make_shared<engine::Texture::UUID>(uuid);
@@ -264,7 +264,7 @@ namespace sdl {
       // Use the engine to fill the texture with the color provided by the
       // internal palette. The state of the widget is stored in the palette
       // so it will automatically be handled by the engine.
-      engine::EngineLocator::getEngine().fillTexture(uuid, m_palette);
+      m_engine->fillTexture(uuid, m_palette);
     }
 
     inline
@@ -323,6 +323,12 @@ namespace sdl {
     }
 
     inline
+    engine::EngineShPtr
+    SdlWidget::getEngine() const noexcept {
+      return m_engine;
+    }
+
+    inline
     void
     SdlWidget::addWidget(SdlWidget* widget) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
@@ -337,6 +343,11 @@ namespace sdl {
         error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
       }
 
+      // Assign the engine to this widget if none is assigned.
+      if (widget->m_engine == nullptr) {
+        widget->m_engine = m_engine;
+      }
+
       m_children[widget->getName()] = widget;
     }
 
@@ -344,7 +355,7 @@ namespace sdl {
     void
     SdlWidget::clearTexture() {
       if (m_content != nullptr) {
-        engine::EngineLocator::getEngine().destroyTexture(*m_content);
+        m_engine->destroyTexture(*m_content);
         m_content.reset();
       }
     }
@@ -353,16 +364,17 @@ namespace sdl {
     void
     SdlWidget::drawChild(SdlWidget& child) {
       const engine::Texture::UUID& uuid = *m_content;
+      engine::EngineShPtr engine = m_engine;
 
       // Protect against errors.
       withSafetyNet(
-        [&child, &uuid]() {
+        [&child, &uuid, engine]() {
           // Draw this object (caching is handled by the object itself).
           engine::Texture::UUID picture = child.draw();
 
           // Draw the picture at the corresponding place.
           utils::Boxf render = child.getRenderingArea();
-          engine::EngineLocator::getEngine().drawTexture(
+          engine->drawTexture(
             picture,
             &uuid,
             &render

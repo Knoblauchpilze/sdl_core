@@ -12,6 +12,7 @@
 # include <sdl_engine/Color.hh>
 # include <sdl_engine/Palette.hh>
 # include <sdl_engine/Texture.hh>
+# include <sdl_engine/Engine.hh>
 
 # include "Layout.hh"
 # include "SizePolicy.hh"
@@ -27,7 +28,8 @@ namespace sdl {
                   const utils::Sizef& sizeHint = utils::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
-                  const engine::Palette& palette = engine::Palette());
+                  const engine::Palette& palette = engine::Palette(),
+                  engine::EngineShPtr engine = nullptr);
 
         virtual ~SdlWidget();
 
@@ -139,6 +141,9 @@ namespace sdl {
         LayoutType*
         getLayoutAs() noexcept;
 
+        engine::EngineShPtr
+        getEngine() const noexcept;
+
       private:
 
         void
@@ -162,6 +167,8 @@ namespace sdl {
         utils::Sizef m_maxSize;
         utils::Boxf m_area;
         engine::Palette m_palette;
+
+        engine::EngineShPtr m_engine;
 
         bool m_contentDirty;
         bool m_geometryDirty;

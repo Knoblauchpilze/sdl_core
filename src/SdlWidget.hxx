@@ -4,7 +4,6 @@
 # include "SdlWidget.hh"
 
 # include <core_utils/CoreWrapper.hh>
-# include <sdl_engine/EngineLocator.hh>
 
 namespace sdl {
   namespace core {

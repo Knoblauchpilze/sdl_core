@@ -5,10 +5,9 @@
 # include <memory>
 # include <unordered_map>
 
-# include <SDL2/SDL.h>
-
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
+# include <core_utils/Uuid.hh>
 # include <sdl_engine/Color.hh>
 # include <sdl_engine/Palette.hh>
 # include <sdl_engine/Texture.hh>
@@ -69,7 +68,7 @@ namespace sdl {
         void
         setVisible(bool isVisible) noexcept;
 
-        virtual engine::Texture::UUID
+        virtual utils::Uuid
         draw();
 
         unsigned
@@ -112,14 +111,14 @@ namespace sdl {
         virtual bool
         hasGeometryChanged() const noexcept;
 
-        virtual std::shared_ptr<engine::Texture::UUID>
+        virtual utils::Uuid
         createContentPrivate() const;
 
         virtual void
-        clearContentPrivate(const engine::Texture::UUID& uuid) const noexcept;
+        clearContentPrivate(const utils::Uuid& uuid) const noexcept;
 
         virtual void
-        drawContentPrivate(const engine::Texture::UUID& uuid) const noexcept;
+        drawContentPrivate(const utils::Uuid& uuid) const noexcept;
 
         void
         setParent(SdlWidget* parent);
@@ -174,7 +173,7 @@ namespace sdl {
         bool m_geometryDirty;
         bool m_isVisible;
         bool m_transparent;
-        std::shared_ptr<engine::Texture::UUID> m_content;
+        utils::Uuid m_content;
         mutable std::mutex m_drawingLocker;
 
         WidgetMap m_children;

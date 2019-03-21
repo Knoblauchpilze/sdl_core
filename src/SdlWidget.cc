@@ -25,7 +25,7 @@ namespace sdl {
       m_geometryDirty(true),
       m_isVisible(true),
       m_transparent(transparent),
-      m_content(nullptr),
+      m_content(),
       m_drawingLocker(),
 
       m_children(),
@@ -46,7 +46,7 @@ namespace sdl {
       }
     }
 
-    engine::Texture::UUID
+    utils::Uuid
     SdlWidget::draw() {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
@@ -65,8 +65,8 @@ namespace sdl {
       }
 
       // Clear the content and draw the new version.
-      clearContentPrivate(*m_content);
-      drawContentPrivate(*m_content);
+      clearContentPrivate(m_content);
+      drawContentPrivate(m_content);
 
       // Update layout if any.
       if (hasGeometryChanged()) {
@@ -86,7 +86,7 @@ namespace sdl {
       }
 
       // Return the built-in texture.
-      return *m_content;
+      return m_content;
     }
 
   }

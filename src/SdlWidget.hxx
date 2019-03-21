@@ -234,7 +234,7 @@ namespace sdl {
     }
 
     inline
-    std::shared_ptr<engine::Texture::UUID>
+    utils::Uuid
     SdlWidget::createContentPrivate() const {
       // So far we created the clear content texture which is stored in the
       // 'm_clearContent' texture and which contains a static texture filled
@@ -248,18 +248,18 @@ namespace sdl {
       // Create the texture using the engine. THe dmensions are retrieved from the
       // internal area.
       utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
-      engine::Texture::UUID uuid = m_engine->createTexture(size);
+      utils::Uuid uuid = m_engine->createTexture(size);
 
       // Assign alpha modulation to this texture based on the background color.
       m_engine->setTextureAlpha(uuid, m_palette.getActiveColor());
 
       // Return the texture.
-      return std::make_shared<engine::Texture::UUID>(uuid);
+      return uuid;
     }
 
     inline
     void
-    SdlWidget::clearContentPrivate(const engine::Texture::UUID& uuid) const noexcept {
+    SdlWidget::clearContentPrivate(const utils::Uuid& uuid) const noexcept {
       // Use the engine to fill the texture with the color provided by the
       // internal palette. The state of the widget is stored in the palette
       // so it will automatically be handled by the engine.
@@ -268,7 +268,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::drawContentPrivate(const engine::Texture::UUID& /*uuid*/) const noexcept {
+    SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/) const noexcept {
       // Nothing to do.
     }
 
@@ -353,23 +353,23 @@ namespace sdl {
     inline
     void
     SdlWidget::clearTexture() {
-      if (m_content != nullptr) {
-        m_engine->destroyTexture(*m_content);
-        m_content.reset();
+      if (m_content.valid()) {
+        m_engine->destroyTexture(m_content);
+        m_content.invalidate();
       }
     }
 
     inline
     void
     SdlWidget::drawChild(SdlWidget& child) {
-      const engine::Texture::UUID& uuid = *m_content;
+      const utils::Uuid& uuid = m_content;
       engine::EngineShPtr engine = m_engine;
 
       // Protect against errors.
       withSafetyNet(
         [&child, &uuid, engine]() {
           // Draw this object (caching is handled by the object itself).
-          engine::Texture::UUID picture = child.draw();
+          utils::Uuid picture = child.draw();
 
           // Draw the picture at the corresponding place.
           utils::Boxf render = child.getRenderingArea();

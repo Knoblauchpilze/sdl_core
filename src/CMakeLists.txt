@@ -9,7 +9,6 @@ find_package (SDL2 REQUIRED)
 find_package (SDL2_ttf REQUIRED)
 
 set (SOURCES
-  SdlObject.cc
   SizePolicy.cc
   EventListener.cc
   Layout.cc

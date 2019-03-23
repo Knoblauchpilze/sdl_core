@@ -322,9 +322,13 @@ namespace sdl {
     }
 
     inline
-    engine::EngineShPtr
+    engine::Engine&
     SdlWidget::getEngine() const noexcept {
-      return m_engine;
+      if (m_engine == nullptr) {
+        error(std::string("Cannot retrieve null engine"));
+      }
+
+      return *m_engine;
     }
 
     inline

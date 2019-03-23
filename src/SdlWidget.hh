@@ -140,7 +140,7 @@ namespace sdl {
         LayoutType*
         getLayoutAs() noexcept;
 
-        engine::EngineShPtr
+        engine::Engine&
         getEngine() const noexcept;
 
       private:

@@ -139,7 +139,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) {
+    SdlWidget::onKeyPressedEvent(const engine::KeyEvent& keyEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
@@ -151,7 +151,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) {
+    SdlWidget::onKeyReleasedEvent(const engine::KeyEvent& keyEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
@@ -163,7 +163,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent) {
+    SdlWidget::onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
@@ -175,7 +175,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
+    SdlWidget::onMouseButtonPressedEvent(const engine::MouseEvent& mouseButtonEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
@@ -187,7 +187,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
+    SdlWidget::onMouseButtonReleasedEvent(const engine::MouseEvent& mouseButtonEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
@@ -199,7 +199,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onMouseWheelEvent(const SDL_MouseWheelEvent& event) {
+    SdlWidget::onMouseWheelEvent(const engine::MouseEvent& event) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
@@ -211,7 +211,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::onQuitEvent(const SDL_QuitEvent& event) {
+    SdlWidget::onQuitEvent(const engine::QuitEvent& event) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;

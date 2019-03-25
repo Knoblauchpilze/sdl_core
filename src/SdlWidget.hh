@@ -12,15 +12,15 @@
 # include <sdl_engine/Palette.hh>
 # include <sdl_engine/Texture.hh>
 # include <sdl_engine/Engine.hh>
+# include <sdl_engine/EventListener.hh>
 
 # include "Layout.hh"
 # include "SizePolicy.hh"
-# include "EventListener.hh"
 
 namespace sdl {
   namespace core {
 
-    class SdlWidget: public EventListener {
+    class SdlWidget: public engine::EventListener {
       public:
 
         SdlWidget(const std::string& name,
@@ -81,25 +81,25 @@ namespace sdl {
         setSizePolicy(const SizePolicy& policy) noexcept;
 
         void
-        onKeyPressedEvent(const SDL_KeyboardEvent& keyEvent) override;
+        onKeyPressedEvent(const engine::KeyEvent& keyEvent) override;
 
         void
-        onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) override;
+        onKeyReleasedEvent(const engine::KeyEvent& keyEvent) override;
 
         void
-        onMouseMotionEvent(const SDL_MouseMotionEvent& mouseMotionEvent) override;
+        onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) override;
 
         void
-        onMouseButtonPressedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) override;
+        onMouseButtonPressedEvent(const engine::MouseEvent& mouseButtonEvent) override;
 
         void
-        onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) override;
+        onMouseButtonReleasedEvent(const engine::MouseEvent& mouseButtonEvent) override;
 
         void
-        onMouseWheelEvent(const SDL_MouseWheelEvent& event) override;
+        onMouseWheelEvent(const engine::MouseEvent& event) override;
 
         void
-        onQuitEvent(const SDL_QuitEvent& event) override;
+        onQuitEvent(const engine::QuitEvent& event) override;
 
       protected:
 

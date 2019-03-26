@@ -27,8 +27,7 @@ namespace sdl {
                   const utils::Sizef& sizeHint = utils::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
-                  const engine::Palette& palette = engine::Palette(),
-                  engine::EngineShPtr engine = nullptr);
+                  const engine::Palette& palette = engine::Palette());
 
         virtual ~SdlWidget();
 
@@ -79,6 +78,9 @@ namespace sdl {
 
         void
         setSizePolicy(const SizePolicy& policy) noexcept;
+
+        void
+        setEngine(engine::EngineShPtr engine) noexcept;
 
         void
         onKeyPressedEvent(const engine::KeyEvent& keyEvent) override;
@@ -141,7 +143,7 @@ namespace sdl {
         getLayoutAs() noexcept;
 
         engine::Engine&
-        getEngine() const noexcept;
+        getEngine() const;
 
       private:
 

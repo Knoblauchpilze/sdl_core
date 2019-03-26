@@ -139,6 +139,24 @@ namespace sdl {
 
     inline
     void
+    SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      // Assign the engine to this widget.
+      m_engine = engine;
+      
+      // Also: assign the engine to the children if any.
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->setEngine(engine);
+      }
+
+      makeContentDirty();
+    }
+
+    inline
+    void
     SdlWidget::onKeyPressedEvent(const engine::KeyEvent& keyEvent) {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
@@ -248,10 +266,10 @@ namespace sdl {
       // Create the texture using the engine. THe dmensions are retrieved from the
       // internal area.
       utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
-      utils::Uuid uuid = m_engine->createTexture(size);
+      utils::Uuid uuid = getEngine().createTexture(size);
 
       // Assign alpha modulation to this texture based on the background color.
-      m_engine->setTextureAlpha(uuid, m_palette.getActiveColor());
+      getEngine().setTextureAlpha(uuid, m_palette.getActiveColor());
 
       // Return the texture.
       return uuid;
@@ -263,7 +281,7 @@ namespace sdl {
       // Use the engine to fill the texture with the color provided by the
       // internal palette. The state of the widget is stored in the palette
       // so it will automatically be handled by the engine.
-      m_engine->fillTexture(uuid, m_palette);
+      getEngine().fillTexture(uuid, m_palette);
     }
 
     inline
@@ -323,7 +341,7 @@ namespace sdl {
 
     inline
     engine::Engine&
-    SdlWidget::getEngine() const noexcept {
+    SdlWidget::getEngine() const {
       if (m_engine == nullptr) {
         error(std::string("Cannot retrieve null engine"));
       }
@@ -358,7 +376,7 @@ namespace sdl {
     void
     SdlWidget::clearTexture() {
       if (m_content.valid()) {
-        m_engine->destroyTexture(m_content);
+        getEngine().destroyTexture(m_content);
         m_content.invalidate();
       }
     }
@@ -367,17 +385,17 @@ namespace sdl {
     void
     SdlWidget::drawChild(SdlWidget& child) {
       const utils::Uuid& uuid = m_content;
-      engine::EngineShPtr engine = m_engine;
+      engine::Engine& engine = getEngine();
 
       // Protect against errors.
       withSafetyNet(
-        [&child, &uuid, engine]() {
+        [&child, &uuid, &engine]() {
           // Draw this object (caching is handled by the object itself).
           utils::Uuid picture = child.draw();
 
           // Draw the picture at the corresponding place.
           utils::Boxf render = child.getRenderingArea();
-          engine->drawTexture(
+          engine.drawTexture(
             picture,
             &uuid,
             &render

@@ -89,6 +89,16 @@ namespace sdl {
         std::vector<WidgetInfo>
         computeWidgetsInfo() const noexcept;
 
+        float
+        computeWidthFromPolicy(const utils::Boxf& currentSize,
+                               const float& delta,
+                               const WidgetInfo& info) const;
+
+        float
+        computeHeightFromPolicy(const utils::Boxf& currentSize,
+                                const float& delta,
+                                const WidgetInfo& info) const;
+
         utils::Sizef
         computeSizeFromPolicy(const utils::Boxf& currentSize,
                               const utils::Sizef& sizeDelta,

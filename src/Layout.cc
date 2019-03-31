@@ -92,11 +92,11 @@ namespace sdl {
         // to keep it.
       }
       else if (desiredSize.w() < achievedSize.w()) {
-        std::cout << "[LAY] desired.w() < achieved.w() (" << desiredSize.w() << " < " << achievedSize.w() << "), shrinking" << std::endl;
+        std::cout << "[LAY] achieved.w() > desired.w() (" << achievedSize.w() << " < " << desiredSize.w() << "), shrinking" << std::endl;
         policy.setHorizontalPolicy(SizePolicy::Policy::Shrink);
       }
       else if (desiredSize.w() > achievedSize.w()) {
-        std::cout << "[LAY] desired.w() > achieved.w() (" << desiredSize.w() << " > " << achievedSize.w() << "), growing" << std::endl;
+        std::cout << "[LAY] achieved.w() < desired.w() (" << achievedSize.w() << " > " << desiredSize.w() << "), growing" << std::endl;
         policy.setHorizontalPolicy(SizePolicy::Policy::Grow);
       }
 
@@ -105,11 +105,11 @@ namespace sdl {
         // to keep it.
       }
       else if (desiredSize.h() < achievedSize.h()) {
-        std::cout << "[LAY] desired.h() < achieved.h() (" << desiredSize.h() << " < " << achievedSize.h() << "), shrinking" << std::endl;
+        std::cout << "[LAY] achieved.h() > desired.h() (" << achievedSize.h() << " < " << desiredSize.h() << "), shrinking" << std::endl;
         policy.setVerticalPolicy(SizePolicy::Policy::Shrink);
       }
       else if (desiredSize.h() > achievedSize.h()) {
-        std::cout << "[LAY] desired.h() > achieved.h() (" << desiredSize.h() << " > " << achievedSize.h() << "), growing" << std::endl;
+        std::cout << "[LAY] achieved.h() < desired.h() (" << achievedSize.h() << " > " << desiredSize.h() << "), growing" << std::endl;
         policy.setVerticalPolicy(SizePolicy::Policy::Grow);
       }
 
@@ -135,90 +135,138 @@ namespace sdl {
       return info;
     }
 
-    utils::Sizef
-    Layout::computeSizeFromPolicy(const utils::Boxf& currentSize,
-                                  const utils::Sizef& sizeDelta,
-                                  const WidgetInfo& info) const
+    float
+    Layout::computeWidthFromPolicy(const utils::Boxf& currentSize,
+                                   const float& delta,
+                                   const WidgetInfo& info) const
     {
-      // Create the return size and assume the desired size is valid.
-      utils::Sizef outputBox = currentSize.toSize() + sizeDelta;
+      // Create the return width and assume the desired width is valid.
+      float output = currentSize.w() + delta;
 
       bool widthDone = false;
-      bool heightDone = false;
 
       // Check the policy for fixed size. If the policy is fixed, we should assign
-      // the `hint` size whatever the input `sizeDelta`. Except of course if the
+      // the `hint` size whatever the input `delta`. Except of course if the
       // `hint` is not a valid size, in which case we can use the `sizeDelta`.
       if (info.policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
         if (info.hint.isValid()) {
-          outputBox.w() = info.hint.w();
+          output = info.hint.w();
           widthDone = true;
         }
       }
+
+      // Check whether we should continue further.
+      if (widthDone) {
+        return output;
+      }
+
+      // The width is not set to fixed so we have to check for min and max sizes.
+      if (output < info.min.w()) {
+        output = info.min.w();
+      }
+      if (output > info.max.w()) {
+        output = info.max.w();
+      }
+
+      // The last thing to check concerns the size policy. For example if the `output`
+      // is larger than the provided hint, even though the `output` is smaller than the
+      // `maxSize`, if the policy is not set to `Grow`, we should still use the `hint` size.
+      // Same goes for the case where the `output` lies in the interval [`minSize`; `hint`]
+      // and the policy is not set to `Shrink`: the `hint` should be used.
+      // If course all this is only relevant if the hint is valid, otherwise we can use the
+      // `output`.
+      if (!info.hint.isValid()) {
+        // Nothing more to do, the `output` can be used once clamped using the `minSize`
+        // and `maxSize`.
+        return output;
+      }
+
+      // Check shrinking policy.
+      if (output < info.hint.w() && !info.policy.canShrinkHorizontally()) {
+        output = info.hint.w();
+      }
+      if (output > info.hint.w() && !info.policy.canExtendHorizontally()) {
+        output = info.hint.w();
+      }
+
+      // We can return the computed width.
+      return output;
+    }
+
+    float
+    Layout::computeHeightFromPolicy(const utils::Boxf& currentSize,
+                                    const float& delta,
+                                    const WidgetInfo& info) const
+    {
+      // Create the return height and assume the desired height is valid.
+      float output = currentSize.h() + delta;
+
+      bool heightDone = false;
+
+      // Check the policy for fixed size. If the policy is fixed, we should assign
+      // the `hint` size whatever the input `delta`. Except of course if the
+      // `hint` is not a valid size, in which case we can use the `sizeDelta`.
       if (info.policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
         if (info.hint.isValid()) {
-          outputBox.h() = info.hint.h();
+          output = info.hint.h();
           heightDone = true;
         }
       }
 
       // Check whether we should continue further.
-      if (widthDone && heightDone) {
-        return outputBox;
+      if (heightDone) {
+        return output;
       }
 
-      // At least one of the dimension is not set to fixed, so we have to check for
-      // min and max sizes.
-      if (outputBox.w() < info.min.w()) {
-        outputBox.w() = info.min.w();
+      // The height is not set to fixed so we have to check for min and max sizes.
+      if (output < info.min.h()) {
+        output = info.min.h();
       }
-      if (outputBox.h() < info.min.h()) {
-        outputBox.h() = info.min.h();
-      }
-
-      if (outputBox.w() > info.max.w()) {
-        outputBox.w() = info.max.w();
-      }
-      if (outputBox.h() > info.max.h()) {
-        outputBox.h() = info.max.h();
+      if (output > info.max.h()) {
+        output = info.max.h();
       }
 
-      // The last thing to check concerns the size policy. For example if the `sizeDelta`
-      // is larger than the provided hint, even though the `sizeDelta` is smaller than the
+      // The last thing to check concerns the size policy. For example if the `output`
+      // is larger than the provided hint, even though the `output` is smaller than the
       // `maxSize`, if the policy is not set to `Grow`, we should still use the `hint` size.
-      // Same goes for the case where the `sizeDelta` lies in the interval [`minSize`; `hint`]
+      // Same goes for the case where the `output` lies in the interval [`minSize`; `hint`]
       // and the policy is not set to `Shrink`: the `hint` should be used.
       // If course all this is only relevant if the hint is valid, otherwise we can use the
-      // `sizeDelta`.
+      // `output`.
       if (!info.hint.isValid()) {
-        // Nothing more to do, the `sizeDelta` can be used once clamped using the `minSize`
+        // Nothing more to do, the `output` can be used once clamped using the `minSize`
         // and `maxSize`.
-        return outputBox;
+        return output;
       }
 
       // Check shrinking policy.
-      if (outputBox.w() < info.hint.w() && !info.policy.canShrinkHorizontally()) {
-        outputBox.w() = info.hint.w();
+      if (output < info.hint.h() && !info.policy.canShrinkVertically()) {
+        output = info.hint.h();
       }
-      if (outputBox.h() < info.hint.h() && !info.policy.canShrinkVertically()) {
-        outputBox.h() = info.hint.h();
-      }
-
-      if (outputBox.w() > info.hint.w() && !info.policy.canExtendHorizontally()) {
-        outputBox.w() = info.hint.w();
-      }
-      if (outputBox.h() > info.hint.h() && !info.policy.canExtendVertically()) {
-        outputBox.h() = info.hint.h();
+      if (output > info.hint.h() && !info.policy.canExtendVertically()) {
+        output = info.hint.h();
       }
 
-      // We can return the computed box.
-      return outputBox;
+      // We can return the computed height.
+      return output;
+    }
+
+    utils::Sizef
+    Layout::computeSizeFromPolicy(const utils::Boxf& currentSize,
+                                  const utils::Sizef& sizeDelta,
+                                  const WidgetInfo& info) const
+    {
+      // Use the dedicated handler to clamp each dimension of the size.
+      return utils::Sizef(
+        computeWidthFromPolicy(currentSize, sizeDelta.w(), info),
+        computeHeightFromPolicy(currentSize, sizeDelta.h(), info)
+      );
     }
 
     std::pair<bool, bool>

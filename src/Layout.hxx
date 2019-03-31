@@ -21,9 +21,9 @@ namespace sdl {
     inline
     void
     Layout::removeItem(SdlWidget* item) {
-      std::size_t index = m_items.size();
+      std::size_t index = getItemsCount();
       getContainerOrNull(item, &index);
-      if (index < m_items.size()) {
+      if (index < getItemsCount()) {
         m_items.erase(m_items.cbegin() + index);
         invalidate();
       }

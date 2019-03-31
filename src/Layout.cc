@@ -6,11 +6,13 @@ namespace sdl {
   namespace core {
 
     Layout::Layout(SdlWidget* container,
+                   const float& margin,
                    const std::string& name):
       utils::CoreObject(name),
       m_widget(container),
       m_items(),
-      m_dirty(true)
+      m_dirty(true),
+      m_margin(utils::Sizef(margin, margin))
     {
       setService(std::string("layout"));
     }
@@ -67,232 +69,12 @@ namespace sdl {
       return -1;
     }
 
-    std::vector<Layout::WidgetInfo>
-    Layout::computeWidgetsInfo() const noexcept {
-      // Create the return value.
-      std::vector<Layout::WidgetInfo> info(m_items.size());
-
-      // Fill each widget's info.
-      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
-        info[index] = {
-          m_items[index]->getSizePolicy(),
-          m_items[index]->getMinSize(),
-          m_items[index]->getSizeHint(),
-          m_items[index]->getMaxSize(),
-          m_items[index]->getRenderingArea()
-        };
-      }
-
-      return info;
-    }
-
-    utils::Sizef
-    Layout::computeIncompressibleSize(const Direction& direction,
-                                      const std::vector<WidgetInfo>& widgets) const
-    {
-      float flowingSize = 0.0f;
-      float perpendicularSize = 0.0f;
-
-      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
-        float increment = 0.0f;
-        float size = 0.0f;
-
-        if (direction == Direction::Horizontal) {
-          // This layout stacks widgets using an horizontal flow:
-          // we should add the incompressible size of this widget
-          // if it has any in the horizontal direction and retrieve
-          // its vertical size if any.
-          if (widgets[index].policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
-            size = widgets[index].hint.h();
-          }
-          increment = widgets[index].hint.w();
-        }
-        else if (direction == Direction::Vertical) {
-          // This layout stacks widgets using a vertical flow:
-          // we should add the incompressible size of this widget
-          // if it has any in the vertical direction and retrieve
-          // its horizontal size if any.
-          if (widgets[index].policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
-            size = widgets[index].hint.w();
-          }
-          increment = widgets[index].hint.h();
-        }
-        else {
-          error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
-        }
-
-        // Increase the `flowingSize` with the provided `increment` (which may be
-        // 0 if the widget does not have a valid size hint) and perform a comparison
-        // of the size of the widget in the other direction (i.e. not in the direction
-        // of the flow) against the current maximum and update it if needed.
-        flowingSize += increment;
-        if (perpendicularSize < size) {
-          perpendicularSize = size;
-        }
-      }
-
-      // Create a valid size based on this layout's direction.
-      if (direction == Direction::Horizontal) {
-        return utils::Sizef(flowingSize, perpendicularSize);
-      }
-      else if (direction == Direction::Vertical) {
-        return utils::Sizef(perpendicularSize, flowingSize);
-      }
-      else {
-        error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
-      }
-
-      // Return dummy value because the `error` statement already handles throwing.
-      return utils::Sizef();
-    }
-
     void
     Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes) {
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
         m_items[index]->setRenderingArea(boxes[index]);
       }
-    }
-
-    utils::Sizef
-    Layout::computeSizeOfWidgets(const Direction& direction,
-                                 const std::vector<utils::Boxf>& boxes) const
-    {
-      float flowingSize = 0.0f;
-      float perpendicularSize = 0.0f;
-
-      for (unsigned index = 0u ; index < boxes.size() ; ++index) {
-        float increment = 0.0f;
-        float size = 0.0f;
-
-        if (direction == Direction::Horizontal) {
-          // The `increment` is given by the width of the box while the
-          // `size` is given by its height.
-          size = boxes[index].h();
-          increment = boxes[index].w();
-        }
-        else if (direction == Direction::Vertical) {
-          // The `increment` is given by the height of the box while the
-          // `size` is given by its width.
-          size = boxes[index].w();
-          increment = boxes[index].h();
-        }
-        else {
-          error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
-        }
-
-        // Increase the `flowingSize` with the provided `increment` and
-        // perform a comparison of the size of the widget in the other
-        // direction (i.e. not in the direction of the flow) against the
-        // current maximum and update it if needed.
-        flowingSize += increment;
-        if (perpendicularSize < size) {
-          perpendicularSize = size;
-        }
-      }
-
-      // Create a valid size based on this layout's direction.
-      if (direction == Direction::Horizontal) {
-        return utils::Sizef(flowingSize, perpendicularSize);
-      }
-      else if (direction == Direction::Vertical) {
-        return utils::Sizef(perpendicularSize, flowingSize);
-      }
-      else {
-        error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(direction)) + ")");
-      }
-
-      // Return dummy value because the `error` statement already handles throwing.
-      return utils::Sizef();
-    }
-
-    utils::Sizef
-    Layout::computeSizeFromPolicy(const utils::Sizef& desiredSize,
-                                  const utils::Boxf& currentSize,
-                                  const WidgetInfo& info) const
-    {
-      // Create the return size and assume the desired size is valid.
-      utils::Sizef outputBox(
-        currentSize.w() + desiredSize.w(),
-        currentSize.h() + desiredSize.h()
-      );
-
-      bool widthDone = false;
-      bool heightDone = false;
-
-      // Check the policy for fixed size. If the policy is fixed, we should assign
-      // the `hint` size whatever the input `desiredSize`. Except of course if the
-      // `hint` is not a valid size, in which case we can use the `desiredSize`.
-      if (info.policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
-        // Two distinct cases:
-        // 1) The `hint` is valid, in which case we have to use it.
-        // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
-        if (info.hint.isValid()) {
-          outputBox.w() = info.hint.w();
-          widthDone = true;
-        }
-      }
-      if (info.policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
-        // Two distinct cases:
-        // 1) The `hint` is valid, in which case we have to use it.
-        // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
-        if (info.hint.isValid()) {
-          outputBox.h() = info.hint.h();
-          heightDone = true;
-        }
-      }
-
-      // Check whether we should continue further.
-      if (widthDone && heightDone) {
-        return outputBox;
-      }
-
-      // At least one of the dimension is not set to fixed, so we have to check for
-      // min and max sizes.
-      if (outputBox.w() < info.min.w()) {
-        outputBox.w() = info.min.w();
-      }
-      if (outputBox.h() < info.min.h()) {
-        outputBox.h() = info.min.h();
-      }
-
-      if (outputBox.w() > info.max.w()) {
-        outputBox.w() = info.max.w();
-      }
-      if (outputBox.h() > info.max.h()) {
-        outputBox.h() = info.max.h();
-      }
-
-      // The last thing to check concerns the size policy. For example if the `desiredSize`
-      // is larger than the provided hint, even though the `desiredSize` is smaller than the
-      // `maxSize`, if the policy is not set to `Grow`, we should still use the `hint` size.
-      // Same goes for the case where the `desiredSize` lies in the interval [`minSize`; `hint`]
-      // and the policy is not set to `Shrink`: the `hint` should be used.
-      // If course all this is only relevant if the hint is valid, otherwise we can use the
-      // `desiredSize`.
-      if (!info.hint.isValid()) {
-        // Nothing more to do, the `desiredSize` can be used once clamped using the `minSize`
-        // and `maxSize`.
-        return outputBox;
-      }
-
-      // Check shrinking policy.
-      if (outputBox.w() < info.hint.w() && !info.policy.canShrinkHorizontally()) {
-        outputBox.w() = info.hint.w();
-      }
-      if (outputBox.h() < info.hint.h() && !info.policy.canShrinkVertically()) {
-        outputBox.h() = info.hint.h();
-      }
-
-      if (outputBox.w() > info.hint.w() && !info.policy.canExtendHorizontally()) {
-        outputBox.w() = info.hint.w();
-      }
-      if (outputBox.h() > info.hint.h() && !info.policy.canExtendVertically()) {
-        outputBox.h() = info.hint.h();
-      }
-
-      // We can return the computed box.
-      return outputBox;
     }
 
     sdl::core::SizePolicy
@@ -332,6 +114,111 @@ namespace sdl {
       }
 
       return policy;
+    }
+
+    std::vector<Layout::WidgetInfo>
+    Layout::computeWidgetsInfo() const noexcept {
+      // Create the return value.
+      std::vector<Layout::WidgetInfo> info(m_items.size());
+
+      // Fill each widget's info.
+      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
+        info[index] = {
+          m_items[index]->getSizePolicy(),
+          m_items[index]->getMinSize(),
+          m_items[index]->getSizeHint(),
+          m_items[index]->getMaxSize(),
+          m_items[index]->getRenderingArea()
+        };
+      }
+
+      return info;
+    }
+
+    utils::Sizef
+    Layout::computeSizeFromPolicy(const utils::Boxf& currentSize,
+                                  const utils::Sizef& sizeDelta,
+                                  const WidgetInfo& info) const
+    {
+      // Create the return size and assume the desired size is valid.
+      utils::Sizef outputBox = currentSize.toSize() + sizeDelta;
+
+      bool widthDone = false;
+      bool heightDone = false;
+
+      // Check the policy for fixed size. If the policy is fixed, we should assign
+      // the `hint` size whatever the input `sizeDelta`. Except of course if the
+      // `hint` is not a valid size, in which case we can use the `sizeDelta`.
+      if (info.policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
+        // Two distinct cases:
+        // 1) The `hint` is valid, in which case we have to use it.
+        // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
+        if (info.hint.isValid()) {
+          outputBox.w() = info.hint.w();
+          widthDone = true;
+        }
+      }
+      if (info.policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
+        // Two distinct cases:
+        // 1) The `hint` is valid, in which case we have to use it.
+        // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
+        if (info.hint.isValid()) {
+          outputBox.h() = info.hint.h();
+          heightDone = true;
+        }
+      }
+
+      // Check whether we should continue further.
+      if (widthDone && heightDone) {
+        return outputBox;
+      }
+
+      // At least one of the dimension is not set to fixed, so we have to check for
+      // min and max sizes.
+      if (outputBox.w() < info.min.w()) {
+        outputBox.w() = info.min.w();
+      }
+      if (outputBox.h() < info.min.h()) {
+        outputBox.h() = info.min.h();
+      }
+
+      if (outputBox.w() > info.max.w()) {
+        outputBox.w() = info.max.w();
+      }
+      if (outputBox.h() > info.max.h()) {
+        outputBox.h() = info.max.h();
+      }
+
+      // The last thing to check concerns the size policy. For example if the `sizeDelta`
+      // is larger than the provided hint, even though the `sizeDelta` is smaller than the
+      // `maxSize`, if the policy is not set to `Grow`, we should still use the `hint` size.
+      // Same goes for the case where the `sizeDelta` lies in the interval [`minSize`; `hint`]
+      // and the policy is not set to `Shrink`: the `hint` should be used.
+      // If course all this is only relevant if the hint is valid, otherwise we can use the
+      // `sizeDelta`.
+      if (!info.hint.isValid()) {
+        // Nothing more to do, the `sizeDelta` can be used once clamped using the `minSize`
+        // and `maxSize`.
+        return outputBox;
+      }
+
+      // Check shrinking policy.
+      if (outputBox.w() < info.hint.w() && !info.policy.canShrinkHorizontally()) {
+        outputBox.w() = info.hint.w();
+      }
+      if (outputBox.h() < info.hint.h() && !info.policy.canShrinkVertically()) {
+        outputBox.h() = info.hint.h();
+      }
+
+      if (outputBox.w() > info.hint.w() && !info.policy.canExtendHorizontally()) {
+        outputBox.w() = info.hint.w();
+      }
+      if (outputBox.h() > info.hint.h() && !info.policy.canExtendVertically()) {
+        outputBox.h() = info.hint.h();
+      }
+
+      // We can return the computed box.
+      return outputBox;
     }
 
     std::pair<bool, bool>

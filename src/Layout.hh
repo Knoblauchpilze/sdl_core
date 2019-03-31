@@ -25,9 +25,6 @@ namespace sdl {
 
       public:
 
-        Layout(SdlWidget* widget = nullptr,
-               const std::string& name = std::string("Layout"));
-
         virtual ~Layout();
 
         void
@@ -49,13 +46,35 @@ namespace sdl {
         unsigned
         getItemsCount() const noexcept;
 
+        const utils::Sizef&
+        getMargin() const noexcept;
+
       protected:
+
+        Layout(SdlWidget* widget = nullptr,
+               const float& margin = 0.0f,
+               const std::string& name = std::string("Layout"));
 
         virtual void
         updatePrivate(const utils::Boxf& window) = 0;
 
         void
         invalidate() noexcept;
+
+        virtual utils::Sizef
+        computeAvailableSize(const utils::Boxf& totalArea) const noexcept;
+
+        void
+        assignRenderingAreas(const std::vector<utils::Boxf>& boxes);
+
+        utils::Sizef
+        computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
+                                     const utils::Sizef& target) const;
+
+        sdl::core::SizePolicy
+        shrinkOrGrow(const utils::Sizef& desiredSize,
+                     const utils::Sizef& achievedSize,
+                     const float& tolerance) const;
 
       protected:
 
@@ -71,35 +90,15 @@ namespace sdl {
         computeWidgetsInfo() const noexcept;
 
         utils::Sizef
-        computeIncompressibleSize(const Direction& direction,
-                                  const std::vector<WidgetInfo>& widgets) const;
-
-        void
-        assignRenderingAreas(const std::vector<utils::Boxf>& boxes);
-
-        utils::Sizef
-        computeSizeOfWidgets(const Direction& direction,
-                             const std::vector<utils::Boxf>& boxes) const;
-
-        utils::Sizef
-        computeSizeFromPolicy(const utils::Sizef& desiredSize,
-                              const utils::Boxf& currentSize,
+        computeSizeFromPolicy(const utils::Boxf& currentSize,
+                              const utils::Sizef& sizeDelta,
                               const WidgetInfo& info) const;
-
-        sdl::core::SizePolicy
-        shrinkOrGrow(const utils::Sizef& desiredSize,
-                     const utils::Sizef& achievedSize,
-                     const float& tolerance) const;
 
         std::pair<bool, bool>
         canBeUsedTo(const std::string& name,
                     const WidgetInfo& info,
                     const utils::Boxf& box,
                     const SizePolicy& action) const;
-
-        utils::Sizef
-        computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
-                                     const utils::Sizef& target) const;
 
       private:
 
@@ -111,6 +110,7 @@ namespace sdl {
         SdlWidget* m_widget;
         std::vector<SdlWidget*> m_items;
         bool m_dirty;
+        utils::Sizef m_margin;
 
     };
 

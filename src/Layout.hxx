@@ -36,9 +36,29 @@ namespace sdl {
     }
 
     inline
+    const utils::Sizef&
+    Layout::getMargin() const noexcept {
+      return m_margin;
+    }
+
+    inline
     void
     Layout::invalidate() noexcept {
       m_dirty = true;
+    }
+
+    inline
+    utils::Sizef
+    Layout::computeAvailableSize(const utils::Boxf& totalArea) const noexcept {
+      return totalArea.toSize() - m_margin;
+    }
+
+    inline
+    utils::Sizef
+    Layout::computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
+                                         const utils::Sizef& target) const
+    {
+      return target - achieved;
     }
 
     inline
@@ -59,14 +79,6 @@ namespace sdl {
       }
 
       return *itemToFind;
-    }
-
-    inline
-    utils::Sizef
-    Layout::computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
-                                         const utils::Sizef& target) const
-    {
-      return utils::Sizef(target.w() - achieved.w(), target.h() - achieved.h());
     }
 
   }

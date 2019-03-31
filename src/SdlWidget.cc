@@ -51,7 +51,7 @@ namespace sdl {
 
       // Check whether a valid size is provided for this widget.
       if (!m_area.valid()) {
-        error(std::string("Could not repaint widget, invalid size"), getName());
+        error(std::string("Could not repaint widget"), std::string("Invalid size"));
       }
 
       // Repaint if needed.

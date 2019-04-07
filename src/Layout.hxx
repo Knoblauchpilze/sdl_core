@@ -50,7 +50,7 @@ namespace sdl {
     inline
     utils::Sizef
     Layout::computeAvailableSize(const utils::Boxf& totalArea) const noexcept {
-      return totalArea.toSize() - m_margin;
+      return totalArea.toSize() - 2.0f * m_margin;
     }
 
     inline

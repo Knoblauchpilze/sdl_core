@@ -92,11 +92,11 @@ namespace sdl {
         // to keep it.
       }
       else if (desiredSize.w() < achievedSize.w()) {
-        std::cout << "[LAY] achieved.w() > desired.w() (" << achievedSize.w() << " < " << desiredSize.w() << "), shrinking" << std::endl;
+        log(std::string("achieved.w() > desired.w() (") + std::to_string(achievedSize.w()) + " > " + std::to_string(desiredSize.w()) + "), shrinking", utils::Level::Notice);
         policy.setHorizontalPolicy(SizePolicy::Policy::Shrink);
       }
       else if (desiredSize.w() > achievedSize.w()) {
-        std::cout << "[LAY] achieved.w() < desired.w() (" << achievedSize.w() << " > " << desiredSize.w() << "), growing" << std::endl;
+        log(std::string("achieved.w() < desired.w() (") + std::to_string(achievedSize.w()) + " < " + std::to_string(desiredSize.w()) + "), growing", utils::Level::Notice);
         policy.setHorizontalPolicy(SizePolicy::Policy::Grow);
       }
 
@@ -105,11 +105,11 @@ namespace sdl {
         // to keep it.
       }
       else if (desiredSize.h() < achievedSize.h()) {
-        std::cout << "[LAY] achieved.h() > desired.h() (" << achievedSize.h() << " < " << desiredSize.h() << "), shrinking" << std::endl;
+        log(std::string("achieved.h() > desired.h() (") + std::to_string(achievedSize.h()) + " > " + std::to_string(desiredSize.h()) + "), shrinking", utils::Level::Notice);
         policy.setVerticalPolicy(SizePolicy::Policy::Shrink);
       }
       else if (desiredSize.h() > achievedSize.h()) {
-        std::cout << "[LAY] achieved.h() < desired.h() (" << achievedSize.h() << " > " << desiredSize.h() << "), growing" << std::endl;
+        log(std::string("achieved.h() < desired.h() (") + std::to_string(achievedSize.h()) + " < " + std::to_string(desiredSize.h()) + "), growing", utils::Level::Notice);
         policy.setVerticalPolicy(SizePolicy::Policy::Grow);
       }
 

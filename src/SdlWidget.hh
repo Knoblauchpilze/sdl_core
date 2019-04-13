@@ -27,7 +27,7 @@ namespace sdl {
                   const utils::Sizef& sizeHint = utils::Sizef(),
                   SdlWidget* parent = nullptr,
                   const bool transparent = false,
-                  const engine::Palette& palette = engine::Palette());
+                  const engine::Color& color = engine::Color());
 
         virtual ~SdlWidget();
 
@@ -59,7 +59,7 @@ namespace sdl {
         setRenderingArea(const utils::Boxf& area) noexcept;
 
         void
-        setBackgroundColor(const engine::Color& color) noexcept;
+        setPalette(const engine::Palette& palette) noexcept;
 
         bool
         isVisible() const noexcept;
@@ -144,6 +144,9 @@ namespace sdl {
 
         engine::Engine&
         getEngine() const;
+
+        const engine::Palette&
+        getPalette() const noexcept;
 
       private:
 

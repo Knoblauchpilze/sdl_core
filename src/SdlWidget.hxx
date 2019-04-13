@@ -94,9 +94,9 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setBackgroundColor(const engine::Color& color) noexcept {
+    SdlWidget::setPalette(const engine::Palette& palette) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      m_palette.setBackgroundColor(color);
+      m_palette = palette;
       makeContentDirty();
     }
 
@@ -266,10 +266,10 @@ namespace sdl {
       // Create the texture using the engine. THe dmensions are retrieved from the
       // internal area.
       utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
-      utils::Uuid uuid = getEngine().createTexture(size);
+      utils::Uuid uuid = getEngine().createTexture(size, engine::Palette::ColorRole::Background);
 
       // Assign alpha modulation to this texture based on the background color.
-      getEngine().setTextureAlpha(uuid, m_palette.getActiveColor());
+      getEngine().setTextureAlpha(uuid, m_palette.getBackgroundColor());
 
       // Return the texture.
       return uuid;
@@ -347,6 +347,12 @@ namespace sdl {
       }
 
       return *m_engine;
+    }
+
+    inline
+    const engine::Palette&
+    SdlWidget::getPalette() const noexcept {
+      return m_palette;
     }
 
     inline

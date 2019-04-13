@@ -71,7 +71,7 @@ namespace sdl {
         computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
                                      const utils::Sizef& target) const;
 
-        sdl::core::SizePolicy
+        SizePolicy
         shrinkOrGrow(const utils::Sizef& desiredSize,
                      const utils::Sizef& achievedSize,
                      const float& tolerance) const;
@@ -79,7 +79,7 @@ namespace sdl {
       protected:
 
         struct WidgetInfo {
-          sdl::core::SizePolicy policy;
+          SizePolicy policy;
           utils::Sizef min;
           utils::Sizef hint;
           utils::Sizef max;
@@ -121,7 +121,6 @@ namespace sdl {
         std::vector<SdlWidget*> m_items;
         bool m_dirty;
         utils::Sizef m_margin;
-
     };
 
     using LayoutShPtr = std::shared_ptr<Layout>;

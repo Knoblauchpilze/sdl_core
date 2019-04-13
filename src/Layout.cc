@@ -8,7 +8,7 @@ namespace sdl {
     Layout::Layout(SdlWidget* container,
                    const float& margin,
                    const std::string& name):
-      utils::CoreObject(name),
+      utils::CoreObject(name, false),
       m_widget(container),
       m_items(),
       m_dirty(true),
@@ -77,7 +77,7 @@ namespace sdl {
       }
     }
 
-    sdl::core::SizePolicy
+    SizePolicy
     Layout::shrinkOrGrow(const utils::Sizef& desiredSize,
                          const utils::Sizef& achievedSize,
                          const float& tolerance) const
@@ -148,7 +148,7 @@ namespace sdl {
       // Check the policy for fixed size. If the policy is fixed, we should assign
       // the `hint` size whatever the input `delta`. Except of course if the
       // `hint` is not a valid size, in which case we can use the `sizeDelta`.
-      if (info.policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
+      if (info.policy.getHorizontalPolicy() == SizePolicy::Fixed) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
@@ -209,7 +209,7 @@ namespace sdl {
       // Check the policy for fixed size. If the policy is fixed, we should assign
       // the `hint` size whatever the input `delta`. Except of course if the
       // `hint` is not a valid size, in which case we can use the `sizeDelta`.
-      if (info.policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
+      if (info.policy.getVerticalPolicy() == SizePolicy::Fixed) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
@@ -270,7 +270,7 @@ namespace sdl {
     }
 
     std::pair<bool, bool>
-    Layout::canBeUsedTo(const std::string& name, const WidgetInfo& info,
+    Layout::canBeUsedTo(const std::string& /*name*/, const WidgetInfo& info,
                         const utils::Boxf& box,
                         const SizePolicy& action) const
     {
@@ -298,21 +298,21 @@ namespace sdl {
 
         // Check for shrinking.
         if (action.canShrinkHorizontally() && box.w() > info.min.w()) {
-          std::cout << "[WIG] " << name << " can be used to h shrink (" << box.w() << " > " << info.min.w() << ")" << std::endl;
+          // std::cout << "[WIG] " << name << " can be used to h shrink (" << box.w() << " > " << info.min.w() << ")" << std::endl;
           usable.first = true;
         }
         if (action.canShrinkVertically() && box.h() > info.min.h()) {
-          std::cout << "[WIG] " << name << " can be used to v shrink (" << box.h() << " > " << info.min.h() << ")" << std::endl;
+          // std::cout << "[WIG] " << name << " can be used to v shrink (" << box.h() << " > " << info.min.h() << ")" << std::endl;
           usable.second = true;
         }
 
         // Check for growing.
         if (action.canExtendHorizontally() && box.w() < info.max.w()) {
-          std::cout << "[WIG] " << name << " can be used to h grow (" << box.w() << " < " << info.max.w() << ")" << std::endl;
+          // std::cout << "[WIG] " << name << " can be used to h grow (" << box.w() << " < " << info.max.w() << ")" << std::endl;
           usable.first = true;
         }
         if (action.canExtendVertically() && box.h() < info.max.h()) {
-          std::cout << "[WIG] " << name << " can be used to v grow (" << box.h() << " < " << info.max.h() << ")" << std::endl;
+          // std::cout << "[WIG] " << name << " can be used to v grow (" << box.h() << " < " << info.max.h() << ")" << std::endl;
           usable.second = true;
         }
       }
@@ -332,11 +332,11 @@ namespace sdl {
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
           if (info.policy.canShrinkHorizontally() && box.w() > info.min.w()) {
-            std::cout << "[WIG] " << name << " can be used to h shrink (" << box.w() << " > " << info.min.w() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " can be used to h shrink (" << box.w() << " > " << info.min.w() << ")" << std::endl;
             usable.first = true;
           }
           if (!info.policy.canShrinkHorizontally() && box.w() > info.hint.w()) {
-            std::cout << "[WIG] " << name << " cannot be used to h shrink but (" << box.w() << " > " << info.hint.w() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " cannot be used to h shrink but (" << box.w() << " > " << info.hint.w() << ")" << std::endl;
             usable.first = true;
           }
         }
@@ -346,11 +346,11 @@ namespace sdl {
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
           if (info.policy.canShrinkVertically() && box.h() > info.min.h()) {
-            std::cout << "[WIG] " << name << " can be used to v shrink (" << box.h() << " > " << info.min.h() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " can be used to v shrink (" << box.h() << " > " << info.min.h() << ")" << std::endl;
             usable.second = true;
           }
           if (!info.policy.canShrinkVertically() && box.h() > info.hint.h()) {
-            std::cout << "[WIG] " << name << " cannot be used to v shrink but (" << box.h() << " > " << info.hint.h() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " cannot be used to v shrink but (" << box.h() << " > " << info.hint.h() << ")" << std::endl;
             usable.second = true;
           }
         }
@@ -362,11 +362,11 @@ namespace sdl {
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
           if (info.policy.canExtendHorizontally() && box.w() < info.max.w()) {
-            std::cout << "[WIG] " << name << " can be used to h grow (" << box.w() << " < " << info.max.w() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " can be used to h grow (" << box.w() << " < " << info.max.w() << ")" << std::endl;
             usable.first = true;
           }
           if (!info.policy.canExtendHorizontally() && box.w() < info.hint.w()) {
-            std::cout << "[WIG] " << name << " cannot be used to v grow but (" << box.w() << " < " << info.hint.w() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " cannot be used to v grow but (" << box.w() << " < " << info.hint.w() << ")" << std::endl;
             usable.first = true;
           }
         }
@@ -376,11 +376,11 @@ namespace sdl {
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
           if (info.policy.canExtendVertically() && box.h() < info.max.h()) {
-            std::cout << "[WIG] " << name << " can be used to v grow (" << box.h() << " < " << info.max.h() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " can be used to v grow (" << box.h() << " < " << info.max.h() << ")" << std::endl;
             usable.second = true;
           }
           if (!info.policy.canExtendVertically() && box.h() < info.hint.h()) {
-            std::cout << "[WIG] " << name << " cannot be used to h grow but (" << box.h() << " < " << info.hint.h() << ")" << std::endl;
+            // std::cout << "[WIG] " << name << " cannot be used to h grow but (" << box.h() << " < " << info.hint.h() << ")" << std::endl;
             usable.second = true;
           }
         }

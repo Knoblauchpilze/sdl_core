@@ -8,7 +8,7 @@ namespace sdl {
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const bool transparent,
-                         const engine::Palette& palette):
+                         const engine::Color& color):
       EventListener(name, EventListener::Interaction::MouseButtonReleased),
 
       m_parent(nullptr),
@@ -16,7 +16,7 @@ namespace sdl {
       m_sizeHint(sizeHint),
       m_maxSize(utils::Sizef::max()),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
-      m_palette(palette),
+      m_palette(engine::Palette::fromButtonColor(color)),
 
       m_engine(nullptr),
 
@@ -32,6 +32,7 @@ namespace sdl {
       m_sizePolicy(),
       m_layout()
     {
+      log(std::string("Created widget from palette ") + color.toString(), utils::Level::Info);
       // Assign the service for this widget.
       setService(std::string("widget"));
 

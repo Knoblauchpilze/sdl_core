@@ -8,7 +8,7 @@ namespace sdl {
     Layout::Layout(SdlWidget* container,
                    const float& margin,
                    const std::string& name):
-      utils::CoreObject(name, false),
+      utils::CoreObject(name, true),
       m_widget(container),
       m_items(),
       m_dirty(true),
@@ -70,10 +70,45 @@ namespace sdl {
     }
 
     void
-    Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes) {
+    Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
+                                 const utils::Boxf& window)
+    {
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
-        m_items[index]->setRenderingArea(boxes[index]);
+        // Note that the compute bboxes cannot be assigned directly to the widget.
+        // Indeed the computations are done using a coordinate frame which looks
+        // like this:
+        //
+        //  O +--------> x
+        //    |
+        //    |
+        //    |
+        //  y v
+        //
+        // This coordinate frame should be transformed into a coordinate frame
+        // which looks like this:
+        //
+        //           y ^
+        //             |
+        //             |
+        //             |
+        //  O <--------+--------> x
+        //
+        // To obtain the final coordinates we thus need to transform the positions
+        // like so:
+        //
+        // newX = x - (offsetX - globalOffsetX)
+        // newY = (offsetY - globalOffsetY) - y
+
+        // Convert the bbox to match the required coordinate frame.
+        utils::Boxf converted(
+          boxes[index].x() - (window.x() - (window.x() - window.w() / 2.0f)),
+          window.y() - boxes[index].y() - (window.y() - window.h() / 2.0f),
+          boxes[index].w(),
+          boxes[index].h()
+        );
+
+        m_items[index]->setRenderingArea(converted);
       }
     }
 

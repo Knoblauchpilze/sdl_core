@@ -13,6 +13,9 @@
 # include <sdl_engine/Texture.hh>
 # include <sdl_engine/Engine.hh>
 # include <sdl_engine/EventListener.hh>
+# include <sdl_engine/KeyEvent.hh>
+# include <sdl_engine/MouseEvent.hh>
+# include <sdl_engine/QuitEvent.hh>
 
 # include "Layout.hh"
 # include "SizePolicy.hh"
@@ -82,28 +85,35 @@ namespace sdl {
         void
         setEngine(engine::EngineShPtr engine) noexcept;
 
-        void
-        onKeyPressedEvent(const engine::KeyEvent& keyEvent) override;
-
-        void
-        onKeyReleasedEvent(const engine::KeyEvent& keyEvent) override;
-
-        void
-        onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) override;
-
-        void
-        onMouseButtonPressedEvent(const engine::MouseEvent& mouseButtonEvent) override;
-
-        void
-        onMouseButtonReleasedEvent(const engine::MouseEvent& mouseButtonEvent) override;
-
-        void
-        onMouseWheelEvent(const engine::MouseEvent& event) override;
-
-        void
-        onQuitEvent(const engine::QuitEvent& event) override;
-
       protected:
+
+        // Reimplementation of the base method defined in `engine::EventListener`:
+        // using this method we know that the events filters have already been
+        // applied and we can safely process the event `e`. The aim of this method
+        // is to transmit the event to children until it has been accepted.
+        bool
+        handleEvent(engine::EventShPtr e) override;
+
+        virtual bool
+        onKeyPressedEvent(const engine::KeyEvent& keyEvent);
+
+        virtual bool
+        onKeyReleasedEvent(const engine::KeyEvent& keyEvent);
+
+        virtual bool
+        onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent);
+
+        virtual bool
+        onMouseButtonPressedEvent(const engine::MouseEvent& mouseButtonEvent);
+
+        virtual bool
+        onMouseButtonReleasedEvent(const engine::MouseEvent& mouseButtonEvent);
+
+        virtual bool
+        onMouseWheelEvent(const engine::MouseEvent& mouseWheelEvent);
+
+        virtual bool
+        onQuitEvent(const engine::QuitEvent& quitEvent);
 
         // We assume that this widget is already locked when we enter this method.
         virtual bool

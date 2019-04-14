@@ -156,87 +156,109 @@ namespace sdl {
     }
 
     inline
-    void
-    SdlWidget::onKeyPressedEvent(const engine::KeyEvent& keyEvent) {
+    bool
+    SdlWidget::handleEvent(engine::EventShPtr e) {
+      // Lock this widget to prevent concurrent modifications.
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onKeyPressedEvent(keyEvent);
+
+      // Check for degenerate event.
+      if (e == nullptr) {
+        // This should not happen.
+        log(
+          std::string("Dropping invalid null event"),
+          utils::Level::Warning
+        );
+
+        // The event was not recognized.
+        return false;
       }
+
+      // Check the event type and dispatch to the corresponding handler.
+      switch (e->getType()) {
+        case core::engine::Event::Type::KeyPress:
+          return onKeyPressedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+        case core::engine::Event::Type::KeyRelease:
+          return onKeyReleasedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+        case core::engine::Event::Type::MouseMove:
+          return onMouseMotionEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+        case core::engine::Event::Type::MouseButtonPress:
+          return onMouseButtonPressedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+        case core::engine::Event::Type::MouseButtonRelease:
+          return onMouseButtonReleasedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+        case core::engine::Event::Type::MouseWheel:
+          return onMouseWheelEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+        case core::engine::Event::Type::Quit:
+          return onQuitEvent(*std::dynamic_pointer_cast<core::engine::QuitEvent>(e));
+        default:
+          // Event was not handled, assume it was still recognized (since nobody processed it).
+          return true;
+      }
+
+      // Check whether the event has been accepted.
+      if (e->isAccepted()) {
+        // The event was obivously recognized.
+        return true;
+      }
+
+      // Dispatch to children.
+      WidgetMap::const_iterator widget = m_children.cbegin();
+
+      while (widget != m_children.cend() && !e->isAccepted()) {
+        widget->second->event(e);
+        ++widget;
+      }
+
+      // Use the base handle to determine whether the event is recognized.
+      return core::engine::EventListener::handleEvent(e);
     }
 
     inline
-    void
-    SdlWidget::onKeyReleasedEvent(const engine::KeyEvent& keyEvent) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onKeyReleasedEvent(keyEvent);
-      }
+    bool
+    SdlWidget::onKeyPressedEvent(const engine::KeyEvent& /*keyEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
     }
 
     inline
-    void
-    SdlWidget::onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onMouseMotionEvent(mouseMotionEvent);
-      }
+    bool
+    SdlWidget::onKeyReleasedEvent(const engine::KeyEvent& /*keyEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
     }
 
     inline
-    void
-    SdlWidget::onMouseButtonPressedEvent(const engine::MouseEvent& mouseButtonEvent) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onMouseButtonPressedEvent(mouseButtonEvent);
-      }
+    bool
+    SdlWidget::onMouseMotionEvent(const engine::MouseEvent& /*mouseMotionEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
     }
 
     inline
-    void
-    SdlWidget::onMouseButtonReleasedEvent(const engine::MouseEvent& mouseButtonEvent) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onMouseButtonReleasedEvent(mouseButtonEvent);
-      }
+    bool
+    SdlWidget::onMouseButtonPressedEvent(const engine::MouseEvent& /*mouseButtonEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
     }
 
     inline
-    void
-    SdlWidget::onMouseWheelEvent(const engine::MouseEvent& event) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onMouseWheelEvent(event);
-      }
+    bool
+    SdlWidget::onMouseButtonReleasedEvent(const engine::MouseEvent& /*mouseButtonEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
     }
 
     inline
-    void
-    SdlWidget::onQuitEvent(const engine::QuitEvent& event) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onQuitEvent(event);
-      }
+    bool
+    SdlWidget::onMouseWheelEvent(const engine::MouseEvent& /*mouseWheelEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
+    }
+
+    inline
+    bool
+    SdlWidget::onQuitEvent(const engine::QuitEvent& /*quitEvent*/) {
+      // Empty implementation, assume the event was recognized.
+      return true;
     }
 
     inline

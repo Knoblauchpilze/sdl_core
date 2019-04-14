@@ -9,7 +9,7 @@ namespace sdl {
                          SdlWidget* parent,
                          const bool transparent,
                          const engine::Color& color):
-      EventListener(name, EventListener::Interaction::MouseButtonReleased),
+      engine::EventListener(name),
 
       m_parent(nullptr),
       m_minSize(),

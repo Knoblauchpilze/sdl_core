@@ -11,6 +11,7 @@ set (SOURCES
   SizePolicy.cc
   Layout.cc
   SdlWidget.cc
+  UserInputFilter.cc
   )
 
 add_library (sdl_core SHARED

@@ -32,7 +32,6 @@ namespace sdl {
       m_sizePolicy(),
       m_layout()
     {
-      log(std::string("Created widget from palette ") + color.toString(), utils::Level::Info);
       // Assign the service for this widget.
       setService(std::string("widget"));
 

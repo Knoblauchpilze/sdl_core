@@ -7,6 +7,7 @@
 
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
+# include <maths_utils/Vector2.hh>
 # include <core_utils/Uuid.hh>
 # include <sdl_engine/Color.hh>
 # include <sdl_engine/Palette.hh>
@@ -122,6 +123,12 @@ namespace sdl {
         // We assume that this widget is already locked when we enter this method.
         virtual bool
         hasGeometryChanged() const noexcept;
+
+        utils::Vector2f
+        mapToGlobal(const utils::Vector2f& local) const noexcept;
+
+        utils::Vector2f
+        mapFromGlobal(const utils::Vector2f& global) const noexcept;
 
         virtual utils::Uuid
         createContentPrivate() const;

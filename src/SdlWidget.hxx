@@ -176,22 +176,29 @@ namespace sdl {
       // Check the event type and dispatch to the corresponding handler.
       switch (e->getType()) {
         case core::engine::Event::Type::KeyPress:
-          return onKeyPressedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+          onKeyPressedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+          break;
         case core::engine::Event::Type::KeyRelease:
-          return onKeyReleasedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+          onKeyReleasedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+          break;
         case core::engine::Event::Type::MouseMove:
-          return onMouseMotionEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          onMouseMotionEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
         case core::engine::Event::Type::MouseButtonPress:
-          return onMouseButtonPressedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          onMouseButtonPressedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
         case core::engine::Event::Type::MouseButtonRelease:
-          return onMouseButtonReleasedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          onMouseButtonReleasedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
         case core::engine::Event::Type::MouseWheel:
-          return onMouseWheelEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          onMouseWheelEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
         case core::engine::Event::Type::Quit:
-          return onQuitEvent(*std::dynamic_pointer_cast<core::engine::QuitEvent>(e));
+          onQuitEvent(*std::dynamic_pointer_cast<core::engine::QuitEvent>(e));
+          break;
         default:
-          // Event was not handled, assume it was still recognized (since nobody processed it).
-          return true;
+          // Event type is not handled, continue the process.
+          break;
       }
 
       // Check whether the event has been accepted.
@@ -228,7 +235,15 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::onMouseMotionEvent(const engine::MouseEvent& /*mouseMotionEvent*/) {
+    SdlWidget::onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) {
+      if (getName() == "left_widget") {
+        utils::Vector2f local = mapFromGlobal(utils::Vector2f(mouseMotionEvent.getMousePosition()));
+        log(
+          std::string("Mouse is at ") + local.toString(),
+          utils::Level::Info
+        );
+      }
+
       // Empty implementation, assume the event was recognized.
       return true;
     }
@@ -271,6 +286,69 @@ namespace sdl {
     bool
     SdlWidget::hasGeometryChanged() const noexcept {
       return m_geometryDirty && m_isVisible;
+    }
+
+    inline
+    utils::Vector2f
+    SdlWidget::mapToGlobal(const utils::Vector2f& local) const noexcept {
+      // To transform `local` coordinate to global, we need to first
+      // account for the `local` coordinate.
+      utils::Vector2f global = local;
+
+      // Now we need to account for the position of this widget.
+      global.x() += m_area.x();
+      global.y() += m_area.y();
+
+      // Now we need to account for the transform applied to the parent
+      // if any.
+      if (m_parent != nullptr) {
+        global = m_parent->mapToGlobal(global);
+      }
+
+      // This is the global representation of the input local position.
+      return global;
+    }
+
+    inline
+    utils::Vector2f
+    SdlWidget::mapFromGlobal(const utils::Vector2f& global) const noexcept {
+      // To transform `global` coordinate to local, we need to first
+      // account for the `global` coordinate.
+      utils::Vector2f local = global;
+
+      // Account for the transformation applied to the parent
+      // if any.
+      if (m_parent != nullptr) {
+        local = m_parent->mapFromGlobal(local);
+      }
+
+      // Now we need to account for the position of this widget.
+      // While the `x` coordinate is straightforward because the SDL
+      // does have the axis oriented in the same direction as our
+      // local coordinate frame, it is not the case for the `y` axis
+      // so we need to invert it.
+      // The inversion of the y axis only stands when it has not yet
+      // been performed, i.e. when the widget is at the top of its
+      // hierarchy: otherwise its parent already handled it and we
+      // should not do it again. If we invert each time we would
+      // oscillate between valid and invalid coordinates.
+
+      // `x` coordinate is straightforward.
+      local.x() -= m_area.x();
+
+      // `y` coordinate should be handled with care.
+      if (m_parent == nullptr) {
+        // No defined parent, let's invert the `y` axis.
+        local.y() = m_area.y() - local.y();
+      }
+      else {
+        // The inversion has already been handled, proceed
+        // normally.
+        local.y() -= m_area.y();
+      }
+
+      // This is the local representation of the input global position.
+      return local;
     }
 
     inline
@@ -415,14 +493,32 @@ namespace sdl {
       const utils::Uuid& uuid = m_content;
       engine::Engine& engine = getEngine();
 
+      // Copy also the internal area in order to perform the coordinate
+      // frame transform.
+      utils::Sizef dims = m_area.toSize();
+
       // Protect against errors.
       withSafetyNet(
-        [&child, &uuid, &engine]() {
+        [&child, &uuid, &engine, &dims]() {
           // Draw this object (caching is handled by the object itself).
           utils::Uuid picture = child.draw();
 
-          // Draw the picture at the corresponding place.
+          // Draw the picture at the corresponding place. Note that the
+          // coordinates of the box of each child is in local coordinates
+          // relatively to this widget.
+          // In order to obtain good results, we need to convert to an
+          // intermediate coordinate frame not centered on the origin but
+          // rather on the position of this widget.
+          // This is because the SDL talks in terms of top left corner
+          // and we talk in terms of center.
+          // The conversion cannot happen without knowing the dimension
+          // of the input texture, which is only known here.
           utils::Boxf render = child.getRenderingArea();
+          
+          // Account for the intermediate coordinate frame transformation.
+          render.x() += (dims.w() / 2.0f);
+          render.y() = (dims.h() / 2.0f) - render.y();
+
           engine.drawTexture(
             picture,
             &uuid,

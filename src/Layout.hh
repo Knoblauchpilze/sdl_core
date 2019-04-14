@@ -65,7 +65,8 @@ namespace sdl {
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept;
 
         void
-        assignRenderingAreas(const std::vector<utils::Boxf>& boxes);
+        assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
+                             const utils::Boxf& window);
 
         utils::Sizef
         computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,

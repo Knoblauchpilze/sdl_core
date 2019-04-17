@@ -2,12 +2,12 @@
 # define   USER_INPUT_FILTER_HH
 
 # include <sdl_engine/Event.hh>
-# include <sdl_engine/EventListener.hh>
+# include <sdl_engine/EngineObject.hh>
 
 namespace sdl {
   namespace core {
 
-    class UserInputFilter: public engine::EventListener {
+    class UserInputFilter: public engine::EngineObject {
       public:
 
         struct Interaction {
@@ -46,18 +46,18 @@ namespace sdl {
         virtual ~UserInputFilter();
 
         bool
-        filterEvent(engine::EventListener* watched,
+        filterEvent(engine::EngineObject* watched,
                     engine::EventShPtr e) override;
 
         // Create a filter which filters out the event related to the input mask.
         static
-        engine::EventListenerShPtr
+        engine::EngineObjectShPtr
         createFilterFromMask(const Interaction::Mask& mask);
 
         // Create a filter which filters out the event which ARE NOT related to
         // the input mask.
         static
-        engine::EventListenerShPtr
+        engine::EngineObjectShPtr
         createExclusionFilterFromMask(const Interaction::Mask& mask);
 
       private:

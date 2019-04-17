@@ -29,7 +29,7 @@ namespace sdl {
     UserInputFilter::UserInputFilter(const Interaction::Mask& mask,
                                      const bool exclusion,
                                      const std::string& name):
-      engine::EventListener(name),
+      engine::EngineObject(name),
       m_mask(mask),
       m_exclusion(exclusion)
     {}

@@ -12,7 +12,7 @@ namespace sdl {
 
     inline
     bool
-    UserInputFilter::filterEvent(engine::EventListener* /*watched*/,
+    UserInputFilter::filterEvent(engine::EngineObject* /*watched*/,
                                  engine::EventShPtr e)
     {
       // Do not filter null event (even though it is a bit weird to get some).
@@ -25,13 +25,13 @@ namespace sdl {
     }
 
     inline
-    engine::EventListenerShPtr
+    engine::EngineObjectShPtr
     UserInputFilter::createFilterFromMask(const Interaction::Mask& mask) {
       return std::make_shared<UserInputFilter>(mask);
     }
 
     inline
-    engine::EventListenerShPtr
+    engine::EngineObjectShPtr
     UserInputFilter::createExclusionFilterFromMask(const Interaction::Mask& mask) {
       return std::make_shared<UserInputFilter>(mask, true);
     }

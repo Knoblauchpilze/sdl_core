@@ -157,70 +157,6 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::handleEvent(engine::EventShPtr e) {
-      // Lock this widget to prevent concurrent modifications.
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-
-      // Check for degenerate event.
-      if (e == nullptr) {
-        // This should not happen.
-        log(
-          std::string("Dropping invalid null event"),
-          utils::Level::Warning
-        );
-
-        // The event was not recognized.
-        return false;
-      }
-
-      // Check the event type and dispatch to the corresponding handler.
-      switch (e->getType()) {
-        case core::engine::Event::Type::KeyPress:
-          onKeyPressedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
-          break;
-        case core::engine::Event::Type::KeyRelease:
-          onKeyReleasedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
-          break;
-        case core::engine::Event::Type::MouseMove:
-          onMouseMotionEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
-          break;
-        case core::engine::Event::Type::MouseButtonPress:
-          onMouseButtonPressedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
-          break;
-        case core::engine::Event::Type::MouseButtonRelease:
-          onMouseButtonReleasedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
-          break;
-        case core::engine::Event::Type::MouseWheel:
-          onMouseWheelEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
-          break;
-        case core::engine::Event::Type::Quit:
-          onQuitEvent(*std::dynamic_pointer_cast<core::engine::QuitEvent>(e));
-          break;
-        default:
-          // Event type is not handled, continue the process.
-          break;
-      }
-
-      // Check whether the event has been accepted.
-      if (e->isAccepted()) {
-        // The event was obivously recognized.
-        return true;
-      }
-
-      // Dispatch to children.
-      WidgetMap::const_iterator widget = m_children.cbegin();
-
-      while (widget != m_children.cend() && !e->isAccepted()) {
-        widget->second->event(e);
-        ++widget;
-      }
-
-      // Use the base handle to determine whether the event is recognized.
-      return core::engine::EventListener::handleEvent(e);
-    }
-
-    inline
-    bool
     SdlWidget::onKeyPressedEvent(const engine::KeyEvent& /*keyEvent*/) {
       // Empty implementation, assume the event was recognized.
       return true;
@@ -238,10 +174,13 @@ namespace sdl {
     SdlWidget::onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) {
       if (getName() == "left_widget") {
         utils::Vector2f local = mapFromGlobal(utils::Vector2f(mouseMotionEvent.getMousePosition()));
-        log(
-          std::string("Mouse is at ") + local.toString(),
-          utils::Level::Info
-        );
+
+        if (std::abs(local.x()) < m_area.w() / 2.0f && std::abs(local.y()) < m_area.h() / 2.0f) {
+          log(std::string("Inside widget"), utils::Level::Info);
+        }
+        else {
+          log(std::string("Outside widget"), utils::Level::Info);
+        }
       }
 
       // Empty implementation, assume the event was recognized.

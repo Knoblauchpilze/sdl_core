@@ -13,7 +13,7 @@
 # include <sdl_engine/Palette.hh>
 # include <sdl_engine/Texture.hh>
 # include <sdl_engine/Engine.hh>
-# include <sdl_engine/EventListener.hh>
+# include <sdl_engine/EngineObject.hh>
 # include <sdl_engine/KeyEvent.hh>
 # include <sdl_engine/MouseEvent.hh>
 # include <sdl_engine/QuitEvent.hh>
@@ -24,7 +24,7 @@
 namespace sdl {
   namespace core {
 
-    class SdlWidget: public engine::EventListener {
+    class SdlWidget: public engine::EngineObject {
       public:
 
         SdlWidget(const std::string& name,
@@ -88,7 +88,7 @@ namespace sdl {
 
       protected:
 
-        // Reimplementation of the base method defined in `engine::EventListener`:
+        // Reimplementation of the base method defined in `engine::EngineObject`:
         // using this method we know that the events filters have already been
         // applied and we can safely process the event `e`. The aim of this method
         // is to transmit the event to children until it has been accepted.

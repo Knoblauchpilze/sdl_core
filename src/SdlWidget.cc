@@ -9,7 +9,7 @@ namespace sdl {
                          SdlWidget* parent,
                          const bool transparent,
                          const engine::Color& color):
-      engine::EventListener(name),
+      engine::EngineObject(name),
 
       m_parent(nullptr),
       m_minSize(),
@@ -86,6 +86,69 @@ namespace sdl {
 
       // Return the built-in texture.
       return m_content;
+    }
+
+    bool
+    SdlWidget::handleEvent(engine::EventShPtr e) {
+      // Lock this widget to prevent concurrent modifications.
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      // Check for degenerate event.
+      if (e == nullptr) {
+        // This should not happen.
+        log(
+          std::string("Dropping invalid null event"),
+          utils::Level::Warning
+        );
+
+        // The event was not recognized.
+        return false;
+      }
+
+      // Check the event type and dispatch to the corresponding handler.
+      switch (e->getType()) {
+        case core::engine::Event::Type::KeyPress:
+          onKeyPressedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+          break;
+        case core::engine::Event::Type::KeyRelease:
+          onKeyReleasedEvent(*std::dynamic_pointer_cast<core::engine::KeyEvent>(e));
+          break;
+        case core::engine::Event::Type::MouseMove:
+          onMouseMotionEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
+        case core::engine::Event::Type::MouseButtonPress:
+          onMouseButtonPressedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
+        case core::engine::Event::Type::MouseButtonRelease:
+          onMouseButtonReleasedEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
+        case core::engine::Event::Type::MouseWheel:
+          onMouseWheelEvent(*std::dynamic_pointer_cast<core::engine::MouseEvent>(e));
+          break;
+        case core::engine::Event::Type::Quit:
+          onQuitEvent(*std::dynamic_pointer_cast<core::engine::QuitEvent>(e));
+          break;
+        default:
+          // Event type is not handled, continue the process.
+          break;
+      }
+
+      // Check whether the event has been accepted.
+      if (e->isAccepted()) {
+        // The event was obivously recognized.
+        return true;
+      }
+
+      // Dispatch to children.
+      WidgetMap::const_iterator widget = m_children.cbegin();
+
+      while (widget != m_children.cend() && !e->isAccepted()) {
+        widget->second->event(e);
+        ++widget;
+      }
+
+      // Use the base handle to determine whether the event is recognized.
+      return core::engine::EngineObject::handleEvent(e);
     }
 
   }

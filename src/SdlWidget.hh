@@ -116,6 +116,12 @@ namespace sdl {
         virtual bool
         onQuitEvent(const engine::QuitEvent& quitEvent);
 
+        virtual bool
+        onMouseEnter(const engine::MouseEvent& mouseMotionEvent);
+
+        virtual bool
+        onMouseLeave(const engine::MouseEvent& mouseMotionEvent);
+
         // We assume that this widget is already locked when we enter this method.
         virtual bool
         hasContentChanged() const noexcept;
@@ -129,6 +135,12 @@ namespace sdl {
 
         utils::Vector2f
         mapFromGlobal(const utils::Vector2f& global) const noexcept;
+
+        bool
+        isInsideWidget(const utils::Vector2f& global) const noexcept;
+
+        bool
+        isBlockedByChild(const utils::Vector2f& global) const noexcept;
 
         virtual utils::Uuid
         createContentPrivate() const;
@@ -197,6 +209,8 @@ namespace sdl {
         bool m_transparent;
         utils::Uuid m_content;
         mutable std::mutex m_drawingLocker;
+
+        bool m_mouseInside;
 
         WidgetMap m_children;
 

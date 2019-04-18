@@ -27,6 +27,8 @@ namespace sdl {
       m_content(),
       m_drawingLocker(),
 
+      m_mouseInside(false),
+
       m_children(),
 
       m_sizePolicy(),

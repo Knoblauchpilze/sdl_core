@@ -172,14 +172,31 @@ namespace sdl {
     inline
     bool
     SdlWidget::onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) {
-      if (getName() == "left_widget") {
-        utils::Vector2f local = mapFromGlobal(utils::Vector2f(mouseMotionEvent.getMousePosition()));
+      // Check whether the mouse is inside the widget and not blocked by any child.
+      // Basically we want to trigger a `EnterEvent` whenever:
+      // 1) The mouse was not inside the widget before.
+      // 2) The mouse is not blocked by any widget.
+      // And we want to trigger a `LeaveEvent` whenever:
+      // 1) The mouse is not inside the widget anymore.
+      // 2) The mouse is blocked by a child widget.
 
-        if (std::abs(local.x()) < m_area.w() / 2.0f && std::abs(local.y()) < m_area.h() / 2.0f) {
-          log(std::string("Inside widget"), utils::Level::Info);
+      const bool inside = isInsideWidget(mouseMotionEvent.getMousePosition());
+      const bool blocked = isBlockedByChild(mouseMotionEvent.getMousePosition());
+
+      if (m_mouseInside) {
+        // We care about mouse being blocked by a child widget and by mouse leaving
+        // the widget.
+        if (!inside || blocked) {
+          m_mouseInside = false;
+          onMouseLeave(mouseMotionEvent);
         }
-        else {
-          log(std::string("Outside widget"), utils::Level::Info);
+      }
+      else {
+        // We care about mouse entering the widget or blocking by child widget not
+        // relevant anymore.
+        if (inside && !blocked) {
+          m_mouseInside = true;
+          onMouseEnter(mouseMotionEvent);
         }
       }
 
@@ -212,6 +229,30 @@ namespace sdl {
     bool
     SdlWidget::onQuitEvent(const engine::QuitEvent& /*quitEvent*/) {
       // Empty implementation, assume the event was recognized.
+      return true;
+    }
+
+    inline
+    bool
+    SdlWidget::onMouseEnter(const engine::MouseEvent& /*mouseMotionEvent*/) {
+      // Update the role of the background texture.
+      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+
+      log("Mouse entering");
+
+      // The event was recognized.
+      return true;
+    }
+
+    inline
+    bool
+    SdlWidget::onMouseLeave(const engine::MouseEvent& /*mouseMotionEvent*/) {
+      // Update the role of the background texture.
+      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+
+      log("Mouse leaving");
+
+      // The event was recognized.
       return true;
     }
 
@@ -288,6 +329,37 @@ namespace sdl {
 
       // This is the local representation of the input global position.
       return local;
+    }
+
+    inline
+    bool
+    SdlWidget::isInsideWidget(const utils::Vector2f& global) const noexcept {
+      // Compute the local position of the mouse.
+      utils::Vector2f local = mapFromGlobal(global);
+
+      // In order to be inside the widget, the local mouse position should lie
+      // within the range [-width/2 ; width/2] and [-height/2 ; height/2].
+      return
+        std::abs(local.x()) < m_area.w() / 2.0f &&
+        std::abs(local.y()) < m_area.h() / 2.0f
+      ;
+    }
+
+    inline
+    bool
+    SdlWidget::isBlockedByChild(const utils::Vector2f& global) const noexcept {
+      // Compute the local position of the mouse.
+      utils::Vector2f local = mapFromGlobal(global);
+
+      // Traverse children and check whether one is on the way.
+      for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+        if (child->second->isVisible() && child->second->getRenderingArea().isInside(local)) {
+          return true;
+        }
+      }
+
+      // No widget on the way.
+      return false;
     }
 
     inline

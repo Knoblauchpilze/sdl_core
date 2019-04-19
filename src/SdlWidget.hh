@@ -207,7 +207,11 @@ namespace sdl {
         bool m_geometryDirty;
         bool m_isVisible;
         bool m_transparent;
+        // TODO: Add a double buffering system.
         utils::Uuid m_content;
+        // TODO: Release the extent of this mutex to simply protect the double buffering swap: otherwise
+        // it is not needed because changes can only occur when processing event and a single thread is
+        // processing these events: so there's no way we can have concurrent modifications on the widget.
         mutable std::mutex m_drawingLocker;
 
         bool m_mouseInside;

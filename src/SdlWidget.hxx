@@ -157,21 +157,37 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::onKeyPressedEvent(const engine::KeyEvent& /*keyEvent*/) {
-      // Empty implementation, assume the event was recognized.
-      return true;
+    SdlWidget::enterEvent(const engine::EnterEvent& e) {
+      // Update the role of the background texture.
+      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+
+      // The mouse is now inside this widget.
+      m_mouseInside = true;
+
+      log("Mouse entering");
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::enterEvent(e);
     }
 
     inline
     bool
-    SdlWidget::onKeyReleasedEvent(const engine::KeyEvent& /*keyEvent*/) {
-      // Empty implementation, assume the event was recognized.
-      return true;
+    SdlWidget::leaveEvent(const engine::Event& e) {
+      // Update the role of the background texture.
+      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+
+      // The mouse is now outside this widget.
+      m_mouseInside = false;
+
+      log("Mouse leaving");
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::leaveEvent(e);
     }
 
     inline
     bool
-    SdlWidget::onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent) {
+    SdlWidget::mouseMoveEvent(const engine::MouseEvent& e) {
       // Check whether the mouse is inside the widget and not blocked by any child.
       // Basically we want to trigger a `EnterEvent` whenever:
       // 1) The mouse was not inside the widget before.
@@ -180,80 +196,28 @@ namespace sdl {
       // 1) The mouse is not inside the widget anymore.
       // 2) The mouse is blocked by a child widget.
 
-      const bool inside = isInsideWidget(mouseMotionEvent.getMousePosition());
-      const bool blocked = isBlockedByChild(mouseMotionEvent.getMousePosition());
+      const bool inside = isInsideWidget(e.getMousePosition());
+      const bool blocked = isBlockedByChild(e.getMousePosition());
 
       if (m_mouseInside) {
         // We care about mouse being blocked by a child widget and by mouse leaving
         // the widget.
         if (!inside || blocked) {
-          m_mouseInside = false;
-          onMouseLeave(mouseMotionEvent);
+          // TODO: Should probably post a message ?
+          leaveEvent(engine::Event(core::engine::Event::Type::Leave));
         }
       }
       else {
         // We care about mouse entering the widget or blocking by child widget not
         // relevant anymore.
         if (inside && !blocked) {
-          m_mouseInside = true;
-          onMouseEnter(mouseMotionEvent);
+          // TODO: Should probably post a message ?
+          enterEvent(engine::EnterEvent(e.getMousePosition()));
         }
       }
 
-      // Empty implementation, assume the event was recognized.
-      return true;
-    }
-
-    inline
-    bool
-    SdlWidget::onMouseButtonPressedEvent(const engine::MouseEvent& /*mouseButtonEvent*/) {
-      // Empty implementation, assume the event was recognized.
-      return true;
-    }
-
-    inline
-    bool
-    SdlWidget::onMouseButtonReleasedEvent(const engine::MouseEvent& /*mouseButtonEvent*/) {
-      // Empty implementation, assume the event was recognized.
-      return true;
-    }
-
-    inline
-    bool
-    SdlWidget::onMouseWheelEvent(const engine::MouseEvent& /*mouseWheelEvent*/) {
-      // Empty implementation, assume the event was recognized.
-      return true;
-    }
-
-    inline
-    bool
-    SdlWidget::onQuitEvent(const engine::QuitEvent& /*quitEvent*/) {
-      // Empty implementation, assume the event was recognized.
-      return true;
-    }
-
-    inline
-    bool
-    SdlWidget::onMouseEnter(const engine::MouseEvent& /*mouseMotionEvent*/) {
-      // Update the role of the background texture.
-      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
-
-      log("Mouse entering");
-
-      // The event was recognized.
-      return true;
-    }
-
-    inline
-    bool
-    SdlWidget::onMouseLeave(const engine::MouseEvent& /*mouseMotionEvent*/) {
-      // Update the role of the background texture.
-      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
-
-      log("Mouse leaving");
-
-      // The event was recognized.
-      return true;
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::mouseMoveEvent(e);
     }
 
     inline

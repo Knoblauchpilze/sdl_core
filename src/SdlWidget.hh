@@ -95,32 +95,14 @@ namespace sdl {
         bool
         handleEvent(engine::EventShPtr e) override;
 
-        virtual bool
-        onKeyPressedEvent(const engine::KeyEvent& keyEvent);
+        bool
+        enterEvent(const engine::EnterEvent& e) override;
 
-        virtual bool
-        onKeyReleasedEvent(const engine::KeyEvent& keyEvent);
+        bool
+        leaveEvent(const engine::Event& e) override;
 
-        virtual bool
-        onMouseMotionEvent(const engine::MouseEvent& mouseMotionEvent);
-
-        virtual bool
-        onMouseButtonPressedEvent(const engine::MouseEvent& mouseButtonEvent);
-
-        virtual bool
-        onMouseButtonReleasedEvent(const engine::MouseEvent& mouseButtonEvent);
-
-        virtual bool
-        onMouseWheelEvent(const engine::MouseEvent& mouseWheelEvent);
-
-        virtual bool
-        onQuitEvent(const engine::QuitEvent& quitEvent);
-
-        virtual bool
-        onMouseEnter(const engine::MouseEvent& mouseMotionEvent);
-
-        virtual bool
-        onMouseLeave(const engine::MouseEvent& mouseMotionEvent);
+        bool
+        mouseMoveEvent(const engine::MouseEvent& e) override;
 
         // We assume that this widget is already locked when we enter this method.
         virtual bool

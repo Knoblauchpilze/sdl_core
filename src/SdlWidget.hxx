@@ -26,35 +26,30 @@ namespace sdl {
     inline
     utils::Sizef
     SdlWidget::getMinSize() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_minSize;
     }
 
     inline
     utils::Sizef
     SdlWidget::getSizeHint() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_sizeHint;
     }
 
     inline
     utils::Sizef
     SdlWidget::getMaxSize() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_maxSize;
     }
 
     inline
     SizePolicy
     SdlWidget::getSizePolicy() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_sizePolicy;
     }
 
     inline
     void
     SdlWidget::setMinSize(const utils::Sizef& size) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_minSize = size;
       makeGeometryDirty();
     }
@@ -62,7 +57,6 @@ namespace sdl {
     inline
     void
     SdlWidget::setSizeHint(const utils::Sizef& hint) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizeHint = hint;
       makeGeometryDirty();
     }
@@ -70,7 +64,6 @@ namespace sdl {
     inline
     void
     SdlWidget::setMaxSize(const utils::Sizef& size) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_maxSize = size;
       makeGeometryDirty();
     }
@@ -78,16 +71,14 @@ namespace sdl {
     inline
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
     }
 
     inline
     void
     SdlWidget::setRenderingArea(const utils::Boxf& area) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_area = area;
-      makeContentDirty();
+      makeGeometryDirty();
 
       log(std::string("Area is now ") + m_area.toString());
     }
@@ -95,7 +86,6 @@ namespace sdl {
     inline
     void
     SdlWidget::setPalette(const engine::Palette& palette) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_palette = palette;
       makeContentDirty();
     }
@@ -103,28 +93,18 @@ namespace sdl {
     inline
     bool
     SdlWidget::isVisible() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_isVisible;
     }
 
     inline
     void
     SdlWidget::setVisible(bool isVisible) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_isVisible = isVisible;
-    }
-
-    inline
-    unsigned
-    SdlWidget::getWidgetsCount() const noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      return m_children.size();
     }
 
     inline
     void
     SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_layout = layout;
       makeGeometryDirty();
     }
@@ -132,7 +112,6 @@ namespace sdl {
     inline
     void
     SdlWidget::setSizePolicy(const SizePolicy& policy) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_sizePolicy = policy;
       makeGeometryDirty();
     }
@@ -140,7 +119,6 @@ namespace sdl {
     inline
     void
     SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       // Assign the engine to this widget.
       m_engine = engine;
       
@@ -223,13 +201,13 @@ namespace sdl {
     inline
     bool
     SdlWidget::hasContentChanged() const noexcept {
-      return m_contentDirty && m_isVisible;
+      return m_contentDirty && isVisible();
     }
 
     inline
     bool
     SdlWidget::hasGeometryChanged() const noexcept {
-      return m_geometryDirty && m_isVisible;
+      return m_geometryDirty && isVisible();
     }
 
     inline
@@ -352,7 +330,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::clearContentPrivate(const utils::Uuid& uuid) const noexcept {
+    SdlWidget::clearContentPrivate(const utils::Uuid& uuid) const {
       // Use the engine to fill the texture with the color provided by the
       // internal palette. The state of the widget is stored in the palette
       // so it will automatically be handled by the engine.
@@ -361,14 +339,13 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/) const noexcept {
+    SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/) const {
       // Nothing to do.
     }
 
     inline
     void
     SdlWidget::setParent(SdlWidget* parent) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_parent = parent;
       if (m_parent != nullptr) {
         m_parent->addWidget(this);
@@ -378,22 +355,23 @@ namespace sdl {
     inline
     void
     SdlWidget::makeContentDirty() noexcept {
-      log(std::string("Content is now dirty"));
+      // Mark the content as dirty.
       m_contentDirty = true;
+
+      // Trigger a geometry update event.
+      log("Posting paint event");
+      postEvent(std::make_shared<engine::PaintEvent>(m_area));
     }
 
     inline
     void
     SdlWidget::makeGeometryDirty() noexcept {
-      log(std::string("Geometry is now dirty"));
-      makeContentDirty();
+      // Mark the geometry 
       m_geometryDirty = true;
-    }
 
-    inline
-    std::mutex&
-    SdlWidget::getLocker() noexcept {
-      return m_drawingLocker;
+      // Trigger a geometry update event.
+      log("Posting geometry event");
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
     }
 
     template <typename WidgetType>
@@ -433,7 +411,6 @@ namespace sdl {
     inline
     void
     SdlWidget::addWidget(SdlWidget* widget) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Check for null widget.
       if (widget == nullptr) {
@@ -460,48 +437,6 @@ namespace sdl {
         getEngine().destroyTexture(m_content);
         m_content.invalidate();
       }
-    }
-
-    inline
-    void
-    SdlWidget::drawChild(SdlWidget& child) {
-      const utils::Uuid& uuid = m_content;
-      engine::Engine& engine = getEngine();
-
-      // Copy also the internal area in order to perform the coordinate
-      // frame transform.
-      utils::Sizef dims = m_area.toSize();
-
-      // Protect against errors.
-      withSafetyNet(
-        [&child, &uuid, &engine, &dims]() {
-          // Draw this object (caching is handled by the object itself).
-          utils::Uuid picture = child.draw();
-
-          // Draw the picture at the corresponding place. Note that the
-          // coordinates of the box of each child is in local coordinates
-          // relatively to this widget.
-          // In order to obtain good results, we need to convert to an
-          // intermediate coordinate frame not centered on the origin but
-          // rather on the position of this widget.
-          // This is because the SDL talks in terms of top left corner
-          // and we talk in terms of center.
-          // The conversion cannot happen without knowing the dimension
-          // of the input texture, which is only known here.
-          utils::Boxf render = child.getRenderingArea();
-          
-          // Account for the intermediate coordinate frame transformation.
-          render.x() += (dims.w() / 2.0f);
-          render.y() = (dims.h() / 2.0f) - render.y();
-
-          engine.drawTexture(
-            picture,
-            &uuid,
-            &render
-          );
-        },
-        std::string("draw_child")
-      );
     }
 
   }

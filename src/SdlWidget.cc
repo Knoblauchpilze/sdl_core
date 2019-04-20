@@ -51,33 +51,11 @@ namespace sdl {
     SdlWidget::draw() {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
-      // Check whether a valid size is provided for this widget.
-      if (!m_area.valid()) {
-        error(std::string("Could not repaint widget"), std::string("Invalid size"));
-      }
-
-      // Repaint if needed.
-      if (hasContentChanged()) {
-        log(std::string("Updating content for widget"));
-
-        clearTexture();
-        m_content = createContentPrivate();
-        m_contentDirty = false;
-      }
+      log("Drawing content");
 
       // Clear the content and draw the new version.
       clearContentPrivate(m_content);
       drawContentPrivate(m_content);
-
-      // Update layout if any.
-      if (hasGeometryChanged()) {
-        log(std::string("Updating layout for widget"));
-
-        if (m_layout != nullptr) {
-          m_layout->update();
-        }
-        m_geometryDirty = false;
-      }
 
       // Proceed to update of children containers if any.
       for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
@@ -90,13 +68,53 @@ namespace sdl {
       return m_content;
     }
 
+    void
+    SdlWidget::drawChild(SdlWidget& child) {
+      const utils::Uuid& uuid = m_content;
+      engine::Engine& engine = getEngine();
+
+      // Copy also the internal area in order to perform the coordinate
+      // frame transform.
+      utils::Sizef dims = m_area.toSize();
+
+      // Protect against errors.
+      withSafetyNet(
+        [&child, &uuid, &engine, &dims]() {
+          // Draw this object (caching is handled by the object itself).
+          utils::Uuid picture = child.draw();
+
+          // Draw the picture at the corresponding place. Note that the
+          // coordinates of the box of each child is in local coordinates
+          // relatively to this widget.
+          // In order to obtain good results, we need to convert to an
+          // intermediate coordinate frame not centered on the origin but
+          // rather on the position of this widget.
+          // This is because the SDL talks in terms of top left corner
+          // and we talk in terms of center.
+          // The conversion cannot happen without knowing the dimension
+          // of the input texture, which is only known here.
+          utils::Boxf render = child.getRenderingArea();
+          
+          // Account for the intermediate coordinate frame transformation.
+          render.x() += (dims.w() / 2.0f);
+          render.y() = (dims.h() / 2.0f) - render.y();
+
+          engine.drawTexture(
+            picture,
+            &uuid,
+            &render
+          );
+        },
+        std::string("draw_child")
+      );
+    }
+
     bool
     SdlWidget::handleEvent(engine::EventShPtr e) {
-      // Lock this widget to prevent concurrent modifications.
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Handle this event using the base handler.
-      const bool recognized = core::engine::EngineObject::handleEvent(e);
+      const bool recognized = engine::EngineObject::handleEvent(e);
 
       // Check whether the event has been accepted before dispatching to children.
       if (!e->isAccepted()) {
@@ -110,6 +128,55 @@ namespace sdl {
       }
 
       return recognized;
+    }
+
+    bool
+    SdlWidget::geometryUpdateEvent(const engine::Event& e) {
+      // Perform an update of the geometry of this widget.
+      // This inludes updating the layout if any is assigned
+      // to this widget.
+
+      // Perform the rebuild if the geometry has changed.
+      // This check should not be really useful because
+      // the `geometryUpdateEvent` should already be
+      // triggered at the most appropriate time.
+      if (hasGeometryChanged()) {
+        log(std::string("Updating layout for widget"));
+
+        if (m_layout != nullptr) {
+          m_layout->update();
+        }
+        m_geometryDirty = false;
+      }
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::geometryUpdateEvent(e);
+    }
+
+    bool
+    SdlWidget::repaintEvent(const engine::PaintEvent& e) {
+      // In order to repaint the widget, a valid rendering area
+      // must have been defined through another process (usually
+      // by updating the layout of the parent widget).
+      // If this is not the case, an error is raised.
+      if (!m_area.valid()) {
+        error(std::string("Could not repaint widget"), std::string("Invalid size"));
+      }
+
+      // Perform the repaint if the content has changed.
+      // This check should not be really useful because
+      // the `repaintEvent` should already be triggered
+      // at the most appropriate time.
+      if (hasContentChanged()) {
+        log(std::string("Updating content for widget"));
+
+        clearTexture();
+        m_content = createContentPrivate();
+        m_contentDirty = false;
+      }
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::repaintEvent(e);
     }
 
   }

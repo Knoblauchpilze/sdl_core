@@ -74,9 +74,6 @@ namespace sdl {
         virtual utils::Uuid
         draw();
 
-        unsigned
-        getWidgetsCount() const noexcept;
-
         void
         setLayout(std::shared_ptr<Layout> layout) noexcept;
 
@@ -99,16 +96,20 @@ namespace sdl {
         enterEvent(const engine::EnterEvent& e) override;
 
         bool
+        geometryUpdateEvent(const engine::Event& e) override;
+
+        bool
         leaveEvent(const engine::Event& e) override;
 
         bool
         mouseMoveEvent(const engine::MouseEvent& e) override;
 
-        // We assume that this widget is already locked when we enter this method.
+        bool
+        repaintEvent(const engine::PaintEvent& e) override;
+
         virtual bool
         hasContentChanged() const noexcept;
 
-        // We assume that this widget is already locked when we enter this method.
         virtual bool
         hasGeometryChanged() const noexcept;
 
@@ -128,10 +129,10 @@ namespace sdl {
         createContentPrivate() const;
 
         virtual void
-        clearContentPrivate(const utils::Uuid& uuid) const noexcept;
+        clearContentPrivate(const utils::Uuid& uuid) const;
 
         virtual void
-        drawContentPrivate(const utils::Uuid& uuid) const noexcept;
+        drawContentPrivate(const utils::Uuid& uuid) const;
 
         void
         setParent(SdlWidget* parent);
@@ -141,9 +142,6 @@ namespace sdl {
 
         void
         makeGeometryDirty() noexcept;
-
-        std::mutex&
-        getLocker() noexcept;
 
         template <typename WidgetType>
         WidgetType*

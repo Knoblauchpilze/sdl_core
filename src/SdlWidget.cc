@@ -1,5 +1,6 @@
 
 # include "SdlWidget.hh"
+# include <core_utils/CoreWrapper.hh>
 
 namespace sdl {
   namespace core {
@@ -7,32 +8,31 @@ namespace sdl {
     SdlWidget::SdlWidget(const std::string& name,
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
-                         const bool transparent,
                          const engine::Color& color):
       engine::EngineObject(name),
 
-      m_parent(nullptr),
       m_minSize(),
       m_sizeHint(sizeHint),
       m_maxSize(utils::Sizef::max()),
+      m_sizePolicy(),
+      m_geometryDirty(true),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
-      m_palette(engine::Palette::fromButtonColor(color)),
 
+      m_isVisible(true),
+
+      m_children(),
+      m_layout(),
+      m_palette(engine::Palette::fromButtonColor(color)),
       m_engine(nullptr),
 
+      m_parent(nullptr),
+
       m_contentDirty(true),
-      m_geometryDirty(true),
-      m_isVisible(true),
-      m_transparent(transparent),
+
       m_content(),
       m_drawingLocker(),
 
-      m_mouseInside(false),
-
-      m_children(),
-
-      m_sizePolicy(),
-      m_layout()
+      m_mouseInside(false)
     {
       // Assign the service for this widget.
       setService(std::string("widget"));
@@ -44,6 +44,20 @@ namespace sdl {
       }
       else {
         setParent(parent);
+      }
+    }
+
+    SdlWidget::~SdlWidget() {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      clearTexture();
+
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        if (widget->second != nullptr) {
+          delete widget->second;
+        }
       }
     }
 
@@ -94,7 +108,7 @@ namespace sdl {
           // The conversion cannot happen without knowing the dimension
           // of the input texture, which is only known here.
           utils::Boxf render = child.getRenderingArea();
-          
+
           // Account for the intermediate coordinate frame transformation.
           render.x() += (dims.w() / 2.0f);
           render.y() = (dims.h() / 2.0f) - render.y();

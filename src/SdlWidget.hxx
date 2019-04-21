@@ -3,48 +3,17 @@
 
 # include "SdlWidget.hh"
 
-# include <core_utils/CoreWrapper.hh>
-
 namespace sdl {
   namespace core {
 
-    inline
-    SdlWidget::~SdlWidget() {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      clearTexture();
-      
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        if (widget->second != nullptr) {
-          delete widget->second;
-        }
-      }
-    }
+    ///////////////////
+    // Size handling //
+    ///////////////////
 
     inline
     utils::Sizef
     SdlWidget::getMinSize() const noexcept {
       return m_minSize;
-    }
-
-    inline
-    utils::Sizef
-    SdlWidget::getSizeHint() const noexcept {
-      return m_sizeHint;
-    }
-
-    inline
-    utils::Sizef
-    SdlWidget::getMaxSize() const noexcept {
-      return m_maxSize;
-    }
-
-    inline
-    SizePolicy
-    SdlWidget::getSizePolicy() const noexcept {
-      return m_sizePolicy;
     }
 
     inline
@@ -55,6 +24,12 @@ namespace sdl {
     }
 
     inline
+    utils::Sizef
+    SdlWidget::getSizeHint() const noexcept {
+      return m_sizeHint;
+    }
+
+    inline
     void
     SdlWidget::setSizeHint(const utils::Sizef& hint) noexcept {
       m_sizeHint = hint;
@@ -62,9 +37,28 @@ namespace sdl {
     }
 
     inline
+    utils::Sizef
+    SdlWidget::getMaxSize() const noexcept {
+      return m_maxSize;
+    }
+
+    inline
     void
     SdlWidget::setMaxSize(const utils::Sizef& size) noexcept {
       m_maxSize = size;
+      makeGeometryDirty();
+    }
+
+    inline
+    SizePolicy
+    SdlWidget::getSizePolicy() const noexcept {
+      return m_sizePolicy;
+    }
+
+    inline
+    void
+    SdlWidget::setSizePolicy(const SizePolicy& policy) noexcept {
+      m_sizePolicy = policy;
       makeGeometryDirty();
     }
 
@@ -83,12 +77,35 @@ namespace sdl {
       log(std::string("Area is now ") + m_area.toString());
     }
 
+    ///////////////
+    // Internals //
+    ///////////////
+
     inline
     void
-    SdlWidget::setPalette(const engine::Palette& palette) noexcept {
-      m_palette = palette;
-      makeContentDirty();
+    SdlWidget::makeContentDirty() noexcept {
+      // Mark the content as dirty.
+      m_contentDirty = true;
+
+      // Trigger a geometry update event.
+      log("Posting paint event");
+      postEvent(std::make_shared<engine::PaintEvent>(m_area));
     }
+
+    inline
+    void
+    SdlWidget::makeGeometryDirty() noexcept {
+      // Mark the geometry 
+      m_geometryDirty = true;
+
+      // Trigger a geometry update event.
+      log("Posting geometry event");
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
+    }
+
+    ///////////////////
+    // Size handling //
+    ///////////////////
 
     inline
     bool
@@ -102,18 +119,21 @@ namespace sdl {
       m_isVisible = isVisible;
     }
 
+    /////////////////////
+    // Utility methods //
+    /////////////////////
+
     inline
     void
     SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
       m_layout = layout;
       makeGeometryDirty();
     }
-
     inline
     void
-    SdlWidget::setSizePolicy(const SizePolicy& policy) noexcept {
-      m_sizePolicy = policy;
-      makeGeometryDirty();
+    SdlWidget::setPalette(const engine::Palette& palette) noexcept {
+      m_palette = palette;
+      makeContentDirty();
     }
 
     inline
@@ -121,8 +141,8 @@ namespace sdl {
     SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
       // Assign the engine to this widget.
       m_engine = engine;
-      
-      // Also: assign the engine to the children if any.
+
+      // Also: assign the engine to children widgets if any.
       for (WidgetMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
            ++widget)
@@ -133,69 +153,46 @@ namespace sdl {
       makeContentDirty();
     }
 
+    ///////////////
+    // Internals //
+    ///////////////
+
+    template <typename WidgetType>
     inline
-    bool
-    SdlWidget::enterEvent(const engine::EnterEvent& e) {
-      // Update the role of the background texture.
-      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+    WidgetType*
+    SdlWidget::getChildAs(const std::string& name) {
+      WidgetMap::const_iterator child = m_children.find(name);
+      if (child == m_children.cend()) {
+        error(
+          std::string("Cannot retrieve child widget ") + name,
+          std::string("No such element")
+        );
+      }
 
-      // The mouse is now inside this widget.
-      m_mouseInside = true;
+      return dynamic_cast<WidgetType*>(child->second);
+    }
 
-      log("Mouse entering");
-
-      // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::enterEvent(e);
+    template <typename LayoutType>
+    inline
+    LayoutType*
+    SdlWidget::getLayoutAs() noexcept {
+      return dynamic_cast<LayoutType*>(m_layout.get());
     }
 
     inline
-    bool
-    SdlWidget::leaveEvent(const engine::Event& e) {
-      // Update the role of the background texture.
-      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
-
-      // The mouse is now outside this widget.
-      m_mouseInside = false;
-
-      log("Mouse leaving");
-
-      // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::leaveEvent(e);
+    const engine::Palette&
+    SdlWidget::getPalette() const noexcept {
+      return m_palette;
     }
 
     inline
-    bool
-    SdlWidget::mouseMoveEvent(const engine::MouseEvent& e) {
-      // Check whether the mouse is inside the widget and not blocked by any child.
-      // Basically we want to trigger a `EnterEvent` whenever:
-      // 1) The mouse was not inside the widget before.
-      // 2) The mouse is not blocked by any widget.
-      // And we want to trigger a `LeaveEvent` whenever:
-      // 1) The mouse is not inside the widget anymore.
-      // 2) The mouse is blocked by a child widget.
-
-      const bool inside = isInsideWidget(e.getMousePosition());
-      const bool blocked = isBlockedByChild(e.getMousePosition());
-
-      if (m_mouseInside) {
-        // We care about mouse being blocked by a child widget and by mouse leaving
-        // the widget.
-        if (!inside || blocked) {
-          // TODO: Should probably post a message ?
-          leaveEvent(engine::Event(core::engine::Event::Type::Leave));
-        }
-      }
-      else {
-        // We care about mouse entering the widget or blocking by child widget not
-        // relevant anymore.
-        if (inside && !blocked) {
-          // TODO: Should probably post a message ?
-          enterEvent(engine::EnterEvent(e.getMousePosition()));
-        }
+    engine::Engine&
+    SdlWidget::getEngine() const {
+      if (m_engine == nullptr) {
+        error(std::string("Cannot retrieve null engine"));
       }
 
-      // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::mouseMoveEvent(e);
+      return *m_engine;
     }
 
     inline
@@ -304,6 +301,87 @@ namespace sdl {
       return false;
     }
 
+    /////////////////////
+    // Utility methods //
+    /////////////////////
+
+    /////////////////////
+    // Events handling //
+    /////////////////////
+
+    inline
+    bool
+    SdlWidget::enterEvent(const engine::EnterEvent& e) {
+      // Update the role of the background texture.
+      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+
+      // The mouse is now inside this widget.
+      m_mouseInside = true;
+
+      log("Mouse entering");
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::enterEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::leaveEvent(const engine::Event& e) {
+      // Update the role of the background texture.
+      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+
+      // The mouse is now outside this widget.
+      m_mouseInside = false;
+
+      log("Mouse leaving");
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::leaveEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::mouseMoveEvent(const engine::MouseEvent& e) {
+      // Check whether the mouse is inside the widget and not blocked by any child.
+      // Basically we want to trigger a `EnterEvent` whenever:
+      // 1) The mouse was not inside the widget before.
+      // 2) The mouse is not blocked by any widget.
+      // And we want to trigger a `LeaveEvent` whenever:
+      // 1) The mouse is not inside the widget anymore.
+      // 2) The mouse is blocked by a child widget.
+
+      const bool inside = isInsideWidget(e.getMousePosition());
+      const bool blocked = isBlockedByChild(e.getMousePosition());
+
+      if (m_mouseInside) {
+        // We care about mouse being blocked by a child widget and by mouse leaving
+        // the widget.
+        if (!inside || blocked) {
+          // TODO: Should probably post a message ?
+          leaveEvent(engine::Event(core::engine::Event::Type::Leave));
+        }
+      }
+      else {
+        // We care about mouse entering the widget or blocking by child widget not
+        // relevant anymore.
+        if (inside && !blocked) {
+          // TODO: Should probably post a message ?
+          enterEvent(engine::EnterEvent(e.getMousePosition()));
+        }
+      }
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::mouseMoveEvent(e);
+    }
+
+    /////////////////////
+    // Events handling //
+    /////////////////////
+
+    ///////////////////////
+    // Rendering methods //
+    ///////////////////////
+
     inline
     utils::Uuid
     SdlWidget::createContentPrivate() const {
@@ -332,15 +410,29 @@ namespace sdl {
     void
     SdlWidget::clearContentPrivate(const utils::Uuid& uuid) const {
       // Use the engine to fill the texture with the color provided by the
-      // internal palette. The state of the widget is stored in the palette
-      // so it will automatically be handled by the engine.
+      // internal palette. The state of the widget is stored in the texture
+      // through the color role. The corresponding color will be retrieved
+      // from the palette to produce the corresponding rendering.
       getEngine().fillTexture(uuid, m_palette);
     }
 
     inline
     void
     SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/) const {
-      // Nothing to do.
+      // Empty implementation.
+    }
+
+    ///////////////////////
+    // Rendering methods //
+    ///////////////////////
+
+    inline
+    void
+    SdlWidget::clearTexture() {
+      if (m_content.valid()) {
+        getEngine().destroyTexture(m_content);
+        m_content.invalidate();
+      }
     }
 
     inline
@@ -350,62 +442,6 @@ namespace sdl {
       if (m_parent != nullptr) {
         m_parent->addWidget(this);
       }
-    }
-
-    inline
-    void
-    SdlWidget::makeContentDirty() noexcept {
-      // Mark the content as dirty.
-      m_contentDirty = true;
-
-      // Trigger a geometry update event.
-      log("Posting paint event");
-      postEvent(std::make_shared<engine::PaintEvent>(m_area));
-    }
-
-    inline
-    void
-    SdlWidget::makeGeometryDirty() noexcept {
-      // Mark the geometry 
-      m_geometryDirty = true;
-
-      // Trigger a geometry update event.
-      log("Posting geometry event");
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
-    }
-
-    template <typename WidgetType>
-    inline
-    WidgetType*
-    SdlWidget::getChildAs(const std::string& name) {
-      WidgetMap::const_iterator child = m_children.find(name);
-      if (child == m_children.cend()) {
-        error(std::string("Cannot retrieve child widget ") + name + ", no such element");
-      }
-      return dynamic_cast<WidgetType*>(child->second);
-    }
-
-    template <typename LayoutType>
-    inline
-    LayoutType*
-    SdlWidget::getLayoutAs() noexcept {
-      return dynamic_cast<LayoutType*>(m_layout.get());
-    }
-
-    inline
-    engine::Engine&
-    SdlWidget::getEngine() const {
-      if (m_engine == nullptr) {
-        error(std::string("Cannot retrieve null engine"));
-      }
-
-      return *m_engine;
-    }
-
-    inline
-    const engine::Palette&
-    SdlWidget::getPalette() const noexcept {
-      return m_palette;
     }
 
     inline
@@ -427,16 +463,9 @@ namespace sdl {
         widget->m_engine = m_engine;
       }
 
-      m_children[widget->getName()] = widget;
-    }
+      // TODO: Assign the event queue if any ?
 
-    inline
-    void
-    SdlWidget::clearTexture() {
-      if (m_content.valid()) {
-        getEngine().destroyTexture(m_content);
-        m_content.invalidate();
-      }
+      m_children[widget->getName()] = widget;
     }
 
   }

@@ -65,8 +65,6 @@ namespace sdl {
     SdlWidget::draw() {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
-      log("Drawing content " + m_content.toString());
-
       // Clear the content and draw the new version.
       clearContentPrivate(m_content);
       drawContentPrivate(m_content);

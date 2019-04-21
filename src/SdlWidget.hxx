@@ -440,10 +440,9 @@ namespace sdl {
     inline
     void
     SdlWidget::addWidget(SdlWidget* widget) {
-
       // Check for null widget.
       if (widget == nullptr) {
-        error(std::string("Cannot add null widget"), getName());
+        error(std::string("Cannot add null widget"));
       }
 
       // Lock the widget to prevent concurrent modifications of the
@@ -455,13 +454,13 @@ namespace sdl {
         error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
       }
 
-      // Assign the engine to this widget if none is assigned.
-      if (widget->m_engine == nullptr) {
-        widget->m_engine = m_engine;
-      }
-
       // We need to assign the events queue to the child widget.
       registerToSameQueue(widget);
+
+      // Assign the engine to this widget if none is assigned.
+      if (widget->m_engine == nullptr) {
+        widget->setEngine(m_engine);
+      }
 
       m_children[widget->getName()] = widget;
     }

@@ -362,16 +362,18 @@ namespace sdl {
         // We care about mouse being blocked by a child widget and by mouse leaving
         // the widget.
         if (!inside || blocked) {
-          // TODO: Should probably post a message ?
-          leaveEvent(engine::Event(core::engine::Event::Type::Leave));
+          postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave));
         }
       }
       else {
         // We care about mouse entering the widget or blocking by child widget not
         // relevant anymore.
         if (inside && !blocked) {
-          // TODO: Should probably post a message ?
-          enterEvent(engine::EnterEvent(e.getMousePosition()));
+          postEvent(
+            std::make_shared<engine::EnterEvent>(
+              e.getMousePosition()
+            )
+          );
         }
       }
 

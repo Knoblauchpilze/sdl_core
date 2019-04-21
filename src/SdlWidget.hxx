@@ -385,22 +385,10 @@ namespace sdl {
     inline
     utils::Uuid
     SdlWidget::createContentPrivate() const {
-      // So far we created the clear content texture which is stored in the
-      // 'm_clearContent' texture and which contains a static texture filled
-      // with the background color and made transaprent if needed.
-      // We still need to create the render target we will use to draw children
-      // of this widget, because we cannot do so on a static texture.
-      // The aim of this method is thus to create an empty texture wiht correct
-      // access so that we can copy the internal 'm_clearContent' texture onto it
-      // and then draw children as well.
-
-      // Create the texture using the engine. THe dmensions are retrieved from the
+      // Create the texture using the engine. The dmensions are retrieved from the
       // internal area.
       utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
       utils::Uuid uuid = getEngine().createTexture(size, engine::Palette::ColorRole::Background);
-
-      // Assign alpha modulation to this texture based on the background color.
-      getEngine().setTextureAlpha(uuid, m_palette.getBackgroundColor());
 
       // Return the texture.
       return uuid;

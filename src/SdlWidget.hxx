@@ -65,12 +65,14 @@ namespace sdl {
     inline
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       return m_area;
     }
 
     inline
     void
     SdlWidget::setRenderingArea(const utils::Boxf& area) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
       m_area = area;
       makeGeometryDirty();
 
@@ -440,6 +442,10 @@ namespace sdl {
       if (widget == nullptr) {
         error(std::string("Cannot add null widget"), getName());
       }
+
+      // Lock the widget to prevent concurrent modifications of the
+      // internal children table.
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Check for duplicated widget
       if (m_children.find(widget->getName()) != m_children.cend()) {

@@ -141,6 +141,9 @@ namespace sdl {
     inline
     void
     SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
+      // Release the content of this widget if any.
+      clearTexture();
+
       // Assign the engine to this widget.
       m_engine = engine;
 
@@ -457,7 +460,8 @@ namespace sdl {
         widget->m_engine = m_engine;
       }
 
-      // TODO: Assign the event queue if any ?
+      // We need to assign the events queue to the child widget.
+      registerToSameQueue(widget);
 
       m_children[widget->getName()] = widget;
     }

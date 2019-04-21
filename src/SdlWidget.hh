@@ -312,7 +312,6 @@ namespace sdl {
          *          Note that this identifier may be invalid if no repaint have occurred yet.
          */
         // TODO: Add a double buffering system.
-        // TODO: Don't forget to release this uuid before changing engine with `setEngine`.
         utils::Uuid m_content;
 
         /**
@@ -324,9 +323,6 @@ namespace sdl {
          *          made possible by using this mutex in any situation where the `m_content` attribute
          *          can be modified.
          */
-        // TODO: Release the extent of this mutex to simply protect the double buffering swap: otherwise
-        // it is not needed because changes can only occur when processing event and a single thread is
-        // processing these events: so there's no way we can have concurrent modifications on the widget.
         mutable std::mutex m_drawingLocker;
 
         /**

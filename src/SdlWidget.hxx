@@ -90,7 +90,6 @@ namespace sdl {
       m_contentDirty = true;
 
       // Trigger a geometry update event.
-      log("Posting paint event");
       postEvent(std::make_shared<engine::PaintEvent>(m_area));
     }
 
@@ -101,7 +100,6 @@ namespace sdl {
       m_geometryDirty = true;
 
       // Trigger a geometry update event.
-      log("Posting geometry event");
       postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
     }
 

@@ -8,7 +8,7 @@ namespace sdl {
     Layout::Layout(SdlWidget* container,
                    const float& margin,
                    const std::string& name):
-      utils::CoreObject(name, true),
+      utils::CoreObject(name, false),
       m_widget(container),
       m_items(),
       m_dirty(true),
@@ -58,8 +58,15 @@ namespace sdl {
         m_items.push_back(item);
         invalidate();
 
-        // Assign the parent widhet for this item.
-        item->setParent(m_widget);
+        // Assign the parent widhet for this item if needed.
+        // If this widget is already a child of the widget
+        // managed by the layout we only share data with it.
+        if (item->m_parent == m_widget) {
+          m_widget->shareData(item);
+        }
+        else {
+          item->setParent(m_widget);
+        }
 
         // Return the index of this item.
         return m_items.size() - 1;

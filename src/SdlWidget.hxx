@@ -199,6 +199,12 @@ namespace sdl {
     }
 
     inline
+    std::mutex&
+    SdlWidget::getLocker() const noexcept {
+      return m_drawingLocker;
+    }
+
+    inline
     bool
     SdlWidget::hasContentChanged() const noexcept {
       return m_contentDirty && isVisible();

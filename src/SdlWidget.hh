@@ -327,7 +327,6 @@ namespace sdl {
          *          upon receiving a repaint request.
          *          Note that this identifier may be invalid if no repaint have occurred yet.
          */
-        // TODO: Add a double buffering system.
         utils::Uuid m_content;
 
         /**

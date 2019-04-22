@@ -72,9 +72,6 @@ namespace sdl {
         // Size handling //
         ///////////////////
 
-        bool
-        isVisible() const noexcept;
-
         void
         setVisible(bool isVisible) noexcept;
 
@@ -182,6 +179,9 @@ namespace sdl {
 
         utils::Vector2f
         mapFromGlobal(const utils::Vector2f& global) const noexcept;
+
+        bool
+        isVisible() const noexcept;
 
         bool
         isInsideWidget(const utils::Vector2f& global) const noexcept;

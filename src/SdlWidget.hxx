@@ -129,6 +129,7 @@ namespace sdl {
       m_layout = layout;
       makeGeometryDirty();
     }
+
     inline
     void
     SdlWidget::setPalette(const engine::Palette& palette) noexcept {
@@ -460,6 +461,20 @@ namespace sdl {
         error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
       }
 
+      // Share the data with this widget.
+      shareData(widget);
+
+      m_children[widget->getName()] = widget;
+    }
+
+    inline
+    void
+    SdlWidget::shareData(SdlWidget* widget) {
+      // Check for null widget.
+      if (widget == nullptr) {
+        error(std::string("Cannot share data with null widget"));
+      }
+
       // We need to assign the events queue to the child widget.
       registerToSameQueue(widget);
 
@@ -467,8 +482,6 @@ namespace sdl {
       if (widget->m_engine == nullptr) {
         widget->setEngine(m_engine);
       }
-
-      m_children[widget->getName()] = widget;
     }
 
   }

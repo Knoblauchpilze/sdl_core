@@ -221,6 +221,16 @@ namespace sdl {
         void
         addWidget(SdlWidget* widget);
 
+        /**
+         * @brief - Used to share the configuration data of this widget with the
+         *          provided input widget.
+         *          Configuration data include engine and events queue.
+         *          Note that an error is raised if the widget is null.
+         * @param widget - the widget with which configuration data should be shared.
+         */
+        void
+        shareData(SdlWidget* widget);
+
         void
         drawChild(SdlWidget& child);
 

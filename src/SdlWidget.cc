@@ -146,6 +146,7 @@ namespace sdl {
 
     bool
     SdlWidget::geometryUpdateEvent(const engine::Event& e) {
+      // TODO: Maybe geometry update should contain a description of the event and maybe the rendering area itself.
       // Perform an update of the geometry of this widget.
       // This inludes updating the layout if any is assigned
       // to this widget.

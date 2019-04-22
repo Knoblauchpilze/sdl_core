@@ -151,6 +151,9 @@ namespace sdl {
         // Utility methods //
         /////////////////////
 
+        unsigned
+        getChildrenCount() const noexcept;
+
         template <typename WidgetType>
         WidgetType*
         getChildAs(const std::string& name);

@@ -110,6 +110,7 @@ namespace sdl {
     inline
     void
     SdlWidget::setVisible(bool isVisible) noexcept {
+      // TODO: Should probably raise a 'hide/show' event ?
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Set this widget as visible.
@@ -162,6 +163,12 @@ namespace sdl {
     ///////////////
     // Internals //
     ///////////////
+
+    inline
+    unsigned
+    SdlWidget::getChildrenCount() const noexcept {
+      return m_children.size();
+    }
 
     template <typename WidgetType>
     inline

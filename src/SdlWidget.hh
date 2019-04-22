@@ -168,6 +168,9 @@ namespace sdl {
         engine::Engine&
         getEngine() const;
 
+        std::mutex&
+        getLocker() const noexcept;
+
         virtual bool
         hasContentChanged() const noexcept;
 

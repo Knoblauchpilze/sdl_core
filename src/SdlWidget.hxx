@@ -108,15 +108,17 @@ namespace sdl {
     ///////////////////
 
     inline
-    bool
-    SdlWidget::isVisible() const noexcept {
-      return m_isVisible;
-    }
-
-    inline
     void
     SdlWidget::setVisible(bool isVisible) noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      // Set this widget as visible.
       m_isVisible = isVisible;
+
+      // Trigger a repaint event if the widget is set to visible.
+      if (m_isVisible) {
+        makeContentDirty();
+      }
     }
 
     /////////////////////
@@ -278,6 +280,12 @@ namespace sdl {
 
       // This is the local representation of the input global position.
       return local;
+    }
+
+    inline
+    bool
+    SdlWidget::isVisible() const noexcept {
+      return m_isVisible;
     }
 
     inline

@@ -130,11 +130,13 @@ namespace sdl {
 
       // Check whether the event has been accepted before dispatching to children.
       if (!e->isAccepted()) {
-        // Dispatch to children.
+        // Dispatch to visible children.
         WidgetMap::const_iterator widget = m_children.cbegin();
 
         while (widget != m_children.cend() && !e->isAccepted()) {
-          widget->second->event(e);
+          if (widget->second->isVisible()) {
+            widget->second->event(e);
+          }
           ++widget;
         }
       }
@@ -171,6 +173,16 @@ namespace sdl {
       // must have been defined through another process (usually
       // by updating the layout of the parent widget).
       // If this is not the case, an error is raised.
+      // Also the widget should be visible: if this is not the
+      // case we know that the `setVIsible` method will trigger
+      // a repaint when called with a `true` value (i.e. when the
+      // widget is set back to visible). So no need to worry of
+      // these events if the widget is not visible.
+      if (!isVisible()) {
+        // Use the base handler to determine the return value.
+        return engine::EngineObject::repaintEvent(e);
+      }
+
       if (!m_area.valid()) {
         error(std::string("Could not repaint widget"), std::string("Invalid size"));
       }

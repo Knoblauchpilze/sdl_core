@@ -143,6 +143,9 @@ namespace sdl {
         bool
         repaintEvent(const engine::PaintEvent& e) override;
 
+        bool
+        resizeEvent(const engine::ResizeEvent& e) override;
+
         /////////////////////
         // Events handling //
         /////////////////////

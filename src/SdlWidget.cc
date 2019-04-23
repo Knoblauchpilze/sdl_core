@@ -146,11 +146,6 @@ namespace sdl {
 
     bool
     SdlWidget::geometryUpdateEvent(const engine::Event& e) {
-      // TODO: Maybe geometry update should contain a description of the event and maybe the rendering area itself.
-      // Perform an update of the geometry of this widget.
-      // This inludes updating the layout if any is assigned
-      // to this widget.
-
       // Perform the rebuild if the geometry has changed.
       // This check should not be really useful because
       // the `geometryUpdateEvent` should already be
@@ -163,6 +158,9 @@ namespace sdl {
         }
         m_geometryDirty = false;
       }
+
+      // Mark the event as accepted.
+      e.accept();
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::geometryUpdateEvent(e);
@@ -200,8 +198,35 @@ namespace sdl {
         m_contentDirty = false;
       }
 
+      // Mark the event as accepted.
+      e.accept();
+
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::repaintEvent(e);
+    }
+
+    bool
+    SdlWidget::resizeEvent(const engine::ResizeEvent& e) {
+      // We need to assign the area for this widget based on the size
+      // provided in the event The required size is the `new` size and
+      // the `old` size should correspond to the current size of the
+      // widget.
+
+      // Assign the area.
+      m_area = e.getNewSize();
+
+      log(std::string("Area is now ") + m_area.toString());
+
+      // Once the internal size has been updated, we need to both recompute
+      // the geometry and then perform a repaint. Post both events.
+      makeGeometryDirty();
+      makeContentDirty();
+
+      // Mark the event as accepted.
+      e.accept();
+
+      // Use base handler to determine whether the event was recognized.
+      return engine::EngineObject::resizeEvent(e);
     }
 
   }

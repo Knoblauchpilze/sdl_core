@@ -118,6 +118,8 @@ namespace sdl {
 
       protected:
 
+        friend class SdlWidget;
+
         SdlWidget* m_widget;
         std::vector<SdlWidget*> m_items;
         bool m_dirty;

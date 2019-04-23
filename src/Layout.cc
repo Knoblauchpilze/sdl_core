@@ -18,9 +18,11 @@ namespace sdl {
     }
 
     Layout::~Layout() {
-      if (m_widget != nullptr) {
-        m_widget->setLayout(nullptr);
-      }
+      // Do not assign a null layout to the widget: we assume
+      // that the widget is managing this layout so if we reach
+      // this point it means that the widget purposefully deleted
+      // the layout and thus we can only cry because we're
+      // getting replaced.
     }
 
     void Layout::update() {

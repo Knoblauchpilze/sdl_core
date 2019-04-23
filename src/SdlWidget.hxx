@@ -73,10 +73,7 @@ namespace sdl {
     void
     SdlWidget::setRenderingArea(const utils::Boxf& area) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      m_area = area;
-      makeGeometryDirty();
-
-      log(std::string("Area is now ") + m_area.toString());
+      postEvent(std::make_shared<engine::ResizeEvent>(area, m_area));
     }
 
     ///////////////
@@ -96,8 +93,13 @@ namespace sdl {
     inline
     void
     SdlWidget::makeGeometryDirty() noexcept {
-      // Mark the geometry 
+      // Mark the geometry as dirty.
       m_geometryDirty = true;
+
+      // Invalidate the layout if any.
+      if (m_layout != nullptr) {
+        m_layout->invalidate();
+      }
 
       // Trigger a geometry update event.
       postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
@@ -345,6 +347,9 @@ namespace sdl {
 
       log("Mouse entering");
 
+      // Mark the event as accepted.
+      e.accept();
+
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
     }
@@ -359,6 +364,9 @@ namespace sdl {
       m_mouseInside = false;
 
       log("Mouse leaving");
+
+      // Mark the event as accepted.
+      e.accept();
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);

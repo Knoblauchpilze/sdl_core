@@ -347,8 +347,11 @@ namespace sdl {
 
       log("Mouse entering");
 
-      // Mark the event as accepted.
-      e.accept();
+      // Mark the event as accepted if it is directed only through this
+      // object.
+      if (isReceiver(e)) {
+        e.accept();
+      }
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
@@ -365,8 +368,11 @@ namespace sdl {
 
       log("Mouse leaving");
 
-      // Mark the event as accepted.
-      e.accept();
+      // Mark the event as accepted if it is directed only through this
+      // object.
+      if (isReceiver(e)) {
+        e.accept();
+      }
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);

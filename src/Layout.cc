@@ -60,14 +60,18 @@ namespace sdl {
         m_items.push_back(item);
         invalidate();
 
-        // Assign the parent widhet for this item if needed.
+        // Assign the parent widget for this item if needed.
         // If this widget is already a child of the widget
         // managed by the layout we only share data with it.
-        if (item->m_parent == m_widget) {
-          m_widget->shareData(item);
-        }
-        else {
-          item->setParent(m_widget);
+        // And of course if the internal widget is not assigned
+        // we do nothing.
+        if (m_widget != nullptr) {
+          if (item->m_parent == m_widget && m_widget != nullptr) {
+            m_widget->shareData(item);
+          }
+          else {
+            item->setParent(m_widget);
+          }
         }
 
         // Return the index of this item.

@@ -27,7 +27,7 @@ namespace sdl {
 
         virtual ~Layout();
 
-        void
+        virtual void
         update();
 
         virtual int

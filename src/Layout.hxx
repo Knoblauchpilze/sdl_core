@@ -19,18 +19,23 @@ namespace sdl {
     }
 
     inline
-    void
+    int
     Layout::removeItem(SdlWidget* item) {
-      std::size_t index = getItemsCount();
-      getContainerOrNull(item, &index);
-      if (index < getItemsCount()) {
-        m_items.erase(m_items.cbegin() + index);
-        invalidate();
+      // Assume the widget does not exist (we're a bit pessimistic) and try to find it
+      // from the internal table.
+      int index = getIndexOf(item);
+
+      // If we could find the item, remove it.
+      if (index >= 0 && index < getItemsCount()) {
+        removeItem(index);
       }
+
+      // Return the index of the removed item (or -1 if it was not found).
+      return index;
     }
 
     inline
-    unsigned
+    int
     Layout::getItemsCount() const noexcept {
       return m_items.size();
     }
@@ -43,7 +48,58 @@ namespace sdl {
 
     inline
     void
+    Layout::removeItem(int item) {
+      // Check whether this item can be removed.
+      if (item < 0 || item > getItemsCount()) {
+        error(
+          std::string("Cannot remove item ") + std::to_string(item),
+          std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
+        );
+      }
+
+      // Remove the item.
+      m_items.erase(m_items.cbegin() + item);
+
+      // Invalidate the layout.
+      invalidate();
+    }
+
+    inline
+    int
+    Layout::getIndexOf(SdlWidget* item) const noexcept {
+      // If the item is not valid, return -1.
+      if (item == nullptr) {
+        return -1;
+      }
+
+      // Iterate over the internal items to find one equal to the input.
+      std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
+      int itemID = 0;
+
+      while (itemToFind != m_items.cend() && item != *itemToFind) {
+        ++itemToFind;
+        ++itemID;
+      }
+      
+      // Check whether we could find the item.
+      if (itemToFind == m_items.cend()) {
+        return -1;
+      }
+
+      // Return whatever index we reached.
+      return itemID;
+    }
+
+    inline
+    bool
+    Layout::isValidIndex(const int& id) const noexcept {
+      return id >= 0 && id < getItemsCount();
+    }
+
+    inline
+    void
     Layout::invalidate() noexcept {
+      // TODO: Inheriting classes should specialize this to update the internal indices.
       m_dirty = true;
     }
 
@@ -59,26 +115,6 @@ namespace sdl {
                                          const utils::Sizef& target) const
     {
       return target - achieved;
-    }
-
-    inline
-    SdlWidget*
-    Layout::getContainerOrNull(SdlWidget* item, std::size_t* index) const {
-      std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
-      std::size_t itemId = 0;
-      while (itemToFind != m_items.cend() && item != *itemToFind) {
-        ++itemToFind;
-        ++itemId;
-      }
-
-      if (index != nullptr) {
-        *index = itemId;
-      }
-      if (itemToFind == m_items.cend()) {
-        return nullptr;
-      }
-
-      return *itemToFind;
     }
 
   }

@@ -52,8 +52,11 @@ namespace sdl {
       // Check for valid items.
       if (item != nullptr) {
         // Check for duplicated items.
-        if (getContainerOrNull(item) != nullptr) {
-          error(std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\", duplicated item");
+        if (isValidIndex(getIndexOf(item))) {
+          error(
+            std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\"",
+            std::string("Item already exist")
+          );
         }
 
         // Insert the item into the layout.

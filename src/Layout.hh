@@ -40,10 +40,10 @@ namespace sdl {
                 const unsigned& w,
                 const unsigned& h);
 
-        virtual void
+        virtual int
         removeItem(SdlWidget* item);
 
-        unsigned
+        int
         getItemsCount() const noexcept;
 
         const utils::Sizef&
@@ -58,7 +58,16 @@ namespace sdl {
         virtual void
         updatePrivate(const utils::Boxf& window) = 0;
 
+        int
+        getIndexOf(SdlWidget* item) const noexcept;
+
+        bool
+        isValidIndex(const int& id) const noexcept;
+
         void
+        removeItem(int item);
+
+        virtual void
         invalidate() noexcept;
 
         virtual utils::Sizef
@@ -110,11 +119,6 @@ namespace sdl {
                     const WidgetInfo& info,
                     const utils::Boxf& box,
                     const SizePolicy& action) const;
-
-      private:
-
-        SdlWidget*
-        getContainerOrNull(SdlWidget* item, std::size_t* index = nullptr) const;
 
       protected:
 

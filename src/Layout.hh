@@ -46,6 +46,9 @@ namespace sdl {
         int
         getItemsCount() const noexcept;
 
+        bool
+        empty() const noexcept;
+
         const utils::Sizef&
         getMargin() const noexcept;
 
@@ -58,8 +61,35 @@ namespace sdl {
         virtual void
         updatePrivate(const utils::Boxf& window) = 0;
 
+        /**
+         * @brief - Used internally to determine whether this layout needs to be recompued
+         *          or if the cached data still applies.
+         * @return - true if the layout needs to be recomputed and false otherwise.
+         */
+        bool
+        isDirty() const noexcept;
+
+        /**
+         * @brief - Used internally to mark the layout as recomputed. This will prevent later
+         *          calls to `update` to trigger a full recompuation of the layout. A new rebuild
+         *          will only occur when a call to `invalidate` is done.
+         *          Note that this method should be called with care and only after effectively
+         *          rebuilding the layout, otherwise some rebuild events might get ignored.
+         */
+        void
+        recomputed();
+
         int
         getIndexOf(SdlWidget* item) const noexcept;
+
+        int
+        getIndexOf(const std::string& name) const noexcept;
+
+        SdlWidget*
+        getWidgetAt(const int& item);
+
+        const SdlWidget*
+        getWidgetAt(const int& item) const;
 
         bool
         isValidIndex(const int& id) const noexcept;
@@ -67,6 +97,15 @@ namespace sdl {
         void
         removeItem(int item);
 
+        /**
+         * @brief - Used internally to mark the layout as dirty and to trigger a recomputation on
+         *          the next call to `update`. THis method should only be called when the area
+         *          allocated to the layout has changed or in case of an addition/removal of a widget
+         *          in/from the layout. Inheriting classes are encouraged to override this method in
+         *          case some additional information should be performed upon invalidating the layout.
+         *          This can include for example rebuilding specialized tables used to retain more
+         *          information about the position of the widgets inserted in the layout and such.
+         */
         virtual void
         invalidate() noexcept;
 
@@ -76,6 +115,9 @@ namespace sdl {
         void
         assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
                              const utils::Boxf& window);
+
+        void
+        assignVisibilityStatus(const std::vector<bool>& visible);
 
         utils::Sizef
         computeSpaceAdjustmentNeeded(const utils::Sizef& achieved,
@@ -120,7 +162,7 @@ namespace sdl {
                     const utils::Boxf& box,
                     const SizePolicy& action) const;
 
-      protected:
+      private:
 
         friend class SdlWidget;
 

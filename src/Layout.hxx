@@ -26,7 +26,7 @@ namespace sdl {
       int index = getIndexOf(item);
 
       // If we could find the item, remove it.
-      if (index >= 0 && index < getItemsCount()) {
+      if (isValidIndex(index)) {
         removeItem(index);
       }
 
@@ -41,6 +41,12 @@ namespace sdl {
     }
 
     inline
+    bool
+    Layout::empty() const noexcept {
+      return getItemsCount() == 0;
+    }
+
+    inline
     const utils::Sizef&
     Layout::getMargin() const noexcept {
       return m_margin;
@@ -50,7 +56,7 @@ namespace sdl {
     void
     Layout::removeItem(int item) {
       // Check whether this item can be removed.
-      if (item < 0 || item > getItemsCount()) {
+      if (!isValidIndex(item)) {
         error(
           std::string("Cannot remove item ") + std::to_string(item),
           std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
@@ -62,6 +68,18 @@ namespace sdl {
 
       // Invalidate the layout.
       invalidate();
+    }
+
+    inline
+    bool
+    Layout::isDirty() const noexcept {
+      return m_dirty;
+    }
+
+    inline
+    void
+    Layout::recomputed() {
+      m_dirty = false;
     }
 
     inline
@@ -80,7 +98,7 @@ namespace sdl {
         ++itemToFind;
         ++itemID;
       }
-      
+
       // Check whether we could find the item.
       if (itemToFind == m_items.cend()) {
         return -1;
@@ -88,6 +106,36 @@ namespace sdl {
 
       // Return whatever index we reached.
       return itemID;
+    }
+
+    inline
+    SdlWidget*
+    Layout::getWidgetAt(const int& item) {
+      // Check whether the identifier is valid.
+      if (!isValidIndex(item)) {
+        error(
+          std::string("Cannot retrieve item ") + std::to_string(item),
+          std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
+        );
+      }
+
+      // Return the widget at this location.
+      return m_items[item];
+    }
+
+    inline
+    const SdlWidget*
+    Layout::getWidgetAt(const int& item) const {
+      // Check whether the identifier is valid.
+      if (!isValidIndex(item)) {
+        error(
+          std::string("Cannot retrieve item ") + std::to_string(item),
+          std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
+        );
+      }
+
+      // Return the widget at this location.
+      return m_items[item];
     }
 
     inline
@@ -99,7 +147,6 @@ namespace sdl {
     inline
     void
     Layout::invalidate() noexcept {
-      // TODO: Inheriting classes should specialize this to update the internal indices.
       m_dirty = true;
     }
 

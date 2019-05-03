@@ -85,6 +85,30 @@ namespace sdl {
       return -1;
     }
 
+    int
+    Layout::getIndexOf(const std::string& name) const noexcept {
+      // Traverse the internal array of widgets and try to find one matching
+      // the input name. If no such element can be found, return a negative
+      // value to indicate to the caller that we could not find the provided
+      // name.
+
+      // Traverse the internal array until we find a widget which name matches
+      // the input.
+      unsigned id = 0u;
+      while (id < m_items.size() && (m_items[id] == nullptr || m_items[id]->getName() != name)) {
+        ++id;
+      }
+
+      // Check whether we could find a widget with the specified name.
+      if (id >= m_items.size()) {
+        // We could not find a widget with the specified name.
+        return -1;
+      }
+
+      // Return the index of this widget.
+      return static_cast<int>(id);
+    }
+
     void
     Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
                                  const utils::Boxf& window)
@@ -125,6 +149,14 @@ namespace sdl {
         );
 
         m_items[index]->setRenderingArea(converted);
+      }
+    }
+
+    void
+    Layout::assignVisibilityStatus(const std::vector<bool>& visible) {
+      // Assign the rendering area to widgets.
+      for (unsigned index = 0u; index < visible.size() ; ++index) {
+        m_items[index]->setVisible(visible[index]);
       }
     }
 

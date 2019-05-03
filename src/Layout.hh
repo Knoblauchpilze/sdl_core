@@ -56,6 +56,7 @@ namespace sdl {
 
         Layout(SdlWidget* widget = nullptr,
                const float& margin = 0.0f,
+               const bool allowLog = false,
                const std::string& name = std::string("Layout"));
 
         virtual void

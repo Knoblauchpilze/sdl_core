@@ -7,8 +7,9 @@ namespace sdl {
 
     Layout::Layout(SdlWidget* container,
                    const float& margin,
+                   const bool allowLog,
                    const std::string& name):
-      utils::CoreObject(name, false),
+      utils::CoreObject(name, allowLog),
       m_widget(container),
       m_items(),
       m_dirty(true),
@@ -25,7 +26,8 @@ namespace sdl {
       // getting replaced.
     }
 
-    void Layout::update() {
+    void
+    Layout::update() {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
         return;

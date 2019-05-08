@@ -95,7 +95,7 @@ namespace sdl {
         bool
         isValidIndex(const int& id) const noexcept;
 
-        void
+        virtual void
         removeItem(int item);
 
         /**

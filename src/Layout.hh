@@ -96,7 +96,7 @@ namespace sdl {
         isValidIndex(const int& id) const noexcept;
 
         virtual void
-        removeItem(int item);
+        removeItemFromIndex(int item);
 
         /**
          * @brief - Used internally to mark the layout as dirty and to trigger a recomputation on
@@ -141,6 +141,10 @@ namespace sdl {
 
         std::vector<WidgetInfo>
         computeWidgetsInfo() const noexcept;
+
+        float
+        allocateFairly(const float& space,
+                       const unsigned& count) const noexcept;
 
         float
         computeWidthFromPolicy(const utils::Boxf& currentSize,

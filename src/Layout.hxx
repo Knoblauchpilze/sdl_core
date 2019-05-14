@@ -27,7 +27,7 @@ namespace sdl {
 
       // If we could find the item, remove it.
       if (isValidIndex(index)) {
-        removeItem(index);
+        removeItemFromIndex(index);
       }
 
       // Return the index of the removed item (or -1 if it was not found).
@@ -54,7 +54,7 @@ namespace sdl {
 
     inline
     void
-    Layout::removeItem(int item) {
+    Layout::removeItemFromIndex(int item) {
       // Check whether this item can be removed.
       if (!isValidIndex(item)) {
         error(
@@ -162,6 +162,14 @@ namespace sdl {
                                          const utils::Sizef& target) const
     {
       return target - achieved;
+    }
+
+    inline
+    float
+    Layout::allocateFairly(const float& space,
+                               const unsigned& count) const noexcept
+    {
+      return space / count;
     }
 
   }

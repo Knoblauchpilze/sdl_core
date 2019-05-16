@@ -113,9 +113,28 @@ namespace sdl {
         virtual utils::Sizef
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept;
 
+        /**
+         * @brief - Assigned the rendering areas defined in the input `boxes` vector based on their
+         *          position in the vector to the corresponding widget in the internal `m_items` array.
+         *          The areas are translated from a top left representation into a centered
+         *          representation using the provided `window` parameter which describes the absolute
+         *          position of the coordinate frame each box is related to.
+         *          If the coordinates should not be converted, one can pass a "false" value to the
+         *          `convert` argument.
+         *          In this case the `window` argument will be ignored and the bounding boxes will be
+         *          assigned as is.
+         * @param boxes - an array of boxes supposedly of the same length as `m_items` array where each
+         *                box will be assigned to the corresponding item in the internal array.
+         * @param window - the absolute position of the box containing the input boxes. This allows to
+         *                 perform a conversion of the input boxes so that they can be correctly drawn
+         *                 by the rendering engine.
+         * @param convert - true if the `window` argument should be used to convert bounding boxes to
+         *                  local coordinate frame (default value) and false if it should be ignored.
+         */
         void
         assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
-                             const utils::Boxf& window);
+                             const utils::Boxf& window,
+                             const bool convert = true);
 
         void
         assignVisibilityStatus(const std::vector<bool>& visible);

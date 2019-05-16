@@ -2,6 +2,8 @@
 # include "Layout.hh"
 # include "SdlWidget.hh"
 
+# include <iostream>
+
 namespace sdl {
   namespace core {
 
@@ -30,20 +32,24 @@ namespace sdl {
     Layout::update() {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
+        std::cout << "[LAYOUT] WIDGET IS NULL CANNOT PERFORM UPDATE" << std::endl;
         return;
       }
 
       // Check if this layout is dirty.
       if (!m_dirty) {
+        std::cout << "[LAYOUT] LAYOUT IS NOT DIRTY CANNOT PERFORM UPDATE" << std::endl;
         return;
       }
 
       // And if some items are managed by this layout.
       if (m_items.empty()) {
+        std::cout << "[LAYOUT] NO ITEMS IN LAYOUT CANNOT PERFORM UPDATE" << std::endl;
         return;
       }
 
       // Update with private handler.
+      std::cout << "[LAYOUT] PERFORMING UPDATE WITH AREA " << m_widget->m_area.toString() << std::endl;
       updatePrivate(m_widget->m_area);
 
       m_dirty = false;
@@ -113,7 +119,8 @@ namespace sdl {
 
     void
     Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
-                                 const utils::Boxf& window)
+                                 const utils::Boxf& window,
+                                 const bool convert)
     {
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
@@ -142,13 +149,18 @@ namespace sdl {
         // newX = x - (offsetX - globalOffsetX)
         // newY = (offsetY - globalOffsetY) - y
 
-        // Convert the bbox to match the required coordinate frame.
-        utils::Boxf converted(
-          boxes[index].x() - (window.x() - (window.x() - window.w() / 2.0f)),
-          window.y() - boxes[index].y() - (window.y() - window.h() / 2.0f),
-          boxes[index].w(),
-          boxes[index].h()
-        );
+        // Convert the bbox to match the required coordinate frame if needed.
+        utils::Boxf converted = boxes[index];
+        if (convert) {
+          converted = utils::Boxf(
+            boxes[index].x() - (window.x() - (window.x() - window.w() / 2.0f)),
+            window.y() - boxes[index].y() - (window.y() - window.h() / 2.0f),
+            boxes[index].w(),
+            boxes[index].h()
+          );
+        }
+
+        log("Assigning rendering area for " + m_items[index]->getName() + " to " + converted.toString() + " from " + boxes[index].toString() + " and window " + window.toString());
 
         m_items[index]->setRenderingArea(converted);
       }

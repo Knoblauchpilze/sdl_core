@@ -1,5 +1,5 @@
-#ifndef    SIZEPOLICY_HH
-# define   SIZEPOLICY_HH
+#ifndef    SIZE_POLICY_HH
+# define   SIZE_POLICY_HH
 
 # include <memory>
 
@@ -84,6 +84,15 @@ namespace sdl {
         bool
         canExtendVertically() const noexcept;
 
+        std::string
+        toString() const noexcept;
+
+      private:
+
+        static
+        std::string
+        getNameFromPolicy(const Policy& policy) noexcept;
+
       private:
 
         Policy m_hPolicy;
@@ -97,6 +106,12 @@ namespace sdl {
   }
 }
 
+std::ostream&
+operator<<(const sdl::core::SizePolicy& policy, std::ostream& out) noexcept;
+
+std::ostream&
+operator<<(std::ostream& out, const sdl::core::SizePolicy& policy) noexcept;
+
 # include "SizePolicy.hxx"
 
-#endif    /* SIZEPOLICY_HH */
+#endif    /* SIZE_POLICY_HH */

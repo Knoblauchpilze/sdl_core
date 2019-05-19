@@ -2,8 +2,6 @@
 # include "Layout.hh"
 # include "SdlWidget.hh"
 
-# include <iostream>
-
 namespace sdl {
   namespace core {
 
@@ -32,27 +30,24 @@ namespace sdl {
     Layout::update() {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
-        std::cout << "[LAYOUT] WIDGET IS NULL CANNOT PERFORM UPDATE" << std::endl;
         return;
       }
 
       // Check if this layout is dirty.
       if (!m_dirty) {
-        std::cout << "[LAYOUT] LAYOUT IS NOT DIRTY CANNOT PERFORM UPDATE" << std::endl;
         return;
       }
 
       // And if some items are managed by this layout.
       if (m_items.empty()) {
-        std::cout << "[LAYOUT] NO ITEMS IN LAYOUT CANNOT PERFORM UPDATE" << std::endl;
         return;
       }
 
       // Update with private handler.
-      std::cout << "[LAYOUT] PERFORMING UPDATE WITH AREA " << m_widget->m_area.toString() << std::endl;
       updatePrivate(m_widget->m_area);
 
-      m_dirty = false;
+      // The layout has been recomputed.
+      recomputed();
     }
 
     int

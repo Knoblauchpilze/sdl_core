@@ -1,5 +1,5 @@
-#ifndef    SIZEPOLICY_HXX
-# define   SIZEPOLICY_HXX
+#ifndef    SIZE_POLICY_HXX
+# define   SIZE_POLICY_HXX
 
 # include "SizePolicy.hh"
 
@@ -119,7 +119,45 @@ namespace sdl {
       return canGrowVertically() || canExpandVertically();
     }
 
+    inline
+    std::string
+    SizePolicy::toString() const noexcept {
+      return std::string("[Policy: h=") + getNameFromPolicy(m_hPolicy) + ", v=" + getNameFromPolicy(m_vPolicy) + "]";
+    }
+
+    inline
+    std::string
+    SizePolicy::getNameFromPolicy(const Policy& policy) noexcept {
+      switch (policy) {
+        case None:
+          return "None";
+        case Grow:
+          return "Grow";
+        case Expand:
+          return "Expand";
+        case Shrink:
+          return "Shrink";
+        case Ignore:
+          return "Ignore";
+        default:
+          return "Unknown";
+      }
+    }
+
   }
 }
 
-#endif    /* SIZEPOLICY_HXX */
+inline
+std::ostream&
+operator<<(const sdl::core::SizePolicy& policy, std::ostream& out) noexcept {
+  return operator<<(out, policy);
+}
+
+inline
+std::ostream&
+operator<<(std::ostream& out, const sdl::core::SizePolicy& policy) noexcept {
+  out << policy.toString();
+  return out;
+}
+
+#endif    /* SIZE_POLICY_HXX */

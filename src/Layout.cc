@@ -8,12 +8,14 @@ namespace sdl {
     Layout::Layout(SdlWidget* container,
                    const float& margin,
                    const bool allowLog,
-                   const std::string& name):
+                   const std::string& name,
+                   const bool rootLayout):
       utils::CoreObject(name, allowLog),
       m_widget(container),
       m_items(),
       m_dirty(true),
-      m_margin(utils::Sizef(margin, margin))
+      m_margin(utils::Sizef(margin, margin)),
+      m_rootLayout(rootLayout)
     {
       setService(std::string("layout"));
     }
@@ -114,8 +116,7 @@ namespace sdl {
 
     void
     Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
-                                 const utils::Boxf& window,
-                                 const bool convert)
+                                 const utils::Boxf& window)
     {
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
@@ -146,7 +147,7 @@ namespace sdl {
 
         // Convert the bbox to match the required coordinate frame if needed.
         utils::Boxf converted = boxes[index];
-        if (convert) {
+        if (!isRootLayout()) {
           converted = utils::Boxf(
             boxes[index].x() - (window.x() - (window.x() - window.w() / 2.0f)),
             window.y() - boxes[index].y() - (window.y() - window.h() / 2.0f),

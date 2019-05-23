@@ -83,6 +83,18 @@ namespace sdl {
     }
 
     inline
+    bool
+    Layout::isRootLayout() const noexcept {
+      return m_rootLayout;
+    }
+
+    inline
+    void
+    Layout::setRootLayout(const bool root) noexcept {
+      m_rootLayout = root;
+    }
+
+    inline
     int
     Layout::getIndexOf(SdlWidget* item) const noexcept {
       // If the item is not valid, return -1.

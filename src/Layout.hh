@@ -57,7 +57,8 @@ namespace sdl {
         Layout(SdlWidget* widget = nullptr,
                const float& margin = 0.0f,
                const bool allowLog = false,
-               const std::string& name = std::string("Layout"));
+               const std::string& name = std::string("Layout"),
+               const bool rootLayout = false);
 
         virtual void
         updatePrivate(const utils::Boxf& window) = 0;
@@ -79,6 +80,12 @@ namespace sdl {
          */
         void
         recomputed();
+
+        bool
+        isRootLayout() const noexcept;
+
+        void
+        setRootLayout(const bool root) noexcept;
 
         int
         getIndexOf(SdlWidget* item) const noexcept;
@@ -119,8 +126,8 @@ namespace sdl {
          *          The areas are translated from a top left representation into a centered
          *          representation using the provided `window` parameter which describes the absolute
          *          position of the coordinate frame each box is related to.
-         *          If the coordinates should not be converted, one can pass a "false" value to the
-         *          `convert` argument.
+         *          If the coordinates should not be converted, one can set the `root layout` property
+         *          for this layout either at construction or using the `setRootLayout` method.
          *          In this case the `window` argument will be ignored and the bounding boxes will be
          *          assigned as is.
          * @param boxes - an array of boxes supposedly of the same length as `m_items` array where each
@@ -128,13 +135,10 @@ namespace sdl {
          * @param window - the absolute position of the box containing the input boxes. This allows to
          *                 perform a conversion of the input boxes so that they can be correctly drawn
          *                 by the rendering engine.
-         * @param convert - true if the `window` argument should be used to convert bounding boxes to
-         *                  local coordinate frame (default value) and false if it should be ignored.
          */
         void
         assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
-                             const utils::Boxf& window,
-                             const bool convert = true);
+                             const utils::Boxf& window);
 
         void
         assignVisibilityStatus(const std::vector<bool>& visible);
@@ -194,6 +198,8 @@ namespace sdl {
         std::vector<SdlWidget*> m_items;
         bool m_dirty;
         utils::Sizef m_margin;
+
+        bool m_rootLayout;
     };
 
     using LayoutShPtr = std::shared_ptr<Layout>;

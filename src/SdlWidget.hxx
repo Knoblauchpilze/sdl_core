@@ -48,7 +48,7 @@ namespace sdl {
 
       // Invalidate the layout if any.
       if (m_layout != nullptr) {
-        m_layout->invalidate();
+        m_layout->makeGeometryDirty();
       }
     }
 

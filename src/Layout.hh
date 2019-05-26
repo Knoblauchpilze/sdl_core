@@ -3,10 +3,10 @@
 
 # include <memory>
 # include <vector>
-# include <core_utils/CoreObject.hh>
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
 
+# include "LayoutItem.hh"
 # include "SizePolicy.hh"
 
 namespace sdl {
@@ -15,7 +15,7 @@ namespace sdl {
     class SdlWidget;
 
     // Slave class of SdlWidget.
-    class Layout: public utils::CoreObject {
+    class Layout: public LayoutItem {
       public:
 
         enum class Direction {
@@ -60,8 +60,11 @@ namespace sdl {
                const std::string& name = std::string("Layout"),
                const bool rootLayout = false);
 
+        void
+        updatePrivate(const utils::Boxf& window) override;
+
         virtual void
-        updatePrivate(const utils::Boxf& window) = 0;
+        computeGeometry(const utils::Boxf& window) = 0;
 
         /**
          * @brief - Used internally to determine whether this layout needs to be recompued
@@ -80,12 +83,6 @@ namespace sdl {
          */
         void
         recomputed();
-
-        bool
-        isRootLayout() const noexcept;
-
-        void
-        setRootLayout(const bool root) noexcept;
 
         int
         getIndexOf(SdlWidget* item) const noexcept;
@@ -107,7 +104,7 @@ namespace sdl {
 
         /**
          * @brief - Used internally to mark the layout as dirty and to trigger a recomputation on
-         *          the next call to `update`. THis method should only be called when the area
+         *          the next call to `update`. This method should only be called when the area
          *          allocated to the layout has changed or in case of an addition/removal of a widget
          *          in/from the layout. Inheriting classes are encouraged to override this method in
          *          case some additional information should be performed upon invalidating the layout.
@@ -196,10 +193,7 @@ namespace sdl {
 
         SdlWidget* m_widget;
         std::vector<SdlWidget*> m_items;
-        bool m_dirty;
         utils::Sizef m_margin;
-
-        bool m_rootLayout;
     };
 
     using LayoutShPtr = std::shared_ptr<Layout>;

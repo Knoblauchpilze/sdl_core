@@ -11,58 +11,6 @@ namespace sdl {
     ///////////////////
 
     inline
-    utils::Sizef
-    SdlWidget::getMinSize() const noexcept {
-      return m_minSize;
-    }
-
-    inline
-    void
-    SdlWidget::setMinSize(const utils::Sizef& size) noexcept {
-      m_minSize = size;
-      makeGeometryDirty();
-    }
-
-    inline
-    utils::Sizef
-    SdlWidget::getSizeHint() const noexcept {
-      return m_sizeHint;
-    }
-
-    inline
-    void
-    SdlWidget::setSizeHint(const utils::Sizef& hint) noexcept {
-      m_sizeHint = hint;
-      makeGeometryDirty();
-    }
-
-    inline
-    utils::Sizef
-    SdlWidget::getMaxSize() const noexcept {
-      return m_maxSize;
-    }
-
-    inline
-    void
-    SdlWidget::setMaxSize(const utils::Sizef& size) noexcept {
-      m_maxSize = size;
-      makeGeometryDirty();
-    }
-
-    inline
-    SizePolicy
-    SdlWidget::getSizePolicy() const noexcept {
-      return m_sizePolicy;
-    }
-
-    inline
-    void
-    SdlWidget::setSizePolicy(const SizePolicy& policy) noexcept {
-      m_sizePolicy = policy;
-      makeGeometryDirty();
-    }
-
-    inline
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
@@ -92,9 +40,9 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::makeGeometryDirty() noexcept {
+    SdlWidget::makeGeometryDirty() {
       // Mark the geometry as dirty.
-      m_geometryDirty = true;
+      LayoutItem::makeGeometryDirty();
 
       // Invalidate the layout if any.
       if (m_layout != nullptr) {
@@ -225,7 +173,7 @@ namespace sdl {
     inline
     bool
     SdlWidget::hasGeometryChanged() const noexcept {
-      return m_geometryDirty && isVisible();
+      return LayoutItem::hasGeometryChanged() && isVisible();
     }
 
     inline

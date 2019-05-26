@@ -19,12 +19,13 @@
 # include <sdl_engine/QuitEvent.hh>
 
 # include "Layout.hh"
+# include "LayoutItem.hh"
 # include "SizePolicy.hh"
 
 namespace sdl {
   namespace core {
 
-    class SdlWidget: public engine::EngineObject {
+    class SdlWidget: public LayoutItem, public engine::EngineObject {
       public:
 
         SdlWidget(const std::string& name,
@@ -38,35 +39,11 @@ namespace sdl {
         // Size handling //
         ///////////////////
 
-        utils::Sizef
-        getMinSize() const noexcept;
-
-        void
-        setMinSize(const utils::Sizef& size) noexcept;
-
-        utils::Sizef
-        getSizeHint() const noexcept;
-
-        void
-        setSizeHint(const utils::Sizef& hint) noexcept;
-
-        utils::Sizef
-        getMaxSize() const noexcept;
-
-        void
-        setMaxSize(const utils::Sizef& size) noexcept;
-
-        SizePolicy
-        getSizePolicy() const noexcept;
-
-        void
-        setSizePolicy(const SizePolicy& policy) noexcept;
-
         utils::Boxf
-        getRenderingArea() const noexcept;
+        getRenderingArea() const noexcept override;
 
         void
-        setRenderingArea(const utils::Boxf& area) noexcept;
+        setRenderingArea(const utils::Boxf& area) noexcept override;
 
         ///////////////////
         // Size handling //
@@ -105,7 +82,7 @@ namespace sdl {
         makeContentDirty() noexcept;
 
         void
-        makeGeometryDirty() noexcept;
+        makeGeometryDirty() override;
 
         ///////////////////
         // Size handling //
@@ -177,8 +154,8 @@ namespace sdl {
         virtual bool
         hasContentChanged() const noexcept;
 
-        virtual bool
-        hasGeometryChanged() const noexcept;
+        bool
+        hasGeometryChanged() const noexcept override;
 
         utils::Vector2f
         mapToGlobal(const utils::Vector2f& local) const noexcept;
@@ -247,53 +224,6 @@ namespace sdl {
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
       private:
-
-        /**
-         * @brief - Describes the size policy for this widget. The policy is described using
-         *          several sizes which roles are described below. In addition to that, the
-         *          `m_sizePolicy` allows to determine the behavior of the widget when some
-         *          extra space is allocated to it or if it should be srhunk for some reason.
-         */
-        /**
-         * @brief - Holds the minimum size which can be assigned to a widget while still making
-         *          the widget usable. Any area smaller than this would make the widget useless
-         *          as the user would not be able to properly use it.
-         */
-        utils::Sizef m_minSize;
-
-        /**
-         * @brief - Holds a sensible size for the widget which should allow for best ergonomy.
-         *          According to the policy one can determine whether some extra space can be
-         *          used (or conversely if some missing space is a problem) but it should be
-         *          the target size of the widget.
-         */
-        utils::Sizef m_sizeHint;
-
-        /**
-         * @brief - Holds a maximum size over which the widget starts being unusable. Up until
-         *          this value the widget can make use of some extra space but not beyond. Such
-         *          an area is the theoretical maximum bound for usability of this widget.
-         */
-        utils::Sizef m_maxSize;
-
-        /**
-         * @brief - Defines the strategy of the widget regarding space allocation. This allows
-         *          for precise determination of the capability of the widget to use some extra
-         *          space or to determine whether it's a problem if the widget has to be shrunk.
-         *          This policy is best used in conjunction with the layout system, and is taken
-         *          into consideration when computing the space to assign to the widget.
-         */
-        SizePolicy m_sizePolicy;
-
-        /**
-         * @brief - Used to determine whether the geometry information held by this widget is
-         *          up to date. This is particularly useful to delay geometry computations to
-         *          a later date, for example when an event of type `geometry update` is received.
-         *          Ideally whenever a request to retrieve size information for this widget is
-         *          received, it should be checked against this status to trigger a recomputation
-         *          if it appears that the information is not up to date.
-         */
-        bool m_geometryDirty;
 
         /**
          * @brief - Describes the current rendering area assigned to this widget. Should always

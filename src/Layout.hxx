@@ -67,31 +67,7 @@ namespace sdl {
       m_items.erase(m_items.cbegin() + item);
 
       // Invalidate the layout.
-      invalidate();
-    }
-
-    inline
-    bool
-    Layout::isDirty() const noexcept {
-      return m_dirty;
-    }
-
-    inline
-    void
-    Layout::recomputed() {
-      m_dirty = false;
-    }
-
-    inline
-    bool
-    Layout::isRootLayout() const noexcept {
-      return m_rootLayout;
-    }
-
-    inline
-    void
-    Layout::setRootLayout(const bool root) noexcept {
-      m_rootLayout = root;
+      makeGeometryDirty();
     }
 
     inline
@@ -154,12 +130,6 @@ namespace sdl {
     bool
     Layout::isValidIndex(const int& id) const noexcept {
       return id >= 0 && id < getItemsCount();
-    }
-
-    inline
-    void
-    Layout::invalidate() noexcept {
-      m_dirty = true;
     }
 
     inline

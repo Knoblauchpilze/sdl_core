@@ -10,12 +10,10 @@ namespace sdl {
                    const bool allowLog,
                    const std::string& name,
                    const bool rootLayout):
-      utils::CoreObject(name, allowLog),
+      LayoutItem(name, utils::Sizef(), rootLayout, allowLog),
       m_widget(container),
       m_items(),
-      m_dirty(true),
-      m_margin(utils::Sizef(margin, margin)),
-      m_rootLayout(rootLayout)
+      m_margin(utils::Sizef(margin, margin))
     {
       setService(std::string("layout"));
     }
@@ -29,14 +27,9 @@ namespace sdl {
     }
 
     void
-    Layout::update() {
+    Layout::updatePrivate(const utils::Boxf& window) {
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
-        return;
-      }
-
-      // Check if this layout is dirty.
-      if (!m_dirty) {
         return;
       }
 
@@ -45,8 +38,8 @@ namespace sdl {
         return;
       }
 
-      // Update with private handler.
-      updatePrivate(m_widget->m_area);
+      // Proceed by activating the internal handler.
+      computeGeometry(window);
 
       // The layout has been recomputed.
       recomputed();
@@ -66,7 +59,7 @@ namespace sdl {
 
         // Insert the item into the layout.
         m_items.push_back(item);
-        invalidate();
+        makeGeometryDirty();
 
         // Assign the parent widget for this item if needed.
         // If this widget is already a child of the widget
@@ -147,7 +140,7 @@ namespace sdl {
 
         // Convert the bbox to match the required coordinate frame if needed.
         utils::Boxf converted = boxes[index];
-        if (!isRootLayout()) {
+        if (!isRootItem()) {
           converted = utils::Boxf(
             boxes[index].x() - (window.x() - (window.x() - window.w() / 2.0f)),
             window.y() - boxes[index].y() - (window.y() - window.h() / 2.0f),

@@ -9,13 +9,9 @@ namespace sdl {
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const engine::Color& color):
+      LayoutItem(sizeHint),
       engine::EngineObject(name),
 
-      m_minSize(),
-      m_sizeHint(sizeHint),
-      m_maxSize(utils::Sizef::max()),
-      m_sizePolicy(),
-      m_geometryDirty(true),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
 
       m_isVisible(true),
@@ -156,7 +152,7 @@ namespace sdl {
         if (m_layout != nullptr) {
           m_layout->update();
         }
-        m_geometryDirty = false;
+        geometryRecomputed();
       }
 
       // Mark the event as accepted if it is directed only through this

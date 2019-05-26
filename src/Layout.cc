@@ -34,15 +34,12 @@ namespace sdl {
       }
 
       // And if some items are managed by this layout.
-      if (m_items.empty()) {
+      if (empty()) {
         return;
       }
 
       // Proceed by activating the internal handler.
       computeGeometry(window);
-
-      // The layout has been recomputed.
-      recomputed();
     }
 
     int

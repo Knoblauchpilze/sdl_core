@@ -13,7 +13,6 @@
 # include <sdl_engine/Palette.hh>
 # include <sdl_engine/Texture.hh>
 # include <sdl_engine/Engine.hh>
-# include <sdl_engine/EngineObject.hh>
 # include <sdl_engine/KeyEvent.hh>
 # include <sdl_engine/MouseEvent.hh>
 # include <sdl_engine/QuitEvent.hh>
@@ -25,7 +24,7 @@
 namespace sdl {
   namespace core {
 
-    class SdlWidget: public LayoutItem, public engine::EngineObject {
+    class SdlWidget: public LayoutItem {
       public:
 
         SdlWidget(const std::string& name,
@@ -84,6 +83,14 @@ namespace sdl {
         void
         makeGeometryDirty() override;
 
+        /**
+         * @brief - Reimplementation of the base class method to provide update of the layout
+         *          for this widget if any.
+         * @param window - the available size to perform the update.
+         */
+        void
+        updatePrivate(const utils::Boxf& window) override;
+
         ///////////////////
         // Size handling //
         ///////////////////
@@ -107,9 +114,6 @@ namespace sdl {
 
         bool
         enterEvent(const engine::EnterEvent& e) override;
-
-        bool
-        geometryUpdateEvent(const engine::Event& e) override;
 
         bool
         leaveEvent(const engine::Event& e) override;
@@ -224,15 +228,6 @@ namespace sdl {
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
       private:
-
-        /**
-         * @brief - Describes the current rendering area assigned to this widget. Should always
-         *          be greater than the `m_minSize`, smaller than the `m_maxSize` and as close
-         *          to the `m_sizeHint` (if any is provided).
-         *          This is used in computation to allocate and fill the internal visual textures
-         *          used to represent the widget.
-         */
-        utils::Boxf m_area;
 
         bool m_isVisible;
 

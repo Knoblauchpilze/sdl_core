@@ -5,16 +5,20 @@
 
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
+# include <sdl_engine/EngineObject.hh>
 
 # include "SizePolicy.hh"
 
 namespace sdl {
   namespace core {
 
-    class LayoutItem {
+    class LayoutItem: public engine::EngineObject {
       public:
 
-        LayoutItem(const utils::Sizef& sizeHint = utils::Sizef());
+        LayoutItem(const std::string& name,
+                  const utils::Sizef& sizeHint = utils::Sizef(),
+                  const bool rootItem = false,
+                  const bool allowLog = false);
 
         virtual ~LayoutItem();
 
@@ -43,10 +47,13 @@ namespace sdl {
         setSizePolicy(const SizePolicy& policy) noexcept;
 
         virtual utils::Boxf
-        getRenderingArea() const noexcept = 0;
+        getRenderingArea() const noexcept;
 
         virtual void
-        setRenderingArea(const utils::Boxf& area) noexcept = 0;
+        setRenderingArea(const utils::Boxf& area) noexcept;
+
+        bool
+        isRootItem() const noexcept;
 
       protected:
 
@@ -59,6 +66,22 @@ namespace sdl {
         virtual
         void
         geometryRecomputed() noexcept;
+
+        virtual
+        void
+        setRoot(const bool isRoot);
+
+        virtual void
+        updatePrivate(const utils::Boxf& window) = 0;
+
+        bool
+        geometryUpdateEvent(const engine::Event& e) override;
+
+        bool
+        repaintEvent(const engine::PaintEvent& e) override;
+
+        bool
+        resizeEvent(const engine::ResizeEvent& e) override;
 
       private:
 
@@ -117,6 +140,12 @@ namespace sdl {
          *          used to represent the widget.
          */
         utils::Boxf m_area;
+
+        /**
+         * @brief - Used to determine whether this item is a root item, meaning it is not embedded
+         *          into any other layout, or if it is a child item of some sort.
+         */
+        bool        m_rootItem;
     };
 
     using LayoutItemShPtr = std::shared_ptr<LayoutItem>;

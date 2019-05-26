@@ -7,15 +7,6 @@ namespace sdl {
   namespace core {
 
     inline
-    LayoutItem::LayoutItem(const utils::Sizef& sizeHint):
-      m_minSize(),
-      m_sizeHint(sizeHint),
-      m_maxSize(utils::Sizef::max()),
-      m_sizePolicy(),
-      m_geometryDirty(true)
-    {}
-
-    inline
     LayoutItem::~LayoutItem() {}
 
     inline
@@ -71,10 +62,35 @@ namespace sdl {
     }
 
     inline
+    utils::Boxf
+    LayoutItem::getRenderingArea() const noexcept {
+      return m_area;
+    }
+
+    inline
+    void
+    LayoutItem::setRenderingArea(const utils::Boxf& area) noexcept {
+      // Check whether the input box is different from the internal area.
+      if (area != m_area) {
+        m_area = area;
+        makeGeometryDirty();
+      }
+    }
+
+    inline
+    bool
+    LayoutItem::isRootItem() const noexcept {
+      return m_rootItem;
+    }
+
+    inline
     void
     LayoutItem::makeGeometryDirty() {
       // Mark the geometry as dirty.
       m_geometryDirty = true;
+
+      // Trigger a geometry update event.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
     }
 
     inline
@@ -87,6 +103,12 @@ namespace sdl {
     void
     LayoutItem::geometryRecomputed() noexcept {
       m_geometryDirty = false;
+    }
+
+    inline
+    void
+    LayoutItem::setRoot(const bool isRoot) {
+      m_rootItem = isRoot;
     }
 
   }

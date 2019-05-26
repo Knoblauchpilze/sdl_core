@@ -9,10 +9,7 @@ namespace sdl {
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const engine::Color& color):
-      LayoutItem(sizeHint),
-      engine::EngineObject(name),
-
-      m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
+      LayoutItem(name, sizeHint, parent == nullptr),
 
       m_isVisible(true),
 
@@ -83,7 +80,8 @@ namespace sdl {
 
       // Copy also the internal area in order to perform the coordinate
       // frame transform.
-      utils::Sizef dims = m_area.toSize();
+      utils::Boxf area = LayoutItem::getRenderingArea();
+      utils::Sizef dims = area.toSize();
 
       // Protect against errors.
       withSafetyNet(
@@ -141,31 +139,6 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::geometryUpdateEvent(const engine::Event& e) {
-      // Perform the rebuild if the geometry has changed.
-      // This check should not be really useful because
-      // the `geometryUpdateEvent` should already be
-      // triggered at the most appropriate time.
-      if (hasGeometryChanged()) {
-        log(std::string("Updating layout for widget"));
-
-        if (m_layout != nullptr) {
-          m_layout->update();
-        }
-        geometryRecomputed();
-      }
-
-      // Mark the event as accepted if it is directed only through this
-      // object.
-      if (isReceiver(e)) {
-        e.accept();
-      }
-
-      // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::geometryUpdateEvent(e);
-    }
-
-    bool
     SdlWidget::repaintEvent(const engine::PaintEvent& e) {
       // In order to repaint the widget, a valid rendering area
       // must have been defined through another process (usually
@@ -181,7 +154,9 @@ namespace sdl {
         return engine::EngineObject::repaintEvent(e);
       }
 
-      if (!m_area.valid()) {
+      utils::Boxf area = LayoutItem::getRenderingArea();
+
+      if (!area.valid()) {
         error(std::string("Could not repaint widget"), std::string("Invalid size"));
       }
 
@@ -209,29 +184,12 @@ namespace sdl {
 
     bool
     SdlWidget::resizeEvent(const engine::ResizeEvent& e) {
-      // We need to assign the area for this widget based on the size
-      // provided in the event The required size is the `new` size and
-      // the `old` size should correspond to the current size of the
-      // widget.
-
-      // Assign the area.
-      m_area = e.getNewSize();
-
-      log(std::string("Area is now ") + m_area.toString());
-
-      // Once the internal size has been updated, we need to both recompute
-      // the geometry and then perform a repaint. Post both events.
-      makeGeometryDirty();
+      // Mark the content as dirty.
       makeContentDirty();
 
-      // Mark the event as accepted if it is directed only through this
-      // object.
-      if (isReceiver(e)) {
-        e.accept();
-      }
-
-      // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::resizeEvent(e);
+      // Use the base handler method to perform additional operations and
+      // also to provide a return value.
+      return LayoutItem::resizeEvent(e);
     }
 
   }

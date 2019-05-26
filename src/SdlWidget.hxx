@@ -14,14 +14,16 @@ namespace sdl {
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      return m_area;
+      return LayoutItem::getRenderingArea();
     }
 
     inline
     void
     SdlWidget::setRenderingArea(const utils::Boxf& area) noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      postEvent(std::make_shared<engine::ResizeEvent>(area, m_area));
+      LayoutItem::setRenderingArea(area);
+      // TODO: Restore this ???
+      // postEvent(std::make_shared<engine::ResizeEvent>(area, m_area));
     }
 
     ///////////////
@@ -35,7 +37,7 @@ namespace sdl {
       m_contentDirty = true;
 
       // Trigger a geometry update event.
-      postEvent(std::make_shared<engine::PaintEvent>(m_area));
+      postEvent(std::make_shared<engine::PaintEvent>(LayoutItem::getRenderingArea()));
     }
 
     inline
@@ -48,9 +50,18 @@ namespace sdl {
       if (m_layout != nullptr) {
         m_layout->invalidate();
       }
+    }
 
-      // Trigger a geometry update event.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
+    inline
+    void
+    SdlWidget::updatePrivate(const utils::Boxf& /*window*/) {
+      // Update the layout if any.
+      log(std::string("Updating layout for widget"));
+
+      if (m_layout != nullptr) {
+        // TODO: Should post a geoemtry update event for the layout ?
+        m_layout->update();
+      }
     }
 
     ///////////////////
@@ -183,9 +194,11 @@ namespace sdl {
       // account for the `local` coordinate.
       utils::Vector2f global = local;
 
+      utils::Boxf area = LayoutItem::getRenderingArea();
+
       // Now we need to account for the position of this widget.
-      global.x() += m_area.x();
-      global.y() += m_area.y();
+      global.x() += area.x();
+      global.y() += area.y();
 
       // Now we need to account for the transform applied to the parent
       // if any.
@@ -220,19 +233,20 @@ namespace sdl {
       // hierarchy: otherwise its parent already handled it and we
       // should not do it again. If we invert each time we would
       // oscillate between valid and invalid coordinates.
+      utils::Boxf area = LayoutItem::getRenderingArea();
 
       // `x` coordinate is straightforward.
-      local.x() -= m_area.x();
+      local.x() -= area.x();
 
       // `y` coordinate should be handled with care.
       if (m_parent == nullptr) {
         // No defined parent, let's invert the `y` axis.
-        local.y() = m_area.y() - local.y();
+        local.y() = area.y() - local.y();
       }
       else {
         // The inversion has already been handled, proceed
         // normally.
-        local.y() -= m_area.y();
+        local.y() -= area.y();
       }
 
       // This is the local representation of the input global position.
@@ -251,11 +265,13 @@ namespace sdl {
       // Compute the local position of the mouse.
       utils::Vector2f local = mapFromGlobal(global);
 
+      utils::Boxf area = LayoutItem::getRenderingArea();
+
       // In order to be inside the widget, the local mouse position should lie
       // within the range [-width/2 ; width/2] and [-height/2 ; height/2].
       return
-        std::abs(local.x()) < m_area.w() / 2.0f &&
-        std::abs(local.y()) < m_area.h() / 2.0f
+        std::abs(local.x()) < area.w() / 2.0f &&
+        std::abs(local.y()) < area.h() / 2.0f
       ;
     }
 
@@ -376,7 +392,8 @@ namespace sdl {
     SdlWidget::createContentPrivate() const {
       // Create the texture using the engine. The dmensions are retrieved from the
       // internal area.
-      utils::Sizei size(static_cast<int>(m_area.w()), static_cast<int>(m_area.h()));
+      utils::Boxf area = LayoutItem::getRenderingArea();
+      utils::Sizei size(static_cast<int>(area.w()), static_cast<int>(area.h()));
       utils::Uuid uuid = getEngine().createTexture(size, engine::Palette::ColorRole::Background);
 
       // Return the texture.

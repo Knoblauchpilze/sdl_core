@@ -10,6 +10,7 @@ find_package (SDL2_ttf REQUIRED)
 set (SOURCES
   SizePolicy.cc
   Layout.cc
+  LayoutItem.cc
   SdlWidget.cc
   UserInputFilter.cc
   )

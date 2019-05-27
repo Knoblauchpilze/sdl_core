@@ -49,9 +49,6 @@ namespace sdl {
         virtual utils::Boxf
         getRenderingArea() const noexcept;
 
-        virtual void
-        setRenderingArea(const utils::Boxf& area) noexcept;
-
         bool
         isRootItem() const noexcept;
 
@@ -72,7 +69,7 @@ namespace sdl {
         setRoot(const bool isRoot);
 
         virtual void
-        updatePrivate(const utils::Boxf& window) = 0;
+        updatePrivate(const utils::Boxf& window);
 
         bool
         geometryUpdateEvent(const engine::Event& e) override;

@@ -57,7 +57,7 @@ namespace sdl {
       log(std::string("Updating layout for widget"));
 
       if (m_layout != nullptr) {
-        postEvent(std::make_shared<engine::ResizeEvent>(old, window, m_layout.get()));
+        postEvent(std::make_shared<engine::ResizeEvent>(window, old, m_layout.get()));
       }
     }
 
@@ -87,7 +87,14 @@ namespace sdl {
     inline
     void
     SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
+      // Save this layout into the internal attribute.
       m_layout = layout;
+
+      // Share the events queue if needed.
+      if (m_layout != nullptr) {
+        registerToSameQueue(m_layout.get());
+      }
+
       makeGeometryDirty();
     }
 

@@ -15,6 +15,11 @@ namespace sdl {
       m_items(),
       m_margin(utils::Sizef(margin, margin))
     {
+      // Assign the events queue from the widget if needed.
+      if (m_widget != nullptr) {
+        m_widget->registerToSameQueue(this);
+      }
+
       setService(std::string("layout"));
     }
 

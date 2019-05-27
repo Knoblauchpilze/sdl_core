@@ -27,9 +27,6 @@ namespace sdl {
 
         virtual ~Layout();
 
-        virtual void
-        update();
-
         virtual int
         addItem(SdlWidget* item);
 

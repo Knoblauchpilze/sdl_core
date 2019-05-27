@@ -28,6 +28,9 @@ namespace sdl {
 
     void
     Layout::updatePrivate(const utils::Boxf& window) {
+      // Use base handler to perform needed modifications.
+      LayoutItem::updatePrivate(window);
+
       // Check if a container is assigned to this layout.
       if (m_widget == nullptr) {
         return;
@@ -148,7 +151,7 @@ namespace sdl {
 
         log("Assigning rendering area for " + m_items[index]->getName() + " to " + converted.toString() + " from " + boxes[index].toString() + " and window " + window.toString());
 
-        m_items[index]->setRenderingArea(converted);
+        postEvent(std::make_shared<engine::ResizeEvent>(m_items[index]->getRenderingArea(), converted, m_items[index]));
       }
     }
 

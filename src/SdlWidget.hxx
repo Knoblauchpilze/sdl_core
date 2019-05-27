@@ -17,15 +17,6 @@ namespace sdl {
       return LayoutItem::getRenderingArea();
     }
 
-    inline
-    void
-    SdlWidget::setRenderingArea(const utils::Boxf& area) noexcept {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      LayoutItem::setRenderingArea(area);
-      // TODO: Restore this ???
-      // postEvent(std::make_shared<engine::ResizeEvent>(area, m_area));
-    }
-
     ///////////////
     // Internals //
     ///////////////
@@ -54,13 +45,19 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::updatePrivate(const utils::Boxf& /*window*/) {
+    SdlWidget::updatePrivate(const utils::Boxf& window) {
+      // Keep track of the old size.
+      utils::Boxf old = LayoutItem::getRenderingArea();
+
+      // Call parent method so that we stay up to date with latest
+      // area.
+      LayoutItem::updatePrivate(window);
+
       // Update the layout if any.
       log(std::string("Updating layout for widget"));
 
       if (m_layout != nullptr) {
-        // TODO: Should post a geoemtry update event for the layout ?
-        m_layout->update();
+        postEvent(std::make_shared<engine::ResizeEvent>(old, window, m_layout.get()));
       }
     }
 

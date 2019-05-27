@@ -68,16 +68,6 @@ namespace sdl {
     }
 
     inline
-    void
-    LayoutItem::setRenderingArea(const utils::Boxf& area) noexcept {
-      // Check whether the input box is different from the internal area.
-      if (area != m_area) {
-        m_area = area;
-        makeGeometryDirty();
-      }
-    }
-
-    inline
     bool
     LayoutItem::isRootItem() const noexcept {
       return m_rootItem;
@@ -109,6 +99,14 @@ namespace sdl {
     void
     LayoutItem::setRoot(const bool isRoot) {
       m_rootItem = isRoot;
+    }
+
+    inline
+    void
+    LayoutItem::updatePrivate(const utils::Boxf& window) {
+      if (m_area != window) {
+        m_area = window;
+      }
     }
 
   }

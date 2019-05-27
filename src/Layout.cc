@@ -151,7 +151,7 @@ namespace sdl {
 
         log("Assigning rendering area for " + m_items[index]->getName() + " to " + converted.toString() + " from " + boxes[index].toString() + " and window " + window.toString());
 
-        postEvent(std::make_shared<engine::ResizeEvent>(m_items[index]->getRenderingArea(), converted, m_items[index]));
+        postEvent(std::make_shared<engine::ResizeEvent>(converted, m_items[index]->getRenderingArea(), m_items[index]));
       }
     }
 

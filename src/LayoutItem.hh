@@ -75,9 +75,6 @@ namespace sdl {
         geometryUpdateEvent(const engine::Event& e) override;
 
         bool
-        repaintEvent(const engine::PaintEvent& e) override;
-
-        bool
         resizeEvent(const engine::ResizeEvent& e) override;
 
       private:

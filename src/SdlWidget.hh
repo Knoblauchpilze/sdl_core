@@ -41,9 +41,6 @@ namespace sdl {
         utils::Boxf
         getRenderingArea() const noexcept override;
 
-        void
-        setRenderingArea(const utils::Boxf& area) noexcept override;
-
         ///////////////////
         // Size handling //
         ///////////////////

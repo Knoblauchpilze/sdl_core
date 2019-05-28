@@ -9,7 +9,7 @@ namespace sdl {
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const engine::Color& color):
-      LayoutItem(name, sizeHint, parent == nullptr),
+      LayoutItem(name, sizeHint, parent == nullptr, true),
 
       m_children(),
       m_layout(),

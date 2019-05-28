@@ -5,29 +5,28 @@
 namespace sdl {
   namespace core {
 
-    Layout::Layout(SdlWidget* container,
+    Layout::Layout(SdlWidget* widget,
                    const float& margin,
                    const bool allowLog,
                    const std::string& name,
                    const bool rootLayout):
       LayoutItem(name, utils::Sizef(), rootLayout, allowLog),
-      m_widget(container),
       m_items(),
       m_margin(utils::Sizef(margin, margin))
     {
-      // Assign the events queue from the widget if needed.
-      if (m_widget != nullptr) {
-        m_widget->registerToSameQueue(this);
+      // Assign the events queue from the container if needed.
+      if (widget != nullptr) {
+        widget->registerToSameQueue(this);
       }
 
       setService(std::string("layout"));
     }
 
     Layout::~Layout() {
-      // Do not assign a null layout to the widget: we assume
-      // that the widget is managing this layout so if we reach
-      // this point it means that the widget purposefully deleted
-      // the layout and thus we can only cry because we're
+      // Do not assign a null layout to the managed container:
+      // we assume that the container is managing this layout so
+      // if we reach this point it means that the container purposefully
+      // deleted the layout and thus we can only cry because we're
       // getting replaced.
     }
 
@@ -35,11 +34,6 @@ namespace sdl {
     Layout::updatePrivate(const utils::Boxf& window) {
       // Use base handler to perform needed modifications.
       LayoutItem::updatePrivate(window);
-
-      // Check if a container is assigned to this layout.
-      if (m_widget == nullptr) {
-        return;
-      }
 
       // And if some items are managed by this layout.
       if (empty()) {
@@ -51,13 +45,13 @@ namespace sdl {
     }
 
     int
-    Layout::addItem(SdlWidget* item) {
+    Layout::addItem(LayoutItem* item) {
       // Check for valid items.
       if (item != nullptr) {
         // Check for duplicated items.
         if (isValidIndex(getIndexOf(item))) {
           error(
-            std::string("Cannot add widget \"") + item->getName() + "\" to layout for \"" + m_widget->getName() + "\"",
+            std::string("Cannot add item \"") + item->getName() + "\" to layout",
             std::string("Item already exist")
           );
         }
@@ -65,20 +59,6 @@ namespace sdl {
         // Insert the item into the layout.
         m_items.push_back(item);
         makeGeometryDirty();
-
-        // Assign the parent widget for this item if needed.
-        // If this widget is already a child of the widget
-        // managed by the layout we only share data with it.
-        // And of course if the internal widget is not assigned
-        // we do nothing.
-        if (m_widget != nullptr) {
-          if (item->m_parent == m_widget && m_widget != nullptr) {
-            m_widget->shareData(item);
-          }
-          else {
-            item->setParent(m_widget);
-          }
-        }
 
         // Return the index of this item.
         return m_items.size() - 1;
@@ -90,25 +70,25 @@ namespace sdl {
 
     int
     Layout::getIndexOf(const std::string& name) const noexcept {
-      // Traverse the internal array of widgets and try to find one matching
+      // Traverse the internal array of items and try to find one matching
       // the input name. If no such element can be found, return a negative
       // value to indicate to the caller that we could not find the provided
       // name.
 
-      // Traverse the internal array until we find a widget which name matches
+      // Traverse the internal array until we find a item which name matches
       // the input.
       unsigned id = 0u;
       while (id < m_items.size() && (m_items[id] == nullptr || m_items[id]->getName() != name)) {
         ++id;
       }
 
-      // Check whether we could find a widget with the specified name.
+      // Check whether we could find an item with the specified name.
       if (id >= m_items.size()) {
-        // We could not find a widget with the specified name.
+        // We could not find an item with the specified name.
         return -1;
       }
 
-      // Return the index of this widget.
+      // Return the index of this item.
       return static_cast<int>(id);
     }
 
@@ -116,9 +96,9 @@ namespace sdl {
     Layout::assignRenderingAreas(const std::vector<utils::Boxf>& boxes,
                                  const utils::Boxf& window)
     {
-      // Assign the rendering area to widgets.
+      // Assign the rendering area to items.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
-        // Note that the compute bboxes cannot be assigned directly to the widget.
+        // Note that the compute bboxes cannot be assigned directly to the item.
         // Indeed the computations are done using a coordinate frame which looks
         // like this:
         //
@@ -162,7 +142,7 @@ namespace sdl {
 
     void
     Layout::assignVisibilityStatus(const std::vector<bool>& visible) {
-      // Assign the rendering area to widgets.
+      // Assign the rendering area to items.
       for (unsigned index = 0u; index < visible.size() ; ++index) {
         m_items[index]->setVisible(visible[index]);
       }
@@ -208,11 +188,11 @@ namespace sdl {
     }
 
     std::vector<Layout::WidgetInfo>
-    Layout::computeWidgetsInfo() const noexcept {
+    Layout::computeItemsInfo() const noexcept {
       // Create the return value.
       std::vector<Layout::WidgetInfo> info(m_items.size());
 
-      // Fill each widget's info.
+      // Fill each item's info.
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
         info[index] = {
           m_items[index]->getSizePolicy(),
@@ -365,24 +345,24 @@ namespace sdl {
                         const utils::Boxf& box,
                         const SizePolicy& action) const
     {
-      // We want to determine if the widget described by its main
+      // We want to determine if the item described by its main
       // information `info` can be used to perform the required
       // operation described in the input `policy` action in the
       // specified direction.
-      // We want to return true if the widget can be used to perform
+      // We want to return true if the item can be used to perform
       // at least one of the `action` described by the input
       // argument.
       // The returned value corresponds to a pair describing in
-      // its first member whether the widget can be used to perform
+      // its first member whether the item can be used to perform
       // the `action.getHorizontalPolicy()` and on its second member
-      // whether the widget can be used to perform the action
+      // whether the item can be used to perform the action
       // described by `action.getVerticalPolicy()`.
       std::pair<bool, bool> usable = std::make_pair(false, false);
 
       // Let's first handle the case where no valid hint is provided.
       if (!info.hint.isValid()) {
         // The result of this function is solely based on the current
-        // size of the widget versus the `min` and `max` size.
+        // size of the item versus the `min` and `max` size.
         // Also, we need to consider both directions: as soon as a
         // valid `action` can be performed, we need to return but
         // failure to perform one action should not stop the process.
@@ -418,7 +398,7 @@ namespace sdl {
       if (info.hint.isValid()) {
         // Check for shrinking.
         if (action.canShrinkHorizontally()) {
-          // The action requires to shrink: the widget can do that if
+          // The action requires to shrink: the item can do that if
           // its policy is set to `Shrink` and the current size is
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
@@ -432,7 +412,7 @@ namespace sdl {
           }
         }
         if (action.canShrinkVertically()) {
-          // The action requires to shrink: the widget can do that if
+          // The action requires to shrink: the item can do that if
           // its policy is set to `Shrink` and the current size is
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
@@ -448,7 +428,7 @@ namespace sdl {
 
         // Check for growing.
         if (action.canExtendHorizontally()) {
-          // The action requires to shrink: the widget can do that if
+          // The action requires to shrink: the item can do that if
           // its policy is set to `Shrink` and the current size is
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
@@ -462,7 +442,7 @@ namespace sdl {
           }
         }
         if (action.canExtendVertically()) {
-          // The action requires to shrink: the widget can do that if
+          // The action requires to shrink: the item can do that if
           // its policy is set to `Shrink` and the current size is
           // larger than the `min` or if the policy is NOT set with
           // the `Shrink` flag, the `hint` replaces the value.
@@ -479,12 +459,12 @@ namespace sdl {
 
       // If at this point the `usable` pair is still uniformly `false`,
       // we can deduce that:
-      // 1) We don't have a valid hint but the widget can neither shrink
+      // 1) We don't have a valid hint but the item can neither shrink
       //    nor grow to match the desired size.
-      // 2) We have a valid hint but the widget can neither shrink nor
+      // 2) We have a valid hint but the item can neither shrink nor
       //    grow to match the desired size.
-      // It seems like we have a fixed size widget: thus there's no way
-      // the widget can be used to perform the desired `action`.
+      // It seems like we have a fixed size item: thus there's no way
+      // the item can be used to perform the desired `action`.
       // In any case the default values are correct so we can just return
       // the status.
       return usable;

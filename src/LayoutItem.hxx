@@ -74,6 +74,20 @@ namespace sdl {
     }
 
     inline
+    bool
+    LayoutItem::isVisible() const noexcept {
+      return m_visible;
+    }
+
+    inline
+    void
+    LayoutItem::setVisible(bool visible) noexcept {
+      // TODO: Should probably raise a 'hide/show' event ?
+      // Set this widget as visible.
+      m_visible = visible;
+    }
+
+    inline
     void
     LayoutItem::makeGeometryDirty() {
       // Mark the geometry as dirty.
@@ -86,7 +100,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::hasGeometryChanged() const noexcept {
-      return m_geometryDirty;
+      return m_geometryDirty && isVisible();
     }
 
     inline

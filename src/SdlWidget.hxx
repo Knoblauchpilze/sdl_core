@@ -67,15 +67,15 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setVisible(bool isVisible) noexcept {
+    SdlWidget::setVisible(bool visible) noexcept {
       // TODO: Should probably raise a 'hide/show' event ?
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
-      // Set this widget as visible.
-      m_isVisible = isVisible;
+      // Use the base handler to perform needed internal updates.
+      LayoutItem::setVisible(visible);
 
       // Trigger a repaint event if the widget is set to visible.
-      if (m_isVisible) {
+      if (isVisible()) {
         makeContentDirty();
       }
     }
@@ -186,12 +186,6 @@ namespace sdl {
     }
 
     inline
-    bool
-    SdlWidget::hasGeometryChanged() const noexcept {
-      return LayoutItem::hasGeometryChanged() && isVisible();
-    }
-
-    inline
     utils::Vector2f
     SdlWidget::mapToGlobal(const utils::Vector2f& local) const noexcept {
       // To transform `local` coordinate to global, we need to first
@@ -255,12 +249,6 @@ namespace sdl {
 
       // This is the local representation of the input global position.
       return local;
-    }
-
-    inline
-    bool
-    SdlWidget::isVisible() const noexcept {
-      return m_isVisible;
     }
 
     inline

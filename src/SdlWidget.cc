@@ -11,8 +11,6 @@ namespace sdl {
                          const engine::Color& color):
       LayoutItem(name, sizeHint, parent == nullptr),
 
-      m_isVisible(true),
-
       m_children(),
       m_layout(),
       m_palette(engine::Palette::fromButtonColor(color)),
@@ -30,14 +28,9 @@ namespace sdl {
       // Assign the service for this widget.
       setService(std::string("widget"));
 
-      // Register the parent widget: if a layout is registered in the parent widget
-      // we can use this, otherwise use the regular method.
-      if (parent != nullptr && parent->m_layout != nullptr) {
-        parent->m_layout->addItem(this);
-      }
-      else {
-        setParent(parent);
-      }
+      // Assign the input `parent` to this widget: this will also share the engine
+      // and events queue if any is defined in the parent widget.
+      setParent(parent);
     }
 
     SdlWidget::~SdlWidget() {

@@ -15,7 +15,8 @@ namespace sdl {
       m_sizePolicy(),
       m_geometryDirty(true),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
-      m_rootItem(rootItem)
+      m_rootItem(rootItem),
+      m_visible(true)
     {
       setService(std::string("layout_item"));
     }

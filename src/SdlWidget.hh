@@ -46,7 +46,7 @@ namespace sdl {
         ///////////////////
 
         void
-        setVisible(bool isVisible) noexcept;
+        setVisible(bool visible) noexcept override;
 
         /////////////////////
         // Utility methods //
@@ -155,17 +155,11 @@ namespace sdl {
         virtual bool
         hasContentChanged() const noexcept;
 
-        bool
-        hasGeometryChanged() const noexcept override;
-
         utils::Vector2f
         mapToGlobal(const utils::Vector2f& local) const noexcept;
 
         utils::Vector2f
         mapFromGlobal(const utils::Vector2f& global) const noexcept;
-
-        bool
-        isVisible() const noexcept;
 
         bool
         isInsideWidget(const utils::Vector2f& global) const noexcept;
@@ -225,8 +219,6 @@ namespace sdl {
         using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
 
       private:
-
-        bool m_isVisible;
 
         WidgetMap m_children;
         std::shared_ptr<Layout> m_layout;

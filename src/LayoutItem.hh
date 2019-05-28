@@ -52,6 +52,12 @@ namespace sdl {
         bool
         isRootItem() const noexcept;
 
+        bool
+        isVisible() const noexcept;
+
+        virtual void
+        setVisible(bool visible) noexcept;
+
       protected:
 
         virtual void
@@ -140,6 +146,13 @@ namespace sdl {
          *          into any other layout, or if it is a child item of some sort.
          */
         bool        m_rootItem;
+
+        /**
+         * @brief - Used to determine whether the item is visible or not. This is used by layouts
+         *          for example where visibility can determine if an item will get some space or
+         *          not.
+         */
+        bool        m_visible;
     };
 
     using LayoutItemShPtr = std::shared_ptr<LayoutItem>;

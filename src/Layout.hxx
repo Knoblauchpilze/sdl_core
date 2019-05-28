@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     int
-    Layout::addItem(SdlWidget* item,
+    Layout::addItem(LayoutItem* item,
                     const unsigned& /*x*/,
                     const unsigned& /*y*/,
                     const unsigned& /*w*/,
@@ -20,8 +20,8 @@ namespace sdl {
 
     inline
     int
-    Layout::removeItem(SdlWidget* item) {
-      // Assume the widget does not exist (we're a bit pessimistic) and try to find it
+    Layout::removeItem(LayoutItem* item) {
+      // Assume the item does not exist (we're a bit pessimistic) and try to find it
       // from the internal table.
       int index = getIndexOf(item);
 
@@ -72,14 +72,14 @@ namespace sdl {
 
     inline
     int
-    Layout::getIndexOf(SdlWidget* item) const noexcept {
+    Layout::getIndexOf(LayoutItem* item) const noexcept {
       // If the item is not valid, return -1.
       if (item == nullptr) {
         return -1;
       }
 
       // Iterate over the internal items to find one equal to the input.
-      std::vector<SdlWidget*>::const_iterator itemToFind = m_items.cbegin();
+      std::vector<LayoutItem*>::const_iterator itemToFind = m_items.cbegin();
       int itemID = 0;
 
       while (itemToFind != m_items.cend() && item != *itemToFind) {
@@ -97,8 +97,8 @@ namespace sdl {
     }
 
     inline
-    SdlWidget*
-    Layout::getWidgetAt(const int& item) {
+    LayoutItem*
+    Layout::getItemAt(const int& item) {
       // Check whether the identifier is valid.
       if (!isValidIndex(item)) {
         error(
@@ -107,13 +107,13 @@ namespace sdl {
         );
       }
 
-      // Return the widget at this location.
+      // Return the item at this location.
       return m_items[item];
     }
 
     inline
-    const SdlWidget*
-    Layout::getWidgetAt(const int& item) const {
+    const LayoutItem*
+    Layout::getItemAt(const int& item) const {
       // Check whether the identifier is valid.
       if (!isValidIndex(item)) {
         error(
@@ -122,7 +122,7 @@ namespace sdl {
         );
       }
 
-      // Return the widget at this location.
+      // Return the item at this location.
       return m_items[item];
     }
 

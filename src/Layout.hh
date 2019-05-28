@@ -28,17 +28,17 @@ namespace sdl {
         virtual ~Layout();
 
         virtual int
-        addItem(SdlWidget* item);
+        addItem(LayoutItem* item);
 
         virtual int
-        addItem(SdlWidget* item,
+        addItem(LayoutItem* item,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,
                 const unsigned& h);
 
         virtual int
-        removeItem(SdlWidget* item);
+        removeItem(LayoutItem* item);
 
         int
         getItemsCount() const noexcept;
@@ -64,16 +64,16 @@ namespace sdl {
         computeGeometry(const utils::Boxf& window) = 0;
 
         int
-        getIndexOf(SdlWidget* item) const noexcept;
+        getIndexOf(LayoutItem* item) const noexcept;
 
         int
         getIndexOf(const std::string& name) const noexcept;
 
-        SdlWidget*
-        getWidgetAt(const int& item);
+        LayoutItem*
+        getItemAt(const int& item);
 
-        const SdlWidget*
-        getWidgetAt(const int& item) const;
+        const LayoutItem*
+        getItemAt(const int& item) const;
 
         bool
         isValidIndex(const int& id) const noexcept;
@@ -86,7 +86,7 @@ namespace sdl {
 
         /**
          * @brief - Assigned the rendering areas defined in the input `boxes` vector based on their
-         *          position in the vector to the corresponding widget in the internal `m_items` array.
+         *          position in the vector to the corresponding item in the internal `m_items` array.
          *          The areas are translated from a top left representation into a centered
          *          representation using the provided `window` parameter which describes the absolute
          *          position of the coordinate frame each box is related to.
@@ -127,7 +127,7 @@ namespace sdl {
         };
 
         std::vector<WidgetInfo>
-        computeWidgetsInfo() const noexcept;
+        computeItemsInfo() const noexcept;
 
         float
         allocateFairly(const float& space,
@@ -158,8 +158,7 @@ namespace sdl {
 
         friend class SdlWidget;
 
-        SdlWidget* m_widget;
-        std::vector<SdlWidget*> m_items;
+        std::vector<LayoutItem*> m_items;
         utils::Sizef m_margin;
     };
 

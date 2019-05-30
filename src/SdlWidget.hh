@@ -34,23 +34,11 @@ namespace sdl {
 
         virtual ~SdlWidget();
 
-        ///////////////////
-        // Size handling //
-        ///////////////////
-
         utils::Boxf
         getRenderingArea() const noexcept override;
 
-        ///////////////////
-        // Size handling //
-        ///////////////////
-
         void
         setVisible(bool visible) noexcept override;
-
-        /////////////////////
-        // Utility methods //
-        /////////////////////
 
         void
         setLayout(std::shared_ptr<Layout> layout) noexcept;
@@ -61,18 +49,10 @@ namespace sdl {
         void
         setEngine(engine::EngineShPtr engine) noexcept;
 
-        /////////////////////
-        // Utility methods //
-        /////////////////////
-
         virtual utils::Uuid
         draw();
 
       protected:
-
-        ///////////////////
-        // Size handling //
-        ///////////////////
 
         void
         makeContentDirty() noexcept;
@@ -88,27 +68,6 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& window) override;
 
-        ///////////////////
-        // Size handling //
-        ///////////////////
-
-        /////////////////////
-        // Events handling //
-        /////////////////////
-
-        /**
-         * @brief -  Reimplementation of the base method defined in `engine::EngineObject`:
-         *           using this method we know that the events filters have already been 
-         *           applied and we can safely process the event `e`.
-         *           This method adds transmission to the event received to children widget
-         *           if it is not accepted by this widget.
-         * @param e - the event to process.
-         * @return - true if the event was recognized (should almost always be the case) and
-         *           false otherwise.
-         */
-        bool
-        handleEvent(engine::EventShPtr e) override;
-
         bool
         enterEvent(const engine::EnterEvent& e) override;
 
@@ -123,14 +82,6 @@ namespace sdl {
 
         bool
         resizeEvent(const engine::ResizeEvent& e) override;
-
-        /////////////////////
-        // Events handling //
-        /////////////////////
-
-        /////////////////////
-        // Utility methods //
-        /////////////////////
 
         unsigned
         getChildrenCount() const noexcept;
@@ -167,14 +118,6 @@ namespace sdl {
         bool
         isBlockedByChild(const utils::Vector2f& global) const noexcept;
 
-        /////////////////////
-        // Utility methods //
-        /////////////////////
-
-        ///////////////////////
-        // Rendering methods //
-        ///////////////////////
-
         virtual utils::Uuid
         createContentPrivate() const;
 
@@ -183,10 +126,6 @@ namespace sdl {
 
         virtual void
         drawContentPrivate(const utils::Uuid& uuid) const;
-
-        ///////////////////////
-        // Rendering methods //
-        ///////////////////////
 
       private:
 

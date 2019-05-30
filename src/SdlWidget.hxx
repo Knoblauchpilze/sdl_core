@@ -6,20 +6,12 @@
 namespace sdl {
   namespace core {
 
-    ///////////////////
-    // Size handling //
-    ///////////////////
-
     inline
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       return LayoutItem::getRenderingArea();
     }
-
-    ///////////////
-    // Internals //
-    ///////////////
 
     inline
     void
@@ -61,14 +53,9 @@ namespace sdl {
       }
     }
 
-    ///////////////////
-    // Size handling //
-    ///////////////////
-
     inline
     void
     SdlWidget::setVisible(bool visible) noexcept {
-      // TODO: Should probably raise a 'hide/show' event ?
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Use the base handler to perform needed internal updates.
@@ -79,10 +66,6 @@ namespace sdl {
         makeContentDirty();
       }
     }
-
-    /////////////////////
-    // Utility methods //
-    /////////////////////
 
     inline
     void
@@ -124,10 +107,6 @@ namespace sdl {
 
       makeContentDirty();
     }
-
-    ///////////////
-    // Internals //
-    ///////////////
 
     inline
     unsigned
@@ -284,14 +263,6 @@ namespace sdl {
       return false;
     }
 
-    /////////////////////
-    // Utility methods //
-    /////////////////////
-
-    /////////////////////
-    // Events handling //
-    /////////////////////
-
     inline
     bool
     SdlWidget::enterEvent(const engine::EnterEvent& e) {
@@ -371,14 +342,6 @@ namespace sdl {
       return engine::EngineObject::mouseMoveEvent(e);
     }
 
-    /////////////////////
-    // Events handling //
-    /////////////////////
-
-    ///////////////////////
-    // Rendering methods //
-    ///////////////////////
-
     inline
     utils::Uuid
     SdlWidget::createContentPrivate() const {
@@ -407,10 +370,6 @@ namespace sdl {
     SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/) const {
       // Empty implementation.
     }
-
-    ///////////////////////
-    // Rendering methods //
-    ///////////////////////
 
     inline
     void

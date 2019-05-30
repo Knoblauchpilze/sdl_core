@@ -109,29 +109,6 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::handleEvent(engine::EventShPtr e) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-
-      // Handle this event using the base handler.
-      const bool recognized = engine::EngineObject::handleEvent(e);
-
-      // Check whether the event has been accepted before dispatching to children.
-      if (!e->isAccepted()) {
-        // Dispatch to visible children.
-        WidgetMap::const_iterator widget = m_children.cbegin();
-
-        while (widget != m_children.cend() && !e->isAccepted()) {
-          if (widget->second->isVisible()) {
-            widget->second->event(e);
-          }
-          ++widget;
-        }
-      }
-
-      return recognized;
-    }
-
-    bool
     SdlWidget::repaintEvent(const engine::PaintEvent& e) {
       // In order to repaint the widget, a valid rendering area
       // must have been defined through another process (usually

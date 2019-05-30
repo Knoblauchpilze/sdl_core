@@ -114,6 +114,12 @@ namespace sdl {
       return m_children.size();
     }
 
+    inline
+    bool
+    SdlWidget::hasLayout() const noexcept {
+      return m_layout != nullptr;
+    }
+
     template <typename WidgetType>
     inline
     WidgetType*
@@ -373,24 +379,6 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::clearTexture() {
-      if (m_content.valid()) {
-        getEngine().destroyTexture(m_content);
-        m_content.invalidate();
-      }
-    }
-
-    inline
-    void
-    SdlWidget::setParent(SdlWidget* parent) {
-      m_parent = parent;
-      if (m_parent != nullptr) {
-        m_parent->addWidget(this);
-      }
-    }
-
-    inline
-    void
     SdlWidget::addWidget(SdlWidget* widget) {
       // Check for null widget.
       if (widget == nullptr) {
@@ -410,6 +398,24 @@ namespace sdl {
       shareData(widget);
 
       m_children[widget->getName()] = widget;
+    }
+
+    inline
+    void
+    SdlWidget::clearTexture() {
+      if (m_content.valid()) {
+        getEngine().destroyTexture(m_content);
+        m_content.invalidate();
+      }
+    }
+
+    inline
+    void
+    SdlWidget::setParent(SdlWidget* parent) {
+      m_parent = parent;
+      if (m_parent != nullptr) {
+        m_parent->addWidget(this);
+      }
     }
 
     inline

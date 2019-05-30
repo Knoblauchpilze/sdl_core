@@ -61,8 +61,8 @@ namespace sdl {
         makeGeometryDirty() override;
 
         /**
-         * @brief - Reimplementation of the base class method to provide update of the layout
-         *          for this widget if any.
+         * @brief - Reimplementation of the base class method to provide update
+         *          of the layout for this widget if any.
          * @param window - the available size to perform the update.
          */
         void
@@ -85,6 +85,9 @@ namespace sdl {
 
         unsigned
         getChildrenCount() const noexcept;
+
+        bool
+        hasLayout() const noexcept;
 
         template <typename WidgetType>
         WidgetType*
@@ -127,6 +130,22 @@ namespace sdl {
         virtual void
         drawContentPrivate(const utils::Uuid& uuid) const;
 
+        /**
+         * @brief - Proceeds to add the input `widget` as a child of this object.
+         *          No automatic insertion in the layout is performed, but the
+         *          utilities objects are shared (such as the events queue and
+         *          the engine for instance).
+         *          Inheriting classes may override this method to provide specific
+         *          behavior upon inserting a widget, such as inserting it to a
+         *          layout, modifying its background color, etc.
+         *          This function is called by children widget when they're added
+         *          to a widget as a child.
+         *          Note that trying to add a null widget will raise an error.
+         * @param widget - the widget to insert in this object.
+         */
+        virtual void
+        addWidget(SdlWidget* widget);
+
       private:
 
         void
@@ -134,9 +153,6 @@ namespace sdl {
 
         void
         setParent(SdlWidget* parent);
-
-        void
-        addWidget(SdlWidget* widget);
 
         /**
          * @brief - Used to share the configuration data of this widget with the

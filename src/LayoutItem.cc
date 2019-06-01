@@ -7,6 +7,7 @@ namespace sdl {
     LayoutItem::LayoutItem(const std::string& name,
                            const utils::Sizef& sizeHint,
                            const bool rootItem,
+                           const bool virtualLayout,
                            const bool allowLog):
       engine::EngineObject(name, allowLog),
       m_minSize(),
@@ -16,7 +17,8 @@ namespace sdl {
       m_geometryDirty(true),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
       m_rootItem(rootItem),
-      m_visible(true)
+      m_visible(true),
+      m_virtualLayout(virtualLayout)
     {
       setService(std::string("layout_item"));
     }
@@ -28,7 +30,7 @@ namespace sdl {
       // the `geometryUpdateEvent` should already be
       // triggered at the most appropriate time.
       if (hasGeometryChanged()) {
-        log(std::string("Updating geometry for layout item"));
+        log(std::string("Updating geometry for layout item"), utils::Level::Warning);
 
         updatePrivate(m_area);
 

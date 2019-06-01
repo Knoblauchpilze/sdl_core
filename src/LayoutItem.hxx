@@ -93,8 +93,11 @@ namespace sdl {
       // Mark the geometry as dirty.
       m_geometryDirty = true;
 
-      // Trigger a geometry update event.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
+      // Trigger a geometry update event if this item is not part of a
+      // virtual hierarchy.
+      if (!m_virtualLayout) {
+        postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
+      }
     }
 
     inline

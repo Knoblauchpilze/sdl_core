@@ -5,12 +5,13 @@
 namespace sdl {
   namespace core {
 
-    Layout::Layout(SdlWidget* widget,
+    Layout::Layout(const std::string& name,
+                   SdlWidget* widget,
                    const float& margin,
+                   const bool rootLayout,
                    const bool allowLog,
-                   const std::string& name,
-                   const bool rootLayout):
-      LayoutItem(name, utils::Sizef(), rootLayout, allowLog),
+                   const bool virtualLayout):
+      LayoutItem(name, utils::Sizef(), rootLayout, virtualLayout, allowLog),
       m_items(),
       m_margin(utils::Sizef(margin, margin))
     {

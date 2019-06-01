@@ -54,6 +54,16 @@ namespace sdl {
 
     inline
     void
+    Layout::update(const utils::Boxf& window) {
+      // Check if this item is a virtual layout, in which case we can proceed
+      // to calling the `updatePrivate` method.
+      if (isVirtual()) {
+        updatePrivate(window);
+      }
+    }
+
+    inline
+    void
     Layout::removeItemFromIndex(int item) {
       // Check whether this item can be removed.
       if (!isValidIndex(item)) {

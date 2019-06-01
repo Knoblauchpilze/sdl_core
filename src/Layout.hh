@@ -49,13 +49,30 @@ namespace sdl {
         const utils::Sizef&
         getMargin() const noexcept;
 
+        /**
+         * @brief - Used in case this layout is a virtual layout to trigger a
+         *          recomputation of this object. Note that most users should
+         *          never use this function and rather use the standard way
+         *          of adding item and letting the events system do its job,
+         *          but in the case of a layout which is used by another layout
+         *          for example, this method can be triggered when the parent
+         *          layout needs to take advantage of the virtual layout to
+         *          perform its processing.
+         *          Note that this method will do nothing if the layout is not
+         *          virtual.
+         * @param window - the available space for the layout to be computed.
+         */
+        void
+        update(const utils::Boxf& window);
+
       protected:
 
-        Layout(SdlWidget* widget = nullptr,
+        Layout(const std::string& name,
+               SdlWidget* widget = nullptr,
                const float& margin = 0.0f,
+               const bool rootLayout = false,
                const bool allowLog = false,
-               const std::string& name = std::string("Layout"),
-               const bool rootLayout = false);
+               const bool virtualLayout = false);
 
         void
         updatePrivate(const utils::Boxf& window) override;

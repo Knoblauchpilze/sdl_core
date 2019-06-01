@@ -7,7 +7,7 @@ namespace sdl {
     LayoutItem::LayoutItem(const std::string& name,
                            const utils::Sizef& sizeHint,
                            const bool rootItem,
-                           const bool virtualLayout,
+                           const bool virtualItem,
                            const bool allowLog):
       engine::EngineObject(name, allowLog),
       m_minSize(),
@@ -18,7 +18,7 @@ namespace sdl {
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
       m_rootItem(rootItem),
       m_visible(true),
-      m_virtualLayout(virtualLayout)
+      m_virtual(virtualItem)
     {
       setService(std::string("layout_item"));
     }

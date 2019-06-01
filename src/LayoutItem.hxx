@@ -75,6 +75,12 @@ namespace sdl {
 
     inline
     bool
+    LayoutItem::isVirtual() const noexcept {
+      return m_virtual;
+    }
+
+    inline
+    bool
     LayoutItem::isVisible() const noexcept {
       return m_visible;
     }
@@ -95,7 +101,7 @@ namespace sdl {
 
       // Trigger a geometry update event if this item is not part of a
       // virtual hierarchy.
-      if (!m_virtualLayout) {
+      if (!isVirtual()) {
         postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
       }
     }

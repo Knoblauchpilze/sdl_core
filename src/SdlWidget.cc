@@ -50,6 +50,7 @@ namespace sdl {
     utils::Uuid
     SdlWidget::draw() {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
+      // TODO: Are we sure that events are also locking this mutex ??
 
       // Clear the content and draw the new version.
       clearContentPrivate(m_content);
@@ -140,12 +141,6 @@ namespace sdl {
         clearTexture();
         m_content = createContentPrivate();
         m_contentDirty = false;
-      }
-
-      // Mark the event as accepted if it is directed only through this
-      // object.
-      if (isReceiver(e)) {
-        e.accept();
       }
 
       // Use base handler to determine whether the event was recognized.

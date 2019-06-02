@@ -271,6 +271,16 @@ namespace sdl {
 
     inline
     bool
+    SdlWidget::handleEvent(engine::EventShPtr e) {
+      // Lock the widget to prevent concurrent accesses.
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      // Use and return the value provided by the base handler.
+      return LayoutItem::handleEvent(e);
+    }
+
+    inline
+    bool
     SdlWidget::enterEvent(const engine::EnterEvent& e) {
       // Update the role of the background texture.
       getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);

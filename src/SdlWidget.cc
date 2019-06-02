@@ -50,7 +50,6 @@ namespace sdl {
     utils::Uuid
     SdlWidget::draw() {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      // TODO: Are we sure that events are also locking this mutex ??
 
       // Clear the content and draw the new version.
       clearContentPrivate(m_content);

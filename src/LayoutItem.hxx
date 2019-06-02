@@ -88,7 +88,19 @@ namespace sdl {
     inline
     void
     LayoutItem::setVisible(bool visible) noexcept {
-      // TODO: Should probably raise a 'hide/show' event ?
+      // Post a show/hide event based on the status of the input `visible` status.
+      engine::EventShPtr e;
+
+      if (visible) {
+        e = std::make_shared<engine::Event>(engine::Event::Type::Show, this);
+      }
+      else {
+        e = std::make_shared<engine::Event>(engine::Event::Type::Hide, this);
+      }
+
+      // Post this event.
+      postEvent(e);
+
       // Set this widget as visible.
       m_visible = visible;
     }
@@ -130,6 +142,26 @@ namespace sdl {
       if (m_area != window) {
         m_area = window;
       }
+    }
+
+    inline
+    bool
+    LayoutItem::hideEvent(const engine::Event& e) {
+      // Assign the visible status to `false`.
+      m_visible = false;
+
+      // Use the base handler to determine the return value.
+      return engine::EngineObject::hideEvent(e);
+    }
+
+    inline
+    bool
+    LayoutItem::showEvent(const engine::Event& e) {
+      // Assign the visible status to `true`.
+      m_visible = true;
+
+      // Use the base handler to determine the return value.
+      return engine::EngineObject::showEvent(e);
     }
 
   }

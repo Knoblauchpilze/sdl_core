@@ -119,7 +119,13 @@ namespace sdl {
         geometryUpdateEvent(const engine::Event& e) override;
 
         bool
+        hideEvent(const engine::Event& e) override;
+
+        bool
         resizeEvent(const engine::ResizeEvent& e) override;
+
+        bool
+        showEvent(const engine::Event& e) override;
 
       private:
 

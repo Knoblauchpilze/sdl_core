@@ -68,6 +68,20 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& window) override;
 
+        /**
+         * @bruef - Reimplementation of the base `EngineObject` method to provide
+         *          a lock of the widget when processing events. This allows to
+         *          prevent the rendering engine to access concurrently to the data
+         *          of this widget while some events are being processed.
+         *          No other specific behavior is added.
+         *          Note that calling this method is equivalent to calling the base
+         *          `EngineObject` method, it only adds the mutex overhead.
+         * @param e - the event to handle.
+         * @return - true if the event was recognized, false otherwise.
+         */
+        bool
+        handleEvent(engine::EventShPtr e) override;
+
         bool
         enterEvent(const engine::EnterEvent& e) override;
 

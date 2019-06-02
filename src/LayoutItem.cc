@@ -37,12 +37,6 @@ namespace sdl {
         geometryRecomputed();
       }
 
-      // Mark the event as accepted if it is directed only through this
-      // object.
-      if (isReceiver(e)) {
-        e.accept();
-      }
-
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::geometryUpdateEvent(e);
     }
@@ -62,12 +56,6 @@ namespace sdl {
       // Once the internal size has been updated, we need to both recompute
       // the geometry and then perform a repaint. Post both events.
       makeGeometryDirty();
-
-      // Mark the event as accepted if it is directed only through this
-      // object.
-      if (isReceiver(e)) {
-        e.accept();
-      }
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::resizeEvent(e);

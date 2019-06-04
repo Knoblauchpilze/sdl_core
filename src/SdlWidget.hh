@@ -52,6 +52,15 @@ namespace sdl {
         virtual utils::Uuid
         draw();
 
+        /**
+         * @brief - Reimplementation of the `EngineoBject` class method so
+         *          that we also assign the events queue to the children
+         *          widget if any.
+         * @param queue - the events queue to assign to this widget.
+         */
+        void
+        setEventsQueue(engine::EventsQueue* queue) noexcept override;
+
       protected:
 
         void

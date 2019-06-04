@@ -15,6 +15,26 @@ namespace sdl {
 
     inline
     void
+    SdlWidget::setEventsQueue(engine::EventsQueue* queue) noexcept {
+      // Use the base handler to assign the events queue to this widget.
+      LayoutItem::setEventsQueue(queue);
+
+      // Assign the events queue to the layout if any.
+      if (hasLayout()) {
+        registerToSameQueue(m_layout.get());
+      }
+
+      // Also assign the queue to the children of this widget.
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        registerToSameQueue(widget->second);
+      }
+    }
+
+    inline
+    void
     SdlWidget::makeContentDirty() noexcept {
       // Mark the content as dirty.
       m_contentDirty = true;
@@ -30,7 +50,7 @@ namespace sdl {
       LayoutItem::makeGeometryDirty();
 
       // Invalidate the layout if any.
-      if (m_layout != nullptr) {
+      if (hasLayout()) {
         m_layout->makeGeometryDirty();
       }
     }
@@ -48,7 +68,7 @@ namespace sdl {
       // Update the layout if any.
       log(std::string("Updating layout for widget"));
 
-      if (m_layout != nullptr) {
+      if (hasLayout()) {
         postEvent(std::make_shared<engine::ResizeEvent>(window, old, m_layout.get()));
       }
     }
@@ -74,7 +94,7 @@ namespace sdl {
       m_layout = layout;
 
       // Share the events queue if needed.
-      if (m_layout != nullptr) {
+      if (hasLayout()) {
         registerToSameQueue(m_layout.get());
       }
 

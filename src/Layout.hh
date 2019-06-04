@@ -27,9 +27,46 @@ namespace sdl {
 
         virtual ~Layout();
 
+        /**
+         * @brief - Adds the specified `item` to this layout and returns the index of the item
+         *          in the layout.
+         *          Note that if the `item` is not considered valid a negative value is returned.
+         * @param itme - the item to add to this layout.
+         * @return - a positive value corresponding to the index of the item in the layout if it
+         *           could successfully be added or a negative value (usually `-1`) if something
+         *           went wrong.
+         */
         virtual int
         addItem(LayoutItem* item);
 
+        /**
+         * @brief - Adds the specified `item` to this layout and returns the index of the item
+         *          in the layout.
+         *          Note that this function is not specialized in this class and thus is similar
+         *          to calling the `addItem` method.
+         * @param item - the item to add to this layout.
+         * @param index - the position at which the item should be added in this layout.
+         * @return - the position of the item in the layout or a negative value (usually `-1`) if
+         *           something went wrong.
+         */
+        virtual int
+        addItem(LayoutItem* item,
+                const int& index);
+
+        /**
+         * @brief - Adds the specified `item` to this layout and returns the index of the item
+         *          in the layout. The user can specify the position of the item using a grid
+         *          and dimensions.
+         *          Note that this function is not specialized in this class and thus is similar
+         *          to calling the `addItem` method.
+         * @param item - the item to add to this layout.
+         * @param x - the abscissa of the position to which the item should be added.
+         * @param y - the ordinate of the position to which the item should be added.
+         * @param w - the width of the item in this layout in terms of cells.
+         * @param h - the height of the item in this layout in temrs of cells.
+         * @return - the position of the item in the layout or a negative value (usually `-1`)
+         *           if something went wrong.
+         */
         virtual int
         addItem(LayoutItem* item,
                 const unsigned& x,

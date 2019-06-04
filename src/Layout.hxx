@@ -9,6 +9,15 @@ namespace sdl {
     inline
     int
     Layout::addItem(LayoutItem* item,
+                    const int& /*index*/)
+    {
+      // No specialization at this level.
+      return addItem(item);
+    }
+
+    inline
+    int
+    Layout::addItem(LayoutItem* item,
                     const unsigned& /*x*/,
                     const unsigned& /*y*/,
                     const unsigned& /*w*/,

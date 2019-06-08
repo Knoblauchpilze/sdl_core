@@ -9,9 +9,8 @@ namespace sdl {
                    SdlWidget* widget,
                    const float& margin,
                    const bool rootLayout,
-                   const bool allowLog,
                    const bool virtualLayout):
-      LayoutItem(name, utils::Sizef(), rootLayout, virtualLayout, allowLog),
+      LayoutItem(name, utils::Sizef(), rootLayout, virtualLayout),
       m_items(),
       m_margin(utils::Sizef(margin, margin))
     {

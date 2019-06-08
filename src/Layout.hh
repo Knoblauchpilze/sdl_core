@@ -117,7 +117,6 @@ namespace sdl {
                SdlWidget* widget = nullptr,
                const float& margin = 0.0f,
                const bool rootLayout = false,
-               const bool allowLog = false,
                const bool virtualLayout = false);
 
         void

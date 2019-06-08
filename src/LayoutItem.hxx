@@ -69,8 +69,8 @@ namespace sdl {
 
     inline
     bool
-    LayoutItem::isRootItem() const noexcept {
-      return m_rootItem;
+    LayoutItem::isNested() const noexcept {
+      return m_nested;
     }
 
     inline
@@ -132,8 +132,8 @@ namespace sdl {
 
     inline
     void
-    LayoutItem::setRoot(const bool isRoot) {
-      m_rootItem = isRoot;
+    LayoutItem::setNested(const bool nested) {
+      m_nested = nested;
     }
 
     inline

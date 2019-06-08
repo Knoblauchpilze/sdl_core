@@ -36,10 +36,10 @@ namespace sdl {
          *                   an invalid hint which indicates that this layout item
          *                   will be assigned the most relevant size by the layout
          *                   engine.
-         * @param rootItem - true if this item is not nested into another layout,
-         *                   false otherwise. When this value is true it assumes
-         *                   that all areas given to the layout item, notably
-         *                   through events won't be converted before using them.
+         * @param nested - true if this item is nested into another layout, false
+         *                 otherwise. When this value is true we assume that all
+         *                 areas given to the layout item, notably through events
+         *                 won't have to be converted before using them.
          * @param virtualItem - true if this item is part of a virtual layout
          *                      hierarchy, which means that it is handled by
          *                      some other external sources which will trigger
@@ -49,7 +49,7 @@ namespace sdl {
          */
         LayoutItem(const std::string& name,
                    const utils::Sizef& sizeHint = utils::Sizef(),
-                   const bool rootItem = false,
+                   const bool nested = false,
                    const bool virtualItem = false);
 
         virtual ~LayoutItem();
@@ -82,7 +82,7 @@ namespace sdl {
         getRenderingArea() const noexcept;
 
         bool
-        isRootItem() const noexcept;
+        isNested() const noexcept;
 
         bool
         isVirtual() const noexcept;
@@ -107,7 +107,7 @@ namespace sdl {
 
         virtual
         void
-        setRoot(const bool isRoot);
+        setNested(const bool nested);
 
         virtual void
         updatePrivate(const utils::Boxf& window);
@@ -183,10 +183,10 @@ namespace sdl {
         utils::Boxf m_area;
 
         /**
-         * @brief - Used to determine whether this item is a root item, meaning it is not embedded
-         *          into any other layout, or if it is a child item of some sort.
+         * @brief - Used to determine whether this item is nested into another layout item, meaning 
+         *          areas provided to this item won't have to be converted to be used.
          */
-        bool        m_rootItem;
+        bool        m_nested;
 
         /**
          * @brief - Used to determine whether the item is visible or not. This is used by layouts

@@ -6,7 +6,7 @@ namespace sdl {
 
     LayoutItem::LayoutItem(const std::string& name,
                            const utils::Sizef& sizeHint,
-                           const bool rootItem,
+                           const bool nested,
                            const bool virtualItem):
       engine::EngineObject(name),
       m_minSize(),
@@ -15,7 +15,7 @@ namespace sdl {
       m_sizePolicy(),
       m_geometryDirty(true),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
-      m_rootItem(rootItem),
+      m_nested(nested),
       m_visible(true),
       m_virtual(virtualItem)
     {
@@ -50,7 +50,7 @@ namespace sdl {
       // Assign the area.
       m_area = e.getNewSize();
 
-      log(std::string("Area is now ") + m_area.toString(), utils::Level::Notice);
+      log(std::string("Area is now ") + m_area.toString(), utils::Level::Info);
 
       // Once the internal size has been updated, we need to both recompute
       // the geometry and then perform a repaint. Post both events.

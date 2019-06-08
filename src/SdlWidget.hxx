@@ -66,8 +66,6 @@ namespace sdl {
       LayoutItem::updatePrivate(window);
 
       // Update the layout if any.
-      log(std::string("Updating layout for widget"));
-
       if (hasLayout()) {
         postEvent(std::make_shared<engine::ResizeEvent>(window, old, m_layout.get()));
       }

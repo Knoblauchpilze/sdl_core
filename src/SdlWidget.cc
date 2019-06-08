@@ -104,7 +104,7 @@ namespace sdl {
             &render
           );
         },
-        std::string("draw_child")
+        std::string("draw_child(") + child.getName() + ")"
       );
     }
 

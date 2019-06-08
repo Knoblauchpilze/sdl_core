@@ -36,10 +36,11 @@ namespace sdl {
          *                   an invalid hint which indicates that this layout item
          *                   will be assigned the most relevant size by the layout
          *                   engine.
-         * @param nested - true if this item is nested into another layout, false
-         *                 otherwise. When this value is true we assume that all
-         *                 areas given to the layout item, notably through events
-         *                 won't have to be converted before using them.
+         * @param needsConvert - true if this item is nested into another layout,
+         *                       false otherwise. When this value is true we assume
+         *                       that all areas given to the layout item, notably
+         *                       through events won't have to be converted before
+         *                       using them.
          * @param virtualItem - true if this item is part of a virtual layout
          *                      hierarchy, which means that it is handled by
          *                      some other external sources which will trigger
@@ -49,7 +50,7 @@ namespace sdl {
          */
         LayoutItem(const std::string& name,
                    const utils::Sizef& sizeHint = utils::Sizef(),
-                   const bool nested = false,
+                   const bool needsConvert = true,
                    const bool virtualItem = false);
 
         virtual ~LayoutItem();
@@ -84,8 +85,20 @@ namespace sdl {
         bool
         isNested() const noexcept;
 
+        void
+        setNested(const bool nested);
+
+        bool
+        needsConvert() const noexcept;
+
+        void
+        setNeedsConvert(const bool needsConvert);
+
         bool
         isVirtual() const noexcept;
+
+        void
+        setVirtual(const bool virtualItem);
 
         bool
         isVisible() const noexcept;
@@ -104,10 +117,6 @@ namespace sdl {
         virtual
         void
         geometryRecomputed() noexcept;
-
-        virtual
-        void
-        setNested(const bool nested);
 
         virtual void
         updatePrivate(const utils::Boxf& window);
@@ -183,10 +192,19 @@ namespace sdl {
         utils::Boxf m_area;
 
         /**
-         * @brief - Used to determine whether this item is nested into another layout item, meaning 
-         *          areas provided to this item won't have to be converted to be used.
+         * @brief - Used to determine whether this item is nested into another layout item, meaning
+         *          areas provided to this item will need to be updated with the parent's information
+         *          before using them. This allows for using layout to position component which are
+         *          children of another layout item.
          */
         bool        m_nested;
+
+        /**
+         * @brief - Used to determine whether the boxes provided by this item using the method called
+         *          `assignRenderingAreas` should be converted before assigning them to the various
+         *          items or not.
+         */
+        bool        m_needsConvert;
 
         /**
          * @brief - Used to determine whether the item is visible or not. This is used by layouts

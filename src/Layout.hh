@@ -115,9 +115,7 @@ namespace sdl {
 
         Layout(const std::string& name,
                SdlWidget* widget = nullptr,
-               const float& margin = 0.0f,
-               const bool nested = false,
-               const bool virtualLayout = false);
+               const float& margin = 0.0f);
 
         void
         updatePrivate(const utils::Boxf& window) override;

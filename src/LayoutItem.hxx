@@ -74,9 +74,33 @@ namespace sdl {
     }
 
     inline
+    void
+    LayoutItem::setNested(const bool nested) {
+      m_nested = nested;
+    }
+
+    inline
+    bool
+    LayoutItem::needsConvert() const noexcept {
+      return m_needsConvert;
+    }
+
+    inline
+    void
+    LayoutItem::setNeedsConvert(const bool needsConvert) {
+      m_needsConvert = needsConvert;
+    }
+
+    inline
     bool
     LayoutItem::isVirtual() const noexcept {
       return m_virtual;
+    }
+
+    inline
+    void
+    LayoutItem::setVirtual(const bool virtualItem) {
+      m_virtual = virtualItem;
     }
 
     inline
@@ -128,12 +152,6 @@ namespace sdl {
     void
     LayoutItem::geometryRecomputed() noexcept {
       m_geometryDirty = false;
-    }
-
-    inline
-    void
-    LayoutItem::setNested(const bool nested) {
-      m_nested = nested;
     }
 
     inline

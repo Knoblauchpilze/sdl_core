@@ -8,9 +8,9 @@ namespace sdl {
     Layout::Layout(const std::string& name,
                    SdlWidget* widget,
                    const float& margin,
-                   const bool rootLayout,
+                   const bool nested,
                    const bool virtualLayout):
-      LayoutItem(name, utils::Sizef(), rootLayout, virtualLayout),
+      LayoutItem(name, utils::Sizef(), nested, virtualLayout),
       m_items(),
       m_margin(utils::Sizef(margin, margin))
     {
@@ -98,43 +98,49 @@ namespace sdl {
     {
       // Assign the rendering area to items.
       for (unsigned index = 0u; index < boxes.size() ; ++index) {
-        // Note that the compute bboxes cannot be assigned directly to the item.
-        // Indeed the computations are done using a coordinate frame which looks
-        // like this:
-        //
-        //  O +--------> x
-        //    |
-        //    |
-        //    |
-        //  y v
-        //
-        // This coordinate frame should be transformed into a coordinate frame
-        // which looks like this:
-        //
-        //           y ^
-        //             |
-        //             |
-        //             |
-        //  O <--------+--------> x
-        //
-        // To obtain the final coordinates we thus need to transform the positions
-        // like so:
-        //
-        // newX = x - (offsetX - globalOffsetX)
-        // newY = (offsetY - globalOffsetY) - y
+        // The origin of the coordinate frame of the rendering areas is defined as
+        // the center of the area available in the parent widget.
+        // When exporting from `computeGeometry`, the input `boxes` are defined such
+        // that the `x` and `y` coordinate corresponds to the position of the top
+        // left corner of the box. But we want to provide a centered box to assign
+        // to the widget. Thus we need to convert from this top left representation
+        // into a centered one.
+        // Also, the input `boxes` are computed relatively to the `window` which
+        // means that the implicit origin for the top left coordinate corresponds
+        // to the half-dimensions of the `window`. So we need to factor that out
+        // when computing the coordinates of the center of each box.
 
-        // Convert the bbox to match the required coordinate frame if needed.
+        // We provide a way to bypass this mechanism by defining the layout as
+        // nested: in this case we assume that the layout is part of a hierarchy of
+        // component in which case the areas will already be provided by some other
+        // layout, and thus already converted.
+
         utils::Boxf converted = boxes[index];
-        if (!isRootItem()) {
-          converted = utils::Boxf(
-            boxes[index].x() - (window.x() - (window.x() - window.w() / 2.0f)),
-            window.y() - boxes[index].y() - (window.y() - window.h() / 2.0f),
-            boxes[index].w(),
-            boxes[index].h()
-          );
+
+        if (!isNested()) {
+          // So first compute the coordinates of the center of the box, by using the
+          // position of the top left corner and adding the half-dimensions.
+          const float xCenter = boxes[index].x() + boxes[index].w() / 2.0f - window.w() / 2.0f;
+          const float yCenter = boxes[index].y() + boxes[index].h() / 2.0f - window.h() / 2.0f;
+
+          // Now we need to convert into a relative coordinate frame based on the
+          // `window` argument: basically the center of the `window` box (i.e. the
+          // point of coordinates `[window.x(), window.y()]` as the `window` is
+          // provided using a *centered* represetnation) will be transformed to
+          // `[0; 0]` and we must adapt the computed `[xCenter; yCenter]` to the
+          // same convention.
+
+          // Compute the offset needed between the desired center and the center of the
+          // input `window`. Note that as the `y` axis is inverted, the expressions for
+          // `x` and `y` differ slightly.
+          const float offsetX = xCenter - window.x();
+          const float offsetY = window.y() - yCenter;
+
+          // Create a converted box.
+          converted = utils::Boxf(offsetX, offsetY, boxes[index].w(), boxes[index].h());
         }
 
-        log("Assigning rendering area for " + m_items[index]->getName() + " to " + converted.toString());
+        log("Assigning rendering area for " + m_items[index]->getName() + " to " + converted.toString() + " from " + boxes[index].toString() + " (window: " + window.toString() + ")");
 
         postEvent(std::make_shared<engine::ResizeEvent>(converted, m_items[index]->getRenderingArea(), m_items[index]));
       }

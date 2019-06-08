@@ -35,6 +35,15 @@ namespace sdl {
 
     inline
     void
+    SdlWidget::setParent(SdlWidget* parent) {
+      m_parent = parent;
+      if (m_parent != nullptr) {
+        m_parent->addWidget(this);
+      }
+    }
+
+    inline
+    void
     SdlWidget::makeContentDirty() noexcept {
       // Mark the content as dirty.
       m_contentDirty = true;
@@ -422,15 +431,6 @@ namespace sdl {
       if (m_content.valid()) {
         getEngine().destroyTexture(m_content);
         m_content.invalidate();
-      }
-    }
-
-    inline
-    void
-    SdlWidget::setParent(SdlWidget* parent) {
-      m_parent = parent;
-      if (m_parent != nullptr) {
-        m_parent->addWidget(this);
       }
     }
 

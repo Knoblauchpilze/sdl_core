@@ -61,6 +61,15 @@ namespace sdl {
         void
         setEventsQueue(engine::EventsQueue* queue) noexcept override;
 
+        /**
+         * @brief - Assign the input `parent` as ancestor of this widget. The
+         *          `addWidget` method will be called on the `parent` with this
+         *          widget as argument unless the provided parent is null.
+         * @param parent - the parent to assign to this widget.
+         */
+        void
+        setParent(SdlWidget* parent);
+
       protected:
 
         void
@@ -173,9 +182,6 @@ namespace sdl {
 
         void
         clearTexture();
-
-        void
-        setParent(SdlWidget* parent);
 
         /**
          * @brief - Used to share the configuration data of this widget with the

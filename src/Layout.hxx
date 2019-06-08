@@ -73,6 +73,18 @@ namespace sdl {
 
     inline
     void
+    Layout::setEventsQueue(engine::EventsQueue* queue) noexcept {
+      // Assign the events queue to this object using the base handler.
+      LayoutItem::setEventsQueue(queue);
+
+      // Assign the queue to child items if any.
+      for (unsigned id = 0u ; id < m_items.size() ; ++id) {
+        registerToSameQueue(m_items[id]);
+      }
+    }
+
+    inline
+    void
     Layout::removeItemFromIndex(int item) {
       // Check whether this item can be removed.
       if (!isValidIndex(item)) {

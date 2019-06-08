@@ -102,6 +102,15 @@ namespace sdl {
         void
         update(const utils::Boxf& window);
 
+        /**
+         * @brief - Reimplementation of the `EngineObject` class method so
+         *          that we also assign the events queue to the children
+         *          item if any.
+         * @param queue - the events queue to assign to this layout.
+         */
+        void
+        setEventsQueue(engine::EventsQueue* queue) noexcept override;
+
       protected:
 
         Layout(const std::string& name,

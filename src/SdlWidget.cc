@@ -135,8 +135,6 @@ namespace sdl {
       // the `repaintEvent` should already be triggered
       // at the most appropriate time.
       if (hasContentChanged()) {
-        log(std::string("Updating content for widget"));
-
         clearTexture();
         m_content = createContentPrivate();
         m_contentDirty = false;

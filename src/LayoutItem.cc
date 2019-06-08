@@ -7,9 +7,8 @@ namespace sdl {
     LayoutItem::LayoutItem(const std::string& name,
                            const utils::Sizef& sizeHint,
                            const bool rootItem,
-                           const bool virtualItem,
-                           const bool allowLog):
-      engine::EngineObject(name, allowLog),
+                           const bool virtualItem):
+      engine::EngineObject(name),
       m_minSize(),
       m_sizeHint(sizeHint),
       m_maxSize(utils::Sizef::max()),

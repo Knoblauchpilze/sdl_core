@@ -53,7 +53,7 @@ namespace sdl {
         draw();
 
         /**
-         * @brief - Reimplementation of the `EngineoBject` class method so
+         * @brief - Reimplementation of the `EngineObject` class method so
          *          that we also assign the events queue to the children
          *          widget if any.
          * @param queue - the events queue to assign to this widget.

@@ -6,7 +6,7 @@ namespace sdl {
 
     LayoutItem::LayoutItem(const std::string& name,
                            const utils::Sizef& sizeHint,
-                           const bool nested,
+                           const bool needsConvert,
                            const bool virtualItem):
       engine::EngineObject(name),
       m_minSize(),
@@ -15,7 +15,8 @@ namespace sdl {
       m_sizePolicy(),
       m_geometryDirty(true),
       m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
-      m_nested(nested),
+      m_nested(false),
+      m_needsConvert(needsConvert),
       m_visible(true),
       m_virtual(virtualItem)
     {

@@ -7,10 +7,8 @@ namespace sdl {
 
     Layout::Layout(const std::string& name,
                    SdlWidget* widget,
-                   const float& margin,
-                   const bool nested,
-                   const bool virtualLayout):
-      LayoutItem(name, utils::Sizef(), nested, virtualLayout),
+                   const float& margin):
+      LayoutItem(name, utils::Sizef(), true, false),
       m_items(),
       m_margin(utils::Sizef(margin, margin))
     {
@@ -117,7 +115,7 @@ namespace sdl {
 
         utils::Boxf converted = boxes[index];
 
-        if (!isNested()) {
+        if (needsConvert()) {
           // So first compute the coordinates of the center of the box, by using the
           // position of the top left corner and adding the half-dimensions.
           const float xCenter = boxes[index].x() + boxes[index].w() / 2.0f - window.w() / 2.0f;
@@ -133,8 +131,15 @@ namespace sdl {
           // Compute the offset needed between the desired center and the center of the
           // input `window`. Note that as the `y` axis is inverted, the expressions for
           // `x` and `y` differ slightly.
-          const float offsetX = xCenter - window.x();
-          const float offsetY = window.y() - yCenter;
+          float offsetX = xCenter;
+          float offsetY = -yCenter;
+
+          // Account for nested layouts where we need to use the window position to
+          // offse the children boxes.
+          if (isNested()) {
+            offsetX += window.x();
+            offsetY += window.y();
+          }
 
           // Create a converted box.
           converted = utils::Boxf(offsetX, offsetY, boxes[index].w(), boxes[index].h());

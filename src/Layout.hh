@@ -116,7 +116,7 @@ namespace sdl {
         Layout(const std::string& name,
                SdlWidget* widget = nullptr,
                const float& margin = 0.0f,
-               const bool rootLayout = false,
+               const bool nested = false,
                const bool virtualLayout = false);
 
         void

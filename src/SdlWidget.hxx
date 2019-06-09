@@ -117,6 +117,12 @@ namespace sdl {
     }
 
     inline
+    const engine::Palette&
+    SdlWidget::getPalette() const noexcept {
+      return m_palette;
+    }
+
+    inline
     void
     SdlWidget::setPalette(const engine::Palette& palette) noexcept {
       m_palette = palette;
@@ -175,12 +181,6 @@ namespace sdl {
     LayoutType*
     SdlWidget::getLayoutAs() noexcept {
       return dynamic_cast<LayoutType*>(m_layout.get());
-    }
-
-    inline
-    const engine::Palette&
-    SdlWidget::getPalette() const noexcept {
-      return m_palette;
     }
 
     inline

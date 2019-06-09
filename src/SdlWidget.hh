@@ -43,6 +43,9 @@ namespace sdl {
         void
         setLayout(std::shared_ptr<Layout> layout) noexcept;
 
+        const engine::Palette&
+        getPalette() const noexcept;
+
         void
         setPalette(const engine::Palette& palette) noexcept;
 
@@ -128,9 +131,6 @@ namespace sdl {
         template <typename LayoutType>
         LayoutType*
         getLayoutAs() noexcept;
-
-        const engine::Palette&
-        getPalette() const noexcept;
 
         engine::Engine&
         getEngine() const;

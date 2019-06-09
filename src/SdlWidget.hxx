@@ -36,7 +36,15 @@ namespace sdl {
     inline
     void
     SdlWidget::setParent(SdlWidget* parent) {
+      // Try to assign the parent if is not already the parent of this widget.
+      if (m_parent == parent) {
+        return;
+      }
+
+      // Assign the parent.
       m_parent = parent;
+
+      // Share data with the parent.
       if (m_parent != nullptr) {
         m_parent->addWidget(this);
       }

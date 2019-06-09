@@ -234,30 +234,15 @@ namespace sdl {
       }
 
       // Now we need to account for the position of this widget.
-      // While the `x` coordinate is straightforward because the SDL
-      // does have the axis oriented in the same direction as our
-      // local coordinate frame, it is not the case for the `y` axis
-      // so we need to invert it.
-      // The inversion of the y axis only stands when it has not yet
-      // been performed, i.e. when the widget is at the top of its
-      // hierarchy: otherwise its parent already handled it and we
-      // should not do it again. If we invert each time we would
-      // oscillate between valid and invalid coordinates.
+      // As most of the conversion process is already handled in
+      // engine, we don't have to handle anything here. The position
+      // is already given according to the same coordinate frame used
+      // by widgets: we only need to account for the position of the
+      // widget in its parent.
       utils::Boxf area = LayoutItem::getRenderingArea();
 
-      // `x` coordinate is straightforward.
       local.x() -= area.x();
-
-      // `y` coordinate should be handled with care.
-      if (m_parent == nullptr) {
-        // No defined parent, let's invert the `y` axis.
-        local.y() = area.y() - local.y();
-      }
-      else {
-        // The inversion has already been handled, proceed
-        // normally.
-        local.y() -= area.y();
-      }
+      local.y() -= area.y();
 
       // This is the local representation of the input global position.
       return local;

@@ -210,7 +210,8 @@ namespace sdl {
           m_items[index]->getMinSize(),
           m_items[index]->getSizeHint(),
           m_items[index]->getMaxSize(),
-          m_items[index]->getRenderingArea()
+          m_items[index]->getRenderingArea(),
+          m_items[index]->isVisible()
         };
       }
 

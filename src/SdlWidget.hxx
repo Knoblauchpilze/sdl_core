@@ -302,8 +302,10 @@ namespace sdl {
     inline
     bool
     SdlWidget::enterEvent(const engine::EnterEvent& e) {
-      // Update the role of the background texture.
-      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+      // Update the role of the background texture if the item is not selected.
+      if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Background) {
+        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+      }
 
       // The mouse is now inside this widget.
       m_mouseInside = true;
@@ -317,8 +319,10 @@ namespace sdl {
     inline
     bool
     SdlWidget::leaveEvent(const engine::Event& e) {
-      // Update the role of the background texture.
-      getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+      // Update the role of the background texture if the item is not selected.
+      if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
+        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+      }
 
       // The mouse is now outside this widget.
       m_mouseInside = false;
@@ -327,6 +331,25 @@ namespace sdl {
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::mouseButtonReleaseEvent(const engine::MouseEvent& e) {
+      // Check whether the click occured inside the widget. If this is the case, we need
+      // to update the role of the content to selected.
+      // If the mouse is not inside the widget when the click occurs, we need to unset
+      // selection of the item if any.
+
+      if (m_mouseInside) {
+        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
+      }
+      else {
+        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+      }
+
+      // Use the base handler to determine whether the event was recognized.
+      return engine::EngineObject::mouseButtonReleaseEvent(e);
     }
 
     inline

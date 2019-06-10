@@ -320,7 +320,7 @@ namespace sdl {
     bool
     SdlWidget::leaveEvent(const engine::Event& e) {
       // Update the role of the background texture if the item is not selected.
-      if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
+      if (m_content.valid() && getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
       }
 
@@ -341,11 +341,13 @@ namespace sdl {
       // If the mouse is not inside the widget when the click occurs, we need to unset
       // selection of the item if any.
 
-      if (m_mouseInside) {
-        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
-      }
-      else {
-        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+      if (m_content.valid()) {
+        if (m_mouseInside) {
+          getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
+        }
+        else {
+          getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+        }
       }
 
       // Use the base handler to determine whether the event was recognized.

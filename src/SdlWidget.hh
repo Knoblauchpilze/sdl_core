@@ -110,6 +110,9 @@ namespace sdl {
         leaveEvent(const engine::Event& e) override;
 
         bool
+        mouseButtonReleaseEvent(const engine::MouseEvent& e) override;
+
+        bool
         mouseMoveEvent(const engine::MouseEvent& e) override;
 
         bool

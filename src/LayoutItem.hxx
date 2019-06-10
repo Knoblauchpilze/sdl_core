@@ -131,6 +131,12 @@ namespace sdl {
 
     inline
     void
+    LayoutItem::invalidate() {
+      makeGeometryDirty();
+    }
+
+    inline
+    void
     LayoutItem::makeGeometryDirty() {
       // Mark the geometry as dirty.
       m_geometryDirty = true;

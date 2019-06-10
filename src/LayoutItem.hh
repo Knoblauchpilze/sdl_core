@@ -106,6 +106,13 @@ namespace sdl {
         virtual void
         setVisible(bool visible) noexcept;
 
+        /**
+         * @brief - Calls the `makeGeometryDirty` internal method. Will trigger a recomputation
+         *          of the layout whenever the events loop finds it convenient.
+         */
+        virtual void
+        invalidate();
+
       protected:
 
         virtual void

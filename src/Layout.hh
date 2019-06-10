@@ -184,6 +184,7 @@ namespace sdl {
           utils::Sizef hint;
           utils::Sizef max;
           utils::Boxf area;
+          bool visible;
         };
 
         std::vector<WidgetInfo>

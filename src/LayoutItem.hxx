@@ -124,9 +124,6 @@ namespace sdl {
 
       // Post this event.
       postEvent(e);
-
-      // Set this widget as visible.
-      m_visible = visible;
     }
 
     inline

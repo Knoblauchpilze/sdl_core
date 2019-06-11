@@ -14,6 +14,15 @@ namespace sdl {
     }
 
     inline
+    bool
+    SdlWidget::filterEvent(engine::EngineObject* /*watched*/,
+                           engine::EventShPtr /*e*/)
+    {
+      // Check whether the widget is not visible.
+      return !isVisible();
+    }
+
+    inline
     void
     SdlWidget::setEventsQueue(engine::EventsQueue* queue) noexcept {
       // Use the base handler to assign the events queue to this widget.
@@ -112,6 +121,9 @@ namespace sdl {
       if (hasLayout()) {
         registerToSameQueue(m_layout.get());
       }
+
+      // Install this widget as filter for the event of the layout.
+      layout->installEventFilter(this);
 
       makeGeometryDirty();
     }
@@ -439,6 +451,10 @@ namespace sdl {
 
       // Share the data with this widget.
       shareData(widget);
+
+      // Install this object as filter for the child: this will allow to
+      // filter out events in case the parent is made invisible.
+      widget->installEventFilter(this);
 
       m_children[widget->getName()] = widget;
     }

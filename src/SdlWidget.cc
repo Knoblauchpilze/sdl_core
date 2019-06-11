@@ -67,6 +67,71 @@ namespace sdl {
     }
 
     void
+    SdlWidget::trimEvents(std::vector<engine::EventShPtr>& events) {
+      // Traverse the list of events and abalyze each one.
+      bool prevWasHide = false;
+
+      std::vector<engine::EventShPtr>::iterator event = events.begin();
+
+      while (event != events.cend()) {
+        // We want to react to specific event which will trigger a
+        // modification of the input events queue. These events are
+        // the following:
+        // 1. Null events will be trashed.
+        // 2. Events with None type will be trashed.
+        // 3. Hide events will clear the rest of the queue except
+        //    Show events: in this case it will be collapsed based
+        //    on the current state of the widget.
+        // 4. Hide event in an already hidden widget will be trashed.
+        // 5. Show event in an already visible widget will be trashed.
+        // That'it for now.
+        if ((*event) == nullptr || (*event)->getType() == engine::Event::Type::None) {
+          event = events.erase(event);
+        }
+        else if ((*event)->getType() == engine::Event::Type::Hide) {
+          // Check whether the item is already hidden: if this is the case we
+          // discard this event and move to the next one.
+          if (!isVisible()) {
+            event = events.erase(event);
+          }
+          else {
+            ++event;
+          }
+
+          // Mark the fact that we processed a Hide event.
+          prevWasHide = true;
+        }
+        else if ((*event)->getType() == engine::Event::Type::Show) {
+          // If this item is already visible, trash it.
+          if (isVisible()) {
+            event = events.erase(event);
+          }
+          else {
+            ++event;
+          }
+
+          prevWasHide = false;
+        }
+        else {
+          // Check whether we were processing a Hide event right before that.
+          // If this is the case it means that there's a hide operation with
+          // no Show operation: we just need to clear everything apart from
+          // the Hide event.
+          if (prevWasHide) {
+            // Clear the list.
+            while (event != events.cend()) {
+              event = events.erase(event);
+            }
+          }
+          else {
+            // Move to the next event.
+            ++event;
+          }
+        }
+      }
+    }
+
+    void
     SdlWidget::drawChild(SdlWidget& child) {
       const utils::Uuid& uuid = m_content;
       engine::Engine& engine = getEngine();

@@ -145,7 +145,8 @@ namespace sdl {
           converted = utils::Boxf(offsetX, offsetY, boxes[index].w(), boxes[index].h());
         }
 
-        log("Assigning rendering area for " + m_items[index]->getName() + " to " + converted.toString() + " from " + boxes[index].toString() + " (window: " + window.toString() + ")");
+        // log("Area for " + m_items[index]->getName() + " is " + converted.toString() + " from " + boxes[index].toString() + " (window: " + window.toString() + ")");
+        log("Area for " + m_items[index]->getName() + " is " + converted.toString());
 
         postEvent(std::make_shared<engine::ResizeEvent>(converted, m_items[index]->getRenderingArea(), m_items[index]));
       }

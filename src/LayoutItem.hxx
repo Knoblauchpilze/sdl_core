@@ -115,6 +115,16 @@ namespace sdl {
       // Post a show/hide event based on the status of the input `visible` status.
       engine::EventShPtr e;
 
+      // Note: we assign the visible status here and do not wait for the hide, show
+      // event in order to directly benefit from the updated status. Indeed if we
+      // don't do that when building up the ui before starting the application we
+      // only get one shot at updating the visibility status of any widget. This
+      // might not be enough to build complex ui and thus we prefer to use this
+      // mechanism. The event is still issued though, which will prevent events from
+      // being pushed if needed.
+      m_visible = visible;
+
+      // Issue an event nonetheless.
       if (visible) {
         e = std::make_shared<engine::Event>(engine::Event::Type::Show, this);
       }
@@ -168,8 +178,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::hideEvent(const engine::Event& e) {
-      // Assign the visible status to `false`.
-      m_visible = false;
+      // Nothing to do here.
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::hideEvent(e);
@@ -178,8 +187,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::showEvent(const engine::Event& e) {
-      // Assign the visible status to `true`.
-      m_visible = true;
+      // Nothing to do here.
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::showEvent(e);

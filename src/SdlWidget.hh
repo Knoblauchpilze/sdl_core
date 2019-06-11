@@ -56,6 +56,19 @@ namespace sdl {
         draw();
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method which allows to
+         *          filter out events for children widget in case this widget is made
+         *          invisible.
+         * @param watched - the object for which the filter should be applied.
+         * @param e - the event to filter.
+         * @return - true if the event should be filtered (i.e. not transmitted to the
+         *           `watched` object) and false otherwise.
+         */
+        bool
+        filterEvent(engine::EngineObject* watched,
+                    engine::EventShPtr e) override;
+
+        /**
          * @brief - Reimplementation of the `EngineObject` class method so
          *          that we also assign the events queue to the children
          *          widget if any.
@@ -80,6 +93,20 @@ namespace sdl {
 
         void
         makeGeometryDirty() override;
+
+        /**
+         * @brief - Reimplementation of the base `EngineObject` method to allow filtering
+         *          of events based on the semantic provided by the widget class. Basically
+         *          we know that some events will be ignored according to their position in
+         *          the queue.
+         *          For example whenever a Show event is registered, most events should be
+         *          cancelled. In the same way whenever a `Resize` event is queued the other
+         *          `GeometryUpdate` or `Repaint` should be cancelled as some will be re-
+         *          created by the process.
+         *          So no need to recompute them.
+         */
+        void
+        trimEvents(std::vector<engine::EventShPtr>& events) override;
 
         /**
          * @brief - Reimplementation of the base class method to provide update

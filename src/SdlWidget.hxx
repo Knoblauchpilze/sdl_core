@@ -356,6 +356,8 @@ namespace sdl {
       if (m_content.valid()) {
         if (m_mouseInside) {
           getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
+
+          onClick.emit(getName());
         }
         else {
           getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);

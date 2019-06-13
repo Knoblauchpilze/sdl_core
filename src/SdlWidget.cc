@@ -23,7 +23,9 @@ namespace sdl {
       m_content(),
       m_drawingLocker(),
 
-      m_mouseInside(false)
+      m_mouseInside(false),
+
+      onClick()
     {
       // Assign the service for this widget.
       setService(std::string("widget"));

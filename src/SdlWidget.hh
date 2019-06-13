@@ -9,6 +9,7 @@
 # include <maths_utils/Size.hh>
 # include <maths_utils/Vector2.hh>
 # include <core_utils/Uuid.hh>
+# include <core_utils/Signal.hh>
 # include <sdl_engine/Color.hh>
 # include <sdl_engine/Palette.hh>
 # include <sdl_engine/Texture.hh>
@@ -276,6 +277,14 @@ namespace sdl {
          *          attribute is updated upon receiving `EnterEvent` and `LeaveEvent`.
          */
         bool m_mouseInside;
+
+      public:
+
+        /**
+         * @brief - This signal can be used for external objects to register whenever the widget is
+         *          clicked. The widget will trigger the signal when this happens.
+         */
+        utils::Signal<std::string> onClick;
     };
 
     using SdlWidgetShPtr = std::shared_ptr<SdlWidget>;

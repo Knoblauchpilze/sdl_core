@@ -284,7 +284,7 @@ namespace sdl {
          * @brief - This signal can be used for external objects to register whenever the widget is
          *          clicked. The widget will trigger the signal when this happens.
          */
-        utils::Signal<std::string> onClick;
+        utils::Signal<const std::string&> onClick;
     };
 
     using SdlWidgetShPtr = std::shared_ptr<SdlWidget>;

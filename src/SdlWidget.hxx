@@ -357,6 +357,7 @@ namespace sdl {
         if (m_mouseInside) {
           getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
 
+          log("Emitting on click for " + getName(), utils::Level::Notice);
           onClick.emit(getName());
         }
         else {

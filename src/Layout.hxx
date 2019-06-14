@@ -7,24 +7,25 @@ namespace sdl {
   namespace core {
 
     inline
-    int
+    void
     Layout::addItem(LayoutItem* item,
                     const int& /*index*/)
     {
-      // No specialization at this level.
-      return addItem(item);
+      // Insert the item.
+      addItem(item);
     }
 
     inline
-    int
+    void
     Layout::addItem(LayoutItem* item,
                     const unsigned& /*x*/,
                     const unsigned& /*y*/,
                     const unsigned& /*w*/,
                     const unsigned& /*h*/)
     {
-      // No specialization at this level.
-      return addItem(item);
+      // No specialization at this level, use the base
+      // insertion method.
+      addItem(item);
     }
 
     inline
@@ -32,15 +33,60 @@ namespace sdl {
     Layout::removeItem(LayoutItem* item) {
       // Assume the item does not exist (we're a bit pessimistic) and try to find it
       // from the internal table.
-      int index = getIndexOf(item);
+      int physID = getIndexOf(item);
 
       // If we could find the item, remove it.
-      if (isValidIndex(index)) {
-        removeItemFromIndex(index);
+      if (isValidIndex(physID)) {
+        // Convert this index to a logical one.
+        const int logicID = getLogicalIDFromPhysicalID(physID);
+
+        // Check whether a logical id could be determined from the input index.
+        if (!isValidIndex(logicID)) {
+          return -1;
+        }
+
+        // Remove the item using the dedicated handler.
+        removeItemFromIndex(logicID);
+
+        // Remove the logical id.
+        return logicID;
       }
 
       // Return the index of the removed item (or -1 if it was not found).
-      return index;
+      return physID;
+    }
+
+    inline
+    void
+    Layout::removeItemFromIndex(const int item) {
+      // Check whether this item can be removed.
+      if (!isValidIndex(item)) {
+        error(
+          std::string("Cannot remove item ") + std::to_string(item),
+          std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
+        );
+      }
+
+      // Convert the input logical index into a physical one.
+      const int physID = getPhysicalIDFromLogicalID(item);
+
+      if (!isValidIndex(physID)) {
+        error(
+          std::string("Cannot remove item ") + std::to_string(physID),
+          std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
+        );
+      }
+
+      // Remove the item.
+      m_items.erase(m_items.cbegin() + physID);
+
+      // Trigger a call to the notifier method.
+      const bool rebuild = onIndexRemoved(item, physID);
+
+      // Invalidate the layout if needed.
+      if (rebuild) {
+        makeGeometryDirty();
+      }
     }
 
     inline
@@ -84,24 +130,6 @@ namespace sdl {
     }
 
     inline
-    void
-    Layout::removeItemFromIndex(int item) {
-      // Check whether this item can be removed.
-      if (!isValidIndex(item)) {
-        error(
-          std::string("Cannot remove item ") + std::to_string(item),
-          std::string("Layout contains only ") + std::to_string(getItemsCount()) + " item(s)"
-        );
-      }
-
-      // Remove the item.
-      m_items.erase(m_items.cbegin() + item);
-
-      // Invalidate the layout.
-      makeGeometryDirty();
-    }
-
-    inline
     int
     Layout::getIndexOf(LayoutItem* item) const noexcept {
       // If the item is not valid, return -1.
@@ -125,6 +153,29 @@ namespace sdl {
 
       // Return whatever index we reached.
       return itemID;
+    }
+
+    inline
+    int
+    Layout::getLogicalIDFromPhysicalID(const int physID) const noexcept {
+      // Return the input index.
+      return physID;
+    }
+
+    inline
+    int
+    Layout::getPhysicalIDFromLogicalID(const int logicID) const noexcept {
+      // Return the input index.
+      return logicID;
+    }
+
+    inline
+    bool
+    Layout::onIndexRemoved(const int /*logicID*/,
+                           const int /*physID*/)
+    {
+      // Assume a recomputation of the layout is needed.
+      return true;
     }
 
     inline

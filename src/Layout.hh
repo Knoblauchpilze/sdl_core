@@ -29,7 +29,9 @@ namespace sdl {
 
         /**
          * @brief - Adds the specified `item` to this layout and returns the index of the item
-         *          in the layout.
+         *          in the layout. This method calls internally the `addItem` method with the
+         *          logical id equal to the current items count.
+         *          The index returned by this function corresponds to a physical index.
          *          Note that if the `item` is not considered valid a negative value is returned.
          * @param itme - the item to add to this layout.
          * @return - a positive value corresponding to the index of the item in the layout if it
@@ -44,12 +46,12 @@ namespace sdl {
          *          in the layout.
          *          Note that this function is not specialized in this class and thus is similar
          *          to calling the `addItem` method.
+         *          The method calls the `onIndexAdded` right after inserting the `item` in the
+         *          layout. The input index is assumed to be a logical index.
          * @param item - the item to add to this layout.
          * @param index - the position at which the item should be added in this layout.
-         * @return - the position of the item in the layout or a negative value (usually `-1`) if
-         *           something went wrong.
          */
-        virtual int
+        virtual void
         addItem(LayoutItem* item,
                 const int& index);
 
@@ -64,18 +66,41 @@ namespace sdl {
          * @param y - the ordinate of the position to which the item should be added.
          * @param w - the width of the item in this layout in terms of cells.
          * @param h - the height of the item in this layout in temrs of cells.
-         * @return - the position of the item in the layout or a negative value (usually `-1`)
-         *           if something went wrong.
          */
-        virtual int
+        virtual void
         addItem(LayoutItem* item,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,
                 const unsigned& h);
 
+        /**
+         * @brief - Performs the deletion of the onput `item` from the layout if it exists. The
+         *          return value indicates the id at which this item was placed. A negative value
+         *          is returned if the item does not exist in this layout or is not valid.
+         *          Note that this method internally calls `removeItemFromIndex` with a logical
+         *          index retrieved by calling the `getLogicalIDFromPhysicalID` method.
+         * @param item - the index which should be removed from the layout.
+         * @return - the logical index at which the item was removed, or a negative value if no
+         *           such item exists in this layout.
+         */
         virtual int
         removeItem(LayoutItem* item);
+
+        /**
+         * @brief - Removes the item at the specified `index` in the layout. Note that the `removeItem`
+         *          method with a `LayoutItem` as argument uses this method internally to perform its
+         *          deletion.
+         *          Inheriting classes are encouraged to specialize this method in order to provide
+         *          custom behavior on what exactly the item at `index` means.
+         *          Note that the input `index` is assumed to be a logical index and is thus transformed
+         *          using the `getPhysicalIDFromLogicalID` method before using it.
+         *          Triggers a call to `onIndexRemoved` right before triggering the `GeometryUpdate`
+         *          event creation.
+         * @param index - the index of the item which should be removed, whatever that means.
+         */
+        virtual void
+        removeItemFromIndex(const int index);
 
         int
         getItemsCount() const noexcept;
@@ -123,11 +148,79 @@ namespace sdl {
         virtual void
         computeGeometry(const utils::Boxf& window) = 0;
 
+        /**
+         * @brief - Try to retrieve the index of the item specified as argument.
+         *          The returned index corresponds to the physical order of this
+         *          item in the internal data.
+         *          Note that if the item is not valid or does not exist in the
+         *          layout, a negative value is returned (usually `-1`).
+         *          We use pointer equality to determine whether items are equal.
+         * @param item - the item for which the index should be returned.
+         * @return - the index of the item in this layout or a negative value if
+         *           no such item exists in the layout.
+         */
         int
         getIndexOf(LayoutItem* item) const noexcept;
 
+        /**
+         * @brief - Try to retrieve the index of the item specified as argument.
+         *          The returned index corresponds to the physical order of this
+         *          item in the internal data.
+         *          Note that if the item is not valid or does not exist in the
+         *          layout, a negative value is returned (usually `-1`).
+         *          Also note that the first item with a name matching the input
+         *          string is returned, which does not mean it is the only one
+         *          inserted in this widget.
+         * @param item - the item for which the index should be returned.
+         * @return - the index of the item in this layout or a negative value if
+         *           no such item exists in the layout.
+         */
         int
         getIndexOf(const std::string& name) const noexcept;
+
+        /**
+         * @brief - Used to retrieve the logical id associated to the input id considered
+         *          as a physical id. At this level this method basically returns the input
+         *          index but inheriting classes are encouraged to reimplement this in
+         *          order to specialize the behavior with potential other associations made
+         *          by them on indices.
+         *          Note that if no such id can be found, a negative value is returned.
+         * @param physID - the physical id for which the logical id should be returned.
+         * @return - an logical index which corresponds to the input physical id or a
+         *           negative value if no such index exists in the layout.
+         */
+        virtual int
+        getLogicalIDFromPhysicalID(const int physID) const noexcept;
+
+        /**
+         * @brief - Inverse method to `getLogicalIDFromPhysicalID`. Calling both methods
+         *          successively should return the input index.
+         *          Note that if no such id can be found, a negative value is returned.
+         * @param logicID - the logical id for which the physical id should be returned.
+         * @return - an physical index which corresponds to the input logical id or a
+         *           negative value if no such index exists in the layout.
+         */
+        virtual int
+        getPhysicalIDFromLogicalID(const int logicID) const noexcept;
+
+        /**
+         * @brief - Called right after removing the logical index corresponding to the physical
+         *          index in argument. This allows inheriting classes to react to the removal
+         *          of an item and update their own internal data. The user has the possibility
+         *          through the return value to trigger a recompute of the layout. In most
+         *          layouts removing an item should trigger a rebuild of the layout (as the
+         *          deleted item took up some place which can now be redistributed to other
+         *          elements) but this is not the case for all layouts.
+         *          Note that as the removal has already taken place, calling `isValidIndex` on
+         *          the `physID` might sometims fail.
+         * @param logicID - the logical id which has just been removed.
+         * @param physID - the physical id associated to the logical id removed.
+         * @return - true if the layout should be invalidated, false otherwise. If the return
+         *           value is false no `GeometryUpdate` event will be posted for this layout.
+         */
+        virtual bool
+        onIndexRemoved(const int logicID,
+                       const int physID);
 
         LayoutItem*
         getItemAt(const int& item);
@@ -137,9 +230,6 @@ namespace sdl {
 
         bool
         isValidIndex(const int& id) const noexcept;
-
-        virtual void
-        removeItemFromIndex(int item);
 
         virtual utils::Sizef
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept;

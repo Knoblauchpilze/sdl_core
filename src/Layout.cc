@@ -42,28 +42,34 @@ namespace sdl {
       computeGeometry(window);
     }
 
+    inline
     int
     Layout::addItem(LayoutItem* item) {
       // Check for valid items.
-      if (item != nullptr) {
-        // Check for duplicated items.
-        if (isValidIndex(getIndexOf(item))) {
-          error(
-            std::string("Cannot add item \"") + item->getName() + "\" to layout",
-            std::string("Item already exist")
-          );
-        }
-
-        // Insert the item into the layout.
-        m_items.push_back(item);
-        makeGeometryDirty();
-
-        // Return the index of this item.
-        return m_items.size() - 1;
+      if (item == nullptr) {
+        // Invalid item to add.
+        return -1;
       }
 
-      // Invalid item to add.
-      return -1;
+      // Check for duplicated items.
+      if (isValidIndex(getIndexOf(item))) {
+        error(
+          std::string("Cannot add item \"") + item->getName() + "\" to layout",
+          std::string("Item already exist")
+        );
+      }
+
+      // Insert the item into the layout.
+      m_items.push_back(item);
+
+      // Compute the physical id of this item.
+      const int physID = m_items.size() - 1;
+
+      // Invalidate the layout.
+      makeGeometryDirty();
+
+      // Retrieve the logical id for this item.
+      return physID;
     }
 
     int

@@ -34,7 +34,7 @@ namespace sdl {
       }
 
       // Also assign the queue to the children of this widget.
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+      for (WidgetsMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
            ++widget)
       {
@@ -151,7 +151,7 @@ namespace sdl {
       m_engine = engine;
 
       // Also: assign the engine to children widgets if any.
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+      for (WidgetsMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
            ++widget)
       {
@@ -162,9 +162,34 @@ namespace sdl {
     }
 
     inline
-    unsigned
+    int
     SdlWidget::getChildrenCount() const noexcept {
       return m_children.size();
+    }
+
+    inline
+    void
+    SdlWidget::removeWidget(SdlWidget* widget) {
+      // Check whether this widget is valid.
+      if (widget == nullptr) {
+        error(
+          std::string("Could not remove child widget from parent"),
+          std::string("Invalid null child")
+        );
+      }
+
+      // Check whether we can find this widget in the internal table.
+
+      WidgetsMap::const_iterator child = m_children.find(widget->getName());
+      if (child == m_children.cend()) {
+        error(
+          std::string("Cannot remove widget \"") + widget->getName() + "\" from parent",
+          std::string("No such item")
+        );
+      }
+
+      // Remove the widget from the children list.
+      m_children.erase(child);
     }
 
     inline
@@ -177,7 +202,7 @@ namespace sdl {
     inline
     WidgetType*
     SdlWidget::getChildAs(const std::string& name) {
-      WidgetMap::const_iterator child = m_children.find(name);
+      WidgetsMap::const_iterator child = m_children.find(name);
       if (child == m_children.cend()) {
         error(
           std::string("Cannot retrieve child widget ") + name,
@@ -291,7 +316,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(global);
 
       // Traverse children and check whether one is on the way.
-      for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         if (child->second->isVisible() && child->second->getRenderingArea().isInside(local)) {
           return true;
         }

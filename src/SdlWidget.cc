@@ -39,7 +39,7 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       clearTexture();
 
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+      for (WidgetsMap::const_iterator widget = m_children.cbegin() ;
            widget != m_children.cend() ;
            ++widget)
       {
@@ -58,7 +58,7 @@ namespace sdl {
       drawContentPrivate(m_content);
 
       // Proceed to update of children containers if any.
-      for (WidgetMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         if (child->second->isVisible()) {
           drawChild(*child->second);
         }

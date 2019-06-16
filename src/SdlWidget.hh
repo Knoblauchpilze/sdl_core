@@ -149,8 +149,16 @@ namespace sdl {
         bool
         resizeEvent(const engine::ResizeEvent& e) override;
 
-        unsigned
+        int
         getChildrenCount() const noexcept;
+
+        /**
+         * @brief - Attempts to remove the input `widget` from this widget.
+         *          Note that if the widget is not valid an error is raised.
+         * @param widget - the widget to remove.
+         */
+        void
+        removeWidget(SdlWidget* widget);
 
         bool
         hasLayout() const noexcept;
@@ -231,11 +239,11 @@ namespace sdl {
 
         friend class Layout;
 
-        using WidgetMap = std::unordered_map<std::string, SdlWidget*>;
+        using WidgetsMap = std::unordered_map<std::string, SdlWidget*>;
 
       private:
 
-        WidgetMap m_children;
+        WidgetsMap m_children;
         std::shared_ptr<Layout> m_layout;
         engine::Palette m_palette;
         engine::EngineShPtr m_engine;

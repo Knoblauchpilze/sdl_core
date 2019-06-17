@@ -10,16 +10,42 @@ namespace sdl {
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
-      return LayoutItem::getRenderingArea();
+
+      // We need to retrieve the position of the parent and factor in its
+      // position in order to compute the position of this widget.
+
+      // Retrieve the internal box for this widget.
+      utils::Boxf thisBox = LayoutItem::getRenderingArea();
+
+      // Map the center to global coordinate.
+      utils::Vector2f globalOffset = mapToGlobal(utils::Vector2f(thisBox.x(), thisBox.y()));
+
+      // Compute final position from both boxes.
+      return utils::Boxf(
+        globalOffset.x(),
+        globalOffset.y(),
+        thisBox.w(),
+        thisBox.h()
+      );
     }
 
     inline
     bool
-    SdlWidget::filterEvent(engine::EngineObject* /*watched*/,
-                           engine::EventShPtr /*e*/)
+    SdlWidget::filterEvent(engine::EngineObject* watched,
+                           engine::EventShPtr e)
     {
-      // Check whether the widget is not visible.
-      return !isVisible();
+      // Check whether the widget is not visible or not active.
+      if(!isVisible() || !isActive()) {
+        return true;
+      }
+
+      // Check whether the parent filters it, in which case we should filter it too.
+      if (hasParent()) {
+        return m_parent->filterEvent(watched, e);
+      }
+
+      // The event is not filtered.
+      return false;
     }
 
     inline
@@ -54,7 +80,7 @@ namespace sdl {
       m_parent = parent;
 
       // Share data with the parent.
-      if (m_parent != nullptr) {
+      if (hasParent()) {
         m_parent->addWidget(this);
       }
     }
@@ -198,6 +224,12 @@ namespace sdl {
       return m_layout != nullptr;
     }
 
+    inline
+    bool
+    SdlWidget::hasParent() const noexcept {
+      return m_parent != nullptr;
+    }
+
     template <typename WidgetType>
     inline
     WidgetType*
@@ -257,7 +289,7 @@ namespace sdl {
 
       // Now we need to account for the transform applied to the parent
       // if any.
-      if (m_parent != nullptr) {
+      if (hasParent()) {
         global = m_parent->mapToGlobal(global);
       }
 
@@ -274,7 +306,7 @@ namespace sdl {
 
       // Account for the transformation applied to the parent
       // if any.
-      if (m_parent != nullptr) {
+      if (hasParent()) {
         local = m_parent->mapFromGlobal(local);
       }
 

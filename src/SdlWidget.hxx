@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     utils::Boxf
-    SdlWidget::getRenderingArea() const noexcept {
+    SdlWidget::getDrawingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // We need to retrieve the position of the parent and factor in its
@@ -18,7 +18,7 @@ namespace sdl {
       utils::Boxf thisBox = LayoutItem::getRenderingArea();
 
       // Map the center to global coordinate.
-      utils::Vector2f globalOffset = mapToGlobal(utils::Vector2f(thisBox.x(), thisBox.y()));
+      utils::Vector2f globalOffset = mapToGlobal(utils::Vector2f());
 
       // Compute final position from both boxes.
       return utils::Boxf(
@@ -27,6 +27,16 @@ namespace sdl {
         thisBox.w(),
         thisBox.h()
       );
+    }
+
+    inline
+    utils::Boxf
+    SdlWidget::getRenderingArea() const noexcept {
+      // Lock this widget.
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      // Return the value provided by the base handler.
+      return LayoutItem::getRenderingArea();
     }
 
     inline

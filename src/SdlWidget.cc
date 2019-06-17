@@ -72,6 +72,7 @@ namespace sdl {
     SdlWidget::trimEvents(std::vector<engine::EventShPtr>& events) {
       // Traverse the list of events and abalyze each one.
       bool prevWasHide = false;
+      bool prevWasShow = false;
 
       std::vector<engine::EventShPtr>::iterator event = events.begin();
 
@@ -92,8 +93,11 @@ namespace sdl {
         }
         else if ((*event)->getType() == engine::Event::Type::Hide) {
           // Check whether the item is already hidden: if this is the case we
-          // discard this event and move to the next one.
-          if (!isVisible()) {
+          // discard this event and move to the next one. We have to keep one
+          // of them though, as the `isVisible` status is updated right away
+          // even before queuing the event.
+          if (event != events.begin()) {
+            log("Clearing hide event");
             event = events.erase(event);
           }
           else {
@@ -105,13 +109,14 @@ namespace sdl {
         }
         else if ((*event)->getType() == engine::Event::Type::Show) {
           // If this item is already visible, trash it.
-          if (isVisible()) {
+          if (event != events.begin() && !prevWasShow) {
             event = events.erase(event);
           }
           else {
             ++event;
           }
 
+          prevWasShow = true;
           prevWasHide = false;
         }
         else {

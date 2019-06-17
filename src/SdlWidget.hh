@@ -35,6 +35,22 @@ namespace sdl {
 
         virtual ~SdlWidget();
 
+        /**
+         * @brief - Returns the area to use to represent this widget on the screen.
+         *          It slightly differ from the rendering area in the sense that it
+         *          is global instead of local to the parent widget.
+         *          The fact that it is global allows to locate the widget using an
+         *          absolute coordinate frame and thus abolish the need to draw its
+         *          representation relatively to the parent.
+         *          This is a corner stone on the strategy to draw widget larger than
+         *          their expected size, such as in combobox for example.
+         * @return - the bounding box representing the absolute position of this
+         *           widget in the window coordinate frame with the dimensions of the
+         *           rendering area.
+         */
+        utils::Boxf
+        getDrawingArea() const noexcept;
+
         utils::Boxf
         getRenderingArea() const noexcept override;
 

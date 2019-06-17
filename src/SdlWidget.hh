@@ -163,6 +163,16 @@ namespace sdl {
         bool
         hasLayout() const noexcept;
 
+        /**
+         * @brief - Used to determine whether this widget has a parent or not. A
+         *          widget is considered to have a parent if the `m_parent` field
+         *          is not null.
+         * @retrun - true if the `m_parent` field is not null (meaning that the
+         *           widget has a parent) and false otherwise.
+         */
+        bool
+        hasParent() const noexcept;
+
         template <typename WidgetType>
         WidgetType*
         getChildAs(const std::string& name);

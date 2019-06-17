@@ -100,7 +100,11 @@ namespace sdl {
     inline
     void
     LayoutItem::setVirtual(const bool virtualItem) {
+      // Mark this layout item as virtual.
       m_virtual = virtualItem;
+
+      // De/activate event handling if needed.
+      setActive(!isVirtual());
     }
 
     inline
@@ -178,7 +182,8 @@ namespace sdl {
     inline
     bool
     LayoutItem::hideEvent(const engine::Event& e) {
-      // Nothing to do here.
+      // Deactivate the events for this item.
+      setActive(false);
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::hideEvent(e);
@@ -187,7 +192,8 @@ namespace sdl {
     inline
     bool
     LayoutItem::showEvent(const engine::Event& e) {
-      // Nothing to do here.
+      // Reactivate event handling.
+      setActive(true);
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::showEvent(e);

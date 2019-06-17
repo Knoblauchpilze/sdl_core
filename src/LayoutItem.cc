@@ -18,9 +18,12 @@ namespace sdl {
       m_nested(false),
       m_needsConvert(needsConvert),
       m_visible(true),
-      m_virtual(virtualItem)
+      m_virtual(false)
     {
       setService(std::string("layout_item"));
+
+      // Assign virtual status.
+      setVirtual(virtualItem);
     }
 
     bool

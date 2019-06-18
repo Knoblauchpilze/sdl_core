@@ -96,8 +96,7 @@ namespace sdl {
           // discard this event and move to the next one. We have to keep one
           // of them though, as the `isVisible` status is updated right away
           // even before queuing the event.
-          if (event != events.begin()) {
-            log("Clearing hide event");
+          if (prevWasHide) {
             event = events.erase(event);
           }
           else {
@@ -109,7 +108,7 @@ namespace sdl {
         }
         else if ((*event)->getType() == engine::Event::Type::Show) {
           // If this item is already visible, trash it.
-          if (event != events.begin() && !prevWasShow) {
+          if (prevWasShow) {
             event = events.erase(event);
           }
           else {

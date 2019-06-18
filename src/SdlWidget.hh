@@ -69,8 +69,20 @@ namespace sdl {
         void
         setEngine(engine::EngineShPtr engine) noexcept;
 
-        virtual utils::Uuid
-        draw();
+        /**
+         * @brief - Used to perform the rendering of this widget using the internal engine
+         *          provided to it. The user needs to specify the general dimensions of the
+         *          area into whith the widget is rendered. This allows the widget to know
+         *          how to compute its position based on its position and the position of
+         *          its parent.
+         *          Note that children widgets will also be rendered by this method so that
+         *          higher order item do not have to care about that.
+         *          Failure to draw the widget will raise an error.
+         * @param dims - the total dimensions of the environment into which the widget is
+         *               rendered.
+         */
+        virtual void
+        draw(const utils::Sizef& dims);
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method which allows to
@@ -258,8 +270,18 @@ namespace sdl {
         void
         shareData(SdlWidget* widget);
 
+        /**
+         * @brief - Used to perform the rendering of the input `child` widget while
+         *          providing a safety net in case the drawing fails and raises an
+         *          error.
+         *          This function will pass on the input dimensions to the child so
+         *          that it can draw itself properly on the general canvas.
+         * @param child - the child widget to draw.
+         * @param dims - total size of the window into which the widget is drawn.
+         */
         void
-        drawChild(SdlWidget& child);
+        drawChild(SdlWidget& child,
+                  const utils::Sizef& dims);
 
       protected:
 

@@ -291,11 +291,39 @@ namespace sdl {
 
       private:
 
+        /**
+         * @brief - Contains all the children for this widget. Each widget is registered by its
+         *          name and we prevent several items with the same name to be registered. Also
+         *          the widgets are assigned a z order: by default it corresponds to the order
+         *          in which they have been added to this item, but it can be specified by using
+         *          the dedicated handler.
+         *          TODO: Handle z order.
+         */
         WidgetsMap m_children;
+
         std::shared_ptr<Layout> m_layout;
+
+        /**
+         * @brief - Describes the palette to use for this widget. A palette describes a set of
+         *          colors to use for most state of the widget. Each state is associated to a
+         *          certain set of actions. Typically when the user hover over the widget the
+         *          background color might be changed to indicate this fact.
+         */
         engine::Palette m_palette;
+
+        /**
+         * @brief - The main engine to use to perform processes related to the rendering api.
+         *          Most features which require to interact with the low level rendering api
+         *          uses this engine.
+         *          Note that if no engine is provided most of the rendering will fail.
+         */
         engine::EngineShPtr m_engine;
 
+        /**
+         * @brief - Represents the parent widget of this object. This parent allows to benefit
+         *          from the rendering process and to share the data such as engine or events
+         *          queue.
+         */
         SdlWidget* m_parent;
 
         /**

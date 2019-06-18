@@ -49,23 +49,40 @@ namespace sdl {
       }
     }
 
-    utils::Uuid
-    SdlWidget::draw() {
+    void
+    SdlWidget::draw(const utils::Sizef& dims) {
+      // Retrieve the drawing area for this widget before locking it,
+      // as it also locks the widget.
+      utils::Boxf drawing = getDrawingArea();
+
+      // Lock this widget.
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
-      // Clear the content and draw the new version.
+      // Clear the content and draw the new version: we NEED to do that
+      // before rendering children elements so that we maintain some
+      // kind of ordering in the depth of widgets.
+      // Note that this is not optimal as we depend on the order
+      // in which widgets are rendered.
+      // TODO: Add some kind of z ordering.
       clearContentPrivate(m_content);
       drawContentPrivate(m_content);
+
+      // Convert the drawing area to output coordinate frame.
+      drawing.x() += (dims.w() / 2.0f);
+      drawing.y() = (dims.h() / 2.0f) - drawing.y();
+
+      getEngine().drawTexture(
+        m_content,
+        nullptr,
+        &drawing
+      );
 
       // Proceed to update of children containers if any.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         if (child->second->isVisible()) {
-          drawChild(*child->second);
+          drawChild(*child->second, dims);
         }
       }
-
-      // Return the built-in texture.
-      return m_content;
     }
 
     void
@@ -138,42 +155,14 @@ namespace sdl {
     }
 
     void
-    SdlWidget::drawChild(SdlWidget& child) {
-      const utils::Uuid& uuid = m_content;
-      engine::Engine& engine = getEngine();
-
-      // Copy also the internal area in order to perform the coordinate
-      // frame transform.
-      utils::Boxf area = LayoutItem::getRenderingArea();
-      utils::Sizef dims = area.toSize();
-
+    SdlWidget::drawChild(SdlWidget& child,
+                         const utils::Sizef& dims)
+    {
       // Protect against errors.
       withSafetyNet(
-        [&child, &uuid, &engine, &dims]() {
+        [&child, &dims]() {
           // Draw this object (caching is handled by the object itself).
-          utils::Uuid picture = child.draw();
-
-          // Draw the picture at the corresponding place. Note that the
-          // coordinates of the box of each child is in local coordinates
-          // relatively to this widget.
-          // In order to obtain good results, we need to convert to an
-          // intermediate coordinate frame not centered on the origin but
-          // rather on the position of this widget.
-          // This is because the SDL talks in terms of top left corner
-          // and we talk in terms of center.
-          // The conversion cannot happen without knowing the dimension
-          // of the input texture, which is only known here.
-          utils::Boxf render = child.getRenderingArea();
-
-          // Account for the intermediate coordinate frame transformation.
-          render.x() += (dims.w() / 2.0f);
-          render.y() = (dims.h() / 2.0f) - render.y();
-
-          engine.drawTexture(
-            picture,
-            &uuid,
-            &render
-          );
+          child.draw(dims);
         },
         std::string("draw_child(") + child.getName() + ")"
       );

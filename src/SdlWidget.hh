@@ -271,6 +271,14 @@ namespace sdl {
         shareData(SdlWidget* widget);
 
         /**
+         * @brief - Performs a rebuild of the z ordering of the children widgets. This
+         *          method will sort the `m_children` array and then proceed to update
+         *          the `m_names` with the corresponding indices.
+         */
+        void
+        rebuildZOrdering();
+
+        /**
          * @brief - Used to perform the rendering of the input `child` widget while
          *          providing a safety net in case the drawing fails and raises an
          *          error.
@@ -287,7 +295,39 @@ namespace sdl {
 
         friend class Layout;
 
-        using WidgetsMap = std::unordered_map<std::string, SdlWidget*>;
+        /**
+         * @brief - Used to describe a children widget and its associated z order.
+         *          The wrapper includes the widget itself and the z order applied
+         *          to the widget.
+         *          TODO: We should provide a way to set the z order of a widget.
+         *          Something like `setZOrder` which would for any widget request
+         *          its parent to update their corresponding z order and perform
+         *          the needed modifications.
+         */
+        struct ChildWrapper {
+          SdlWidget* widget;
+          int zOrder;
+
+          /**
+           * @brief - Builds a child wrapper with the specified widget and z order.
+           * @param wid - the widget associated to this wrapper.
+           * @param zOrder - the z order for this widget.
+           */
+          ChildWrapper(SdlWidget* wid,
+                       const int zOrder = 0);
+
+          /**
+           * @brief - Performs the comparison of `this` with the `rhs` value. The
+           *          comparison is performed on the `zOrder` of each element.
+           * @param rhs - the element to compare with `this`.
+           * @return - true if `this` is less than `rhs`, false otherwise.
+           */
+          bool
+          operator<(const ChildWrapper& rhs) const noexcept;
+        };
+
+        using ChildrenMap = std::unordered_map<std::string, int>;
+        using WidgetsMap = std::vector<ChildWrapper>;
 
       private:
 
@@ -297,8 +337,10 @@ namespace sdl {
          *          the widgets are assigned a z order: by default it corresponds to the order
          *          in which they have been added to this item, but it can be specified by using
          *          the dedicated handler.
-         *          TODO: Handle z order.
+         *          In order to allow both for easy access to widgets based on their name and
+         *          efficient drawing based on the z order, we use two distinct internal arrays.
          */
+        ChildrenMap m_names;
         WidgetsMap m_children;
 
         std::shared_ptr<Layout> m_layout;

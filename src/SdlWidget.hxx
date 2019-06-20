@@ -7,6 +7,19 @@ namespace sdl {
   namespace core {
 
     inline
+    SdlWidget::ChildWrapper::ChildWrapper(SdlWidget* wid,
+                                          const int zOrder):
+      widget(wid),
+      zOrder(zOrder)
+    {}
+
+    inline
+    bool
+    SdlWidget::ChildWrapper::operator<(const ChildWrapper& rhs) const noexcept {
+      return zOrder < rhs.zOrder;
+    }
+
+    inline
     utils::Boxf
     SdlWidget::getDrawingArea() const noexcept {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
@@ -70,11 +83,11 @@ namespace sdl {
       }
 
       // Also assign the queue to the children of this widget.
-      for (WidgetsMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ;
+           child != m_children.cend() ;
+           ++child)
       {
-        registerToSameQueue(widget->second);
+        registerToSameQueue(child->widget);
       }
     }
 
@@ -187,11 +200,11 @@ namespace sdl {
       m_engine = engine;
 
       // Also: assign the engine to children widgets if any.
-      for (WidgetsMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ;
+           child != m_children.cend() ;
+           ++child)
       {
-        widget->second->setEngine(engine);
+        child->widget->setEngine(engine);
       }
 
       makeContentDirty();
@@ -216,16 +229,27 @@ namespace sdl {
 
       // Check whether we can find this widget in the internal table.
 
-      WidgetsMap::const_iterator child = m_children.find(widget->getName());
-      if (child == m_children.cend()) {
+      ChildrenMap::const_iterator child = m_names.find(widget->getName());
+      if (child == m_names.cend()) {
         error(
           std::string("Cannot remove widget \"") + widget->getName() + "\" from parent",
           std::string("No such item")
         );
       }
 
+      if (child->second < 0 || child->second >= getChildrenCount()) {
+        error(
+          std::string("Cannot remove widget \"") + widget->getName() + "\" from parent",
+          std::string("Item has invalid internal index ") + std::to_string(child->second) +
+          " while only " + std::to_string(getChildrenCount()) + " are available"
+        );
+      }
+
       // Remove the widget from the children list.
-      m_children.erase(child);
+      m_children.erase(m_children.begin() + child->second);
+
+      // Rebuild the internal list of associations.
+      rebuildZOrdering();
     }
 
     inline
@@ -244,15 +268,23 @@ namespace sdl {
     inline
     WidgetType*
     SdlWidget::getChildAs(const std::string& name) {
-      WidgetsMap::const_iterator child = m_children.find(name);
-      if (child == m_children.cend()) {
+      ChildrenMap::const_iterator child = m_names.find(name);
+      if (child == m_names.cend()) {
         error(
           std::string("Cannot retrieve child widget ") + name,
           std::string("No such element")
         );
       }
 
-      return dynamic_cast<WidgetType*>(child->second);
+      if (child->second < 0 || child->second >= getChildrenCount()) {
+        error(
+          std::string("Cannot retrieve widget \"") + name + "\" in parent",
+          std::string("Item has invalid internal index ") + std::to_string(child->second) +
+          " while only " + std::to_string(getChildrenCount()) + " are available"
+        );
+      }
+
+      return dynamic_cast<WidgetType*>(m_children[child->second].widget);
     }
 
     template <typename LayoutType>
@@ -359,7 +391,7 @@ namespace sdl {
 
       // Traverse children and check whether one is on the way.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        if (child->second->isVisible() && child->second->getRenderingArea().isInside(local)) {
+        if (child->widget->isVisible() && child->widget->getRenderingArea().isInside(local)) {
           return true;
         }
       }
@@ -389,8 +421,6 @@ namespace sdl {
       // The mouse is now inside this widget.
       m_mouseInside = true;
 
-      log("Mouse entering");
-
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
     }
@@ -405,8 +435,6 @@ namespace sdl {
 
       // The mouse is now outside this widget.
       m_mouseInside = false;
-
-      log("Mouse leaving");
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
@@ -515,7 +543,7 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
 
       // Check for duplicated widget
-      if (m_children.find(widget->getName()) != m_children.cend()) {
+      if (m_names.find(widget->getName()) != m_names.cend()) {
         error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
       }
 
@@ -526,7 +554,19 @@ namespace sdl {
       // filter out events in case the parent is made invisible.
       widget->installEventFilter(this);
 
-      m_children[widget->getName()] = widget;
+      // Populate internal arrays: first insert the item in the `m_children`
+      // array.
+      m_children.push_back(
+        ChildWrapper{
+          widget,
+          0
+        }
+      );
+
+      // And now rebuilt the `m_names` array after sorting items in ascending
+      // z order.
+      rebuildZOrdering();
+
     }
 
     inline

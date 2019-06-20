@@ -11,6 +11,7 @@ namespace sdl {
                          const engine::Color& color):
       LayoutItem(name, sizeHint, false, false),
 
+      m_names(),
       m_children(),
       m_layout(),
       m_palette(engine::Palette::fromButtonColor(color)),
@@ -39,12 +40,14 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(m_drawingLocker);
       clearTexture();
 
-      for (WidgetsMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
+      m_names.clear();
+
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ;
+           child != m_children.cend() ;
+           ++child)
       {
-        if (widget->second != nullptr) {
-          delete widget->second;
+        if (child->widget != nullptr) {
+          delete child->widget;
         }
       }
     }
@@ -63,7 +66,6 @@ namespace sdl {
       // kind of ordering in the depth of widgets.
       // Note that this is not optimal as we depend on the order
       // in which widgets are rendered.
-      // TODO: Add some kind of z ordering.
       clearContentPrivate(m_content);
       drawContentPrivate(m_content);
 
@@ -77,10 +79,14 @@ namespace sdl {
         &drawing
       );
 
-      // Proceed to update of children containers if any.
+      // Proceed to update of children containers if any: at this point
+      // the `m_children` array is already sorted by z order so we can
+      // just iterate over it and we will process children in a valid
+      // order.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        if (child->second->isVisible()) {
-          drawChild(*child->second, dims);
+        if (child->widget->isVisible()) {
+          log("Displaying child " + child->widget->getName() + " with order " + std::to_string(child->zOrder));
+          drawChild(*child->widget, dims);
         }
       }
     }
@@ -151,6 +157,29 @@ namespace sdl {
             ++event;
           }
         }
+      }
+    }
+
+    void
+    SdlWidget::rebuildZOrdering() {
+      // First we need to sort the internal `m_children` array.
+      // Note that we want the items to be sorted in ascending
+      // order of their z order.
+      // Indeed as larger values of z order indicates widgets
+      // in front of others, this is the correct behavior to
+      // adopt. The sort should compare `lhs` less than `rhs`
+      // based on their z order.
+      std::sort(m_children.begin(), m_children.end(),
+        [](const ChildWrapper& lhs, const ChildWrapper& rhs) {
+          return lhs.zOrder < rhs.zOrder;
+        }
+      );
+
+      // Now rebuild the internal `m_names` array.
+      m_names.clear();
+
+      for (int id = 0 ; id < getChildrenCount() ; ++id) {
+        m_names[m_children[id].widget->getName()] = id;
       }
     }
 

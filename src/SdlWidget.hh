@@ -177,6 +177,9 @@ namespace sdl {
         bool
         resizeEvent(const engine::ResizeEvent& e) override;
 
+        bool
+        zOrderChanged(const engine::Event& e) override;
+
         int
         getChildrenCount() const noexcept;
 
@@ -255,6 +258,22 @@ namespace sdl {
         virtual void
         addWidget(SdlWidget* widget);
 
+        /**
+         * @brief - Retrievs the z order for this widget.
+         * @return - the z order for this widget.
+         */
+        int
+        getZOrder() noexcept;
+
+        /**
+         * @brief - Assigns a new z order for this widget. This method also notifies
+         *          the parent widget to indicate that the z order for this widget
+         *          has been modified.
+         * @param order - the new z order for this widget.
+         */
+        void
+        setZOrder(const int order);
+
       private:
 
         void
@@ -299,10 +318,6 @@ namespace sdl {
          * @brief - Used to describe a children widget and its associated z order.
          *          The wrapper includes the widget itself and the z order applied
          *          to the widget.
-         *          TODO: We should provide a way to set the z order of a widget.
-         *          Something like `setZOrder` which would for any widget request
-         *          its parent to update their corresponding z order and perform
-         *          the needed modifications.
          */
         struct ChildWrapper {
           SdlWidget* widget;
@@ -343,7 +358,31 @@ namespace sdl {
         ChildrenMap m_names;
         WidgetsMap m_children;
 
+        /**
+         * @brief - The layout which handles positionning of children widget in the space for
+         *          this widget. Basically the parent of this widget or the layout it is linked
+         *          to will provide some available space to render this widget.
+         *          This space can be used to draw children widgets. In order to allow for the
+         *          children to be arranged in complex patterns the widget allows to define a
+         *          layout to it. Each child widget will be registered to the layout and thus
+         *          whenever the area assigned for this widget is changed, the layout will be
+         *          recomputed so that children widgets get an up-to-date area.
+         */
         std::shared_ptr<Layout> m_layout;
+
+        /**
+         * @brief - The z order for this widget. The z order allows for specific widgets to be
+         *          drawn after some other widgets so that we get some sort of overlapping
+         *          behavior. basically in the case of a combobox for example, the widget might
+         *          extend beyond its assigned range, thus overlapping with other children
+         *          widgets.
+         *          In order to guarantee that such widgets get drawn after all the other children
+         *          and thus get full advantage of their extended representation, one can use
+         *          the z order.
+         *          The z order is only relevant for siblings widgets and there's no such thing
+         *          as a global z ordering of widgets.
+         */
+        int m_zOrder;
 
         /**
          * @brief - Describes the palette to use for this widget. A palette describes a set of

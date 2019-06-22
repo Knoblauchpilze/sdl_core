@@ -14,6 +14,7 @@ namespace sdl {
       m_names(),
       m_children(),
       m_layout(),
+      m_zOrder(0),
       m_palette(engine::Palette::fromButtonColor(color)),
       m_engine(nullptr),
 
@@ -241,6 +242,20 @@ namespace sdl {
       // Use the base handler method to perform additional operations and
       // also to provide a return value.
       return LayoutItem::resizeEvent(e);
+    }
+
+    bool
+    SdlWidget::zOrderChanged(const engine::Event& e) {
+      // Traverse the children list and updtae the z order for each one.
+      for (WidgetsMap::iterator child = m_children.begin() ; child != m_children.end() ; ++child) {
+        child->zOrder = child->widget->getZOrder();
+      }
+
+      // Proceed to rebuild the z ordering.
+      rebuildZOrdering();
+
+      // Use the base handler method to provide a return value.
+      return LayoutItem::zOrderChanged(e);
     }
 
   }

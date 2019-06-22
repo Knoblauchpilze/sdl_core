@@ -228,7 +228,6 @@ namespace sdl {
       }
 
       // Check whether we can find this widget in the internal table.
-
       ChildrenMap::const_iterator child = m_names.find(widget->getName());
       if (child == m_names.cend()) {
         error(
@@ -559,14 +558,35 @@ namespace sdl {
       m_children.push_back(
         ChildWrapper{
           widget,
-          0
+          widget->getZOrder()
         }
       );
 
       // And now rebuilt the `m_names` array after sorting items in ascending
       // z order.
       rebuildZOrdering();
+    }
 
+    inline
+    int
+    SdlWidget::getZOrder() noexcept {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      return m_zOrder;
+    }
+
+    inline
+    void
+    SdlWidget::setZOrder(const int order) {
+      // Lock the widget.
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+
+      // Assign the new z order value.
+      m_zOrder = order;
+
+      // Notify the parent widget of this modification if any.
+      if (hasParent()) {
+        postEvent(std::make_shared<core::engine::Event>(core::engine::Event::Type::ZOrderChanged, m_parent));
+      }
     }
 
     inline

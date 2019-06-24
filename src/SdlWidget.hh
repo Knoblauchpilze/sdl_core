@@ -208,6 +208,18 @@ namespace sdl {
         WidgetType*
         getChildAs(const std::string& name);
 
+        /**
+         * @brief - Similar function of `getChildAs` but returns null if the item
+         *          cannot be retrieved because it does not exist.
+         *          It still raises an exception if the item is invalid.
+         * @param name - the name of the widget to retrieve.
+         * @return - a pointer to the widget with the specified name or null if the
+         *           widget does not exist.
+         */
+        template <typename WidgetType>
+        WidgetType*
+        getChildOrNull(const std::string& name);
+
         template <typename LayoutType>
         LayoutType*
         getLayoutAs() noexcept;
@@ -215,7 +227,7 @@ namespace sdl {
         engine::Engine&
         getEngine() const;
 
-        std::mutex&
+        std::recursive_mutex&
         getLocker() const noexcept;
 
         virtual bool
@@ -434,8 +446,10 @@ namespace sdl {
          *          not processed while an event is updating the visual content of the widget. This is
          *          made possible by using this mutex in any situation where the `m_content` attribute
          *          can be modified.
+         *          We make the mutex recursive as it is used both in events handling and in the add
+         *          child semantic. Doing so allows event to generate new insertion events.
          */
-        mutable std::mutex m_drawingLocker;
+        mutable std::recursive_mutex m_drawingLocker;
 
         /**
          * @brief - True if the mouse cursor is currently hovering over this widget. False otherwise. This

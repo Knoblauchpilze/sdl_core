@@ -38,7 +38,7 @@ namespace sdl {
     }
 
     SdlWidget::~SdlWidget() {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
       clearTexture();
 
       m_names.clear();
@@ -60,7 +60,7 @@ namespace sdl {
       utils::Boxf drawing = getDrawingArea();
 
       // Lock this widget.
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
 
       // Clear the content and draw the new version: we NEED to do that
       // before rendering children elements so that we maintain some
@@ -86,7 +86,6 @@ namespace sdl {
       // order.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         if (child->widget->isVisible()) {
-          log("Displaying child " + child->widget->getName() + " with order " + std::to_string(child->zOrder));
           drawChild(*child->widget, dims);
         }
       }

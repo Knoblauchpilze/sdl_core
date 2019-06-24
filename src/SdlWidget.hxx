@@ -553,9 +553,7 @@ namespace sdl {
 
       // Lock the widget to prevent concurrent modifications of the
       // internal children table.
-      log("Waiting to add widget " + widget->getName());
       std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
-      log("Proceeding to add widget " + widget->getName());
 
       // Check for duplicated widget
       if (m_names.find(widget->getName()) != m_names.cend()) {

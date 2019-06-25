@@ -304,7 +304,23 @@ namespace sdl {
     inline
     LayoutType*
     SdlWidget::getLayoutAs() noexcept {
-      return dynamic_cast<LayoutType*>(m_layout.get());
+      if (!hasLayout()) {
+        error(
+          std::string("Could not retrieve layout as \"") + typeid(LayoutType).name() + "\"",
+          std::string("No layout assigned")
+        );
+      }
+
+      LayoutType* out = dynamic_cast<LayoutType*>(m_layout.get());
+
+      if (out == nullptr) {
+        error(
+          std::string("Could not retrieve layout as \"") + typeid(LayoutType).name() + "\"",
+          std::string("Layout has incompatible type \"") + typeid(m_layout.get()).name() + "\""
+        );
+      }
+
+      return out;
     }
 
     inline

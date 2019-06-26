@@ -234,7 +234,7 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::resizeEvent(const engine::ResizeEvent& e) {
+    SdlWidget::resizeEvent(engine::ResizeEvent& e) {
       // Mark the content as dirty.
       makeContentDirty();
 

@@ -175,7 +175,7 @@ namespace sdl {
         repaintEvent(const engine::PaintEvent& e) override;
 
         bool
-        resizeEvent(const engine::ResizeEvent& e) override;
+        resizeEvent(engine::ResizeEvent& e) override;
 
         bool
         zOrderChanged(const engine::Event& e) override;

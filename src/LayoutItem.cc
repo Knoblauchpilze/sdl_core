@@ -45,7 +45,7 @@ namespace sdl {
     }
 
     bool
-    LayoutItem::resizeEvent(const engine::ResizeEvent& e) {
+    LayoutItem::resizeEvent(engine::ResizeEvent& e) {
       // We need to assign the area for this layout item based on the size
       // provided in the event The required size is the `new` size and
       // the `old` size should correspond to the current size of the

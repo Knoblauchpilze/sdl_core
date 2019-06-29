@@ -67,6 +67,27 @@ namespace sdl {
       // kind of ordering in the depth of widgets.
       // Note that this is not optimal as we depend on the order
       // in which widgets are rendered.
+      // TODO: This method should probably only use the cached content
+      // without needing to redraw anything. The actual drawing is
+      // performed in the `repaintEvent` method. This brings the question
+      // about how children widgets will notify the parent to be redrawn.
+      // Indeed imagine the following architecture:
+      //
+      // root_widget
+      //  |
+      //  +- child_1
+      //  |    |
+      //  |    + child_3
+      //  |
+      //  +- child_2
+      //
+      // The `child_3` gets updated, but if it does not tell its parent `child_2`
+      // that it should be redrawn, the `draw` method of `child_1` will reuse the
+      // cached data to display. Same problem with `child_1` and `root_widget`.
+      // So we need to have some sort of mechanism to post a repaint event to the
+      // parent with the area covered by this widget. It should also transmit to
+      // siblings of the parent widget if the area is too big to fit inside the
+      // parent's widget.
       clearContentPrivate(m_content);
       drawContentPrivate(m_content);
 

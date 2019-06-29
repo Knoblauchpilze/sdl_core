@@ -118,6 +118,17 @@ namespace sdl {
       protected:
 
         /**
+         * @brief - Used to mark the internal content as dirty. Updates the internal
+         *          `m_contentDirty` flag which will indicate that the content needs
+         *          a full reconstruction.
+         *          Typical use case include a resize operation where the size of the
+         *          widget has been modified and the content need to be rebuilt.
+         *          This method also request a global repaint.
+         */
+        void
+        makeContentDirty();
+
+        /**
          * @brief - This method can be used to indicate that the content of the widget
          *          should be redrawn. Most of the time this indicates a modification
          *          in the structrue of the content displayed by the widget.
@@ -139,8 +150,19 @@ namespace sdl {
          *               whole widget's area is used instead.
          */
         void
-        makeContentDirty(const bool allArea = true,
-                         const utils::Boxf& area = utils::Boxf()) noexcept;
+        requestRepaint(const bool allArea = true,
+                       const utils::Boxf& area = utils::Boxf()) noexcept;
+
+        /**
+         * @brief - Used to trigger a refresh operation. This will create a refresh
+         *          event and post it on the local queue.
+         *          A refresh operation consists into updating the content of the
+         *          cached content so that it is up-to-date with the modifications
+         *          possibly applied to the actual content.
+         *          A typical use case is for highlighting of a widget.
+         */
+        void
+        requestRefresh();
 
         /**
          * @brief - Reimplementation of the base `LayoutItem` method to also invalidate the
@@ -198,6 +220,33 @@ namespace sdl {
         bool
         mouseMoveEvent(const engine::MouseEvent& e) override;
 
+
+        /**
+         * @brief - Reimplementation of the base `EngineObject` method to provide
+         *          implementation for the refresh. A widget should refresh its
+         *          cached content upon performing the `refreshEvent`. As we cannot
+         *          do so in a thread different from the main thread we have to save
+         *          these events internally so that they can be processed upon
+         *          calling the `draw` method.
+         * @param e - the refresh event to proces.
+         */
+        bool
+        refreshEvent(const engine::Event& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `EngineObject` method to provide
+         *          implementation for the repaint. The repaint method handles the
+         *          creation of a content which can be used as the visual display
+         *          of the widget. Such visual should be up-to-date with the content
+         *          of the widget.
+         *          In order to keep the cached content synchronized with the real
+         *          content of the widget a refresh event is also issued at the end
+         *          of this method.
+         *          As the engine has some limitations which forbid the processing
+         *          of such events outside the main thread, we have to save them
+         *          internally.
+         * @param e - the paint event to process.
+         */
         bool
         repaintEvent(const engine::PaintEvent& e) override;
 
@@ -257,9 +306,6 @@ namespace sdl {
         std::recursive_mutex&
         getLocker() const noexcept;
 
-        virtual bool
-        hasContentChanged() const noexcept;
-
         utils::Vector2f
         mapToGlobal(const utils::Vector2f& local) const noexcept;
 
@@ -272,6 +318,53 @@ namespace sdl {
         bool
         isBlockedByChild(const utils::Vector2f& global) const noexcept;
 
+        /**
+         * @brief - Used to apply all the pending graphical operations
+         *          stored in the internal array. This array mostly
+         *          contains pending repaint events which are applied
+         *          by this method.
+         *          This is mostly a convenience wrapper to loop on all
+         *          the available events.
+         */
+        void
+        handleGraphicOperations();
+
+        /**
+         * @brief - The specialization of the `refreshEvent` which is called
+         *          upon actually processing the events. This method is
+         *          triggered during the `draw` method after all the repaint
+         *          events have been processed.
+         *          It basically consists in refreshing the cached content to
+         *          make it match the actual content.
+         */
+        void
+        refreshEventPrivate(const engine::Event& e);
+
+        /**
+         * @brief - The specialization of the `repaintEvent` which is called
+         *          upon actually processing the events. This method is triggered
+         *          during the `draw` method and used to perform each individual
+         *          event stored in the internal array.
+         *          Note that calling this function in a thread different from
+         *          the main thread will result in the creation of textures
+         *          which cannot be used correctly for display purposes.
+         * @param e - the repaint event to process.
+         */
+        void
+        repaintEventPrivate(const engine::PaintEvent& e);
+
+        /**
+         * @brief - Base implementation of the create operation for this widget.
+         *          The aim of this method is to create a texture which will be
+         *          used as a base to draw content of the widget on it.
+         *          The identifier of the created texture is returned so that it
+         *          can be used right away.
+         *          Inheriting classes can overload this method but in general
+         *          it should not be useful. It is encouraged to rather overload
+         *          the `drawContentPrivate` method, which is used to draw on the
+         *          texture produced by this method.
+         * @return - the identifier of the texture which has been created.
+         */
         virtual utils::Uuid
         createContentPrivate() const;
 
@@ -516,18 +609,6 @@ namespace sdl {
         utils::Uuid m_content;
 
         /**
-         * @brief - Containes the identifier of the texture currently cached for display purpose.
-         *          While the container or one of its children is not modified it will be used
-         *          when handling `draw` request.
-         *          This value is protected by a separate mutex to allow for easy access to it even
-         *          when the `m_content` is being updated simulatenously.
-         *          One of the goal of the `repaintEvent` method is to create the `m_content` value
-         *          and to copy it into the `m_cachedContent` so that it can be used in external
-         *          `draw` requests.
-         */
-        utils::Uuid m_cachedContent;
-
-        /**
          * @brief - Used to protect the above identifier from concurrent accesses. Any application has
          *          two main loops running in parallel: the events loop and the rendering loop. Any
          *          modifications triggered by processing an event may or may not have an impact on the
@@ -539,6 +620,28 @@ namespace sdl {
          *          child semantic. Doing so allows event to generate new insertion events.
          */
         mutable std::recursive_mutex m_drawingLocker;
+
+        /**
+         * @brief - Used to store internally the paint events to process upon calling the `draw` method.
+         *          Due to some limitations in the engine we're using, we cannot create or use some
+         *          textures outside of the main thread. This is a problem for caching and repainting
+         *          in general so to avoid this problem we save the corresponding events internally in
+         *          order to process them upon the next call to `draw` event.
+         */
+        std::vector<engine::PaintEvent> m_repaintOperations;
+        std::vector<engine::Event> m_refreshOperations;
+
+        /**
+         * @brief - Containes the identifier of the texture currently cached for display purpose.
+         *          While the container or one of its children is not modified it will be used
+         *          when handling `draw` request.
+         *          This value is protected by a separate mutex to allow for easy access to it even
+         *          when the `m_content` is being updated simulatenously.
+         *          One of the goal of the `repaintEvent` method is to create the `m_content` value
+         *          and to copy it into the `m_cachedContent` so that it can be used in external
+         *          `draw` requests.
+         */
+        utils::Uuid m_cachedContent;
 
         /**
          * @brief - Used to protect the `m_cachedContent` from concurrent access. This identifier can

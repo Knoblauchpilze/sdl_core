@@ -24,6 +24,10 @@ namespace sdl {
 
       m_content(),
       m_drawingLocker(),
+      m_repaintOperations(),
+      m_refreshOperations(),
+      m_cachedContent(),
+      m_cacheLocker(),
 
       m_mouseInside(false),
 
@@ -41,6 +45,9 @@ namespace sdl {
       std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
       clearTexture();
 
+      std::lock_guard<std::mutex> cacheGuard(m_cacheLocker);
+      clearCachedTexture();
+
       m_names.clear();
 
       for (WidgetsMap::const_iterator child = m_children.cbegin() ;
@@ -55,48 +62,22 @@ namespace sdl {
 
     void
     SdlWidget::draw(const utils::Sizef& dims) {
+      // Perform the lock to process repaint events.
+      handleGraphicOperations();
+
       // Retrieve the drawing area for this widget before locking it,
       // as it also locks the widget.
       utils::Boxf drawing = getDrawingArea();
 
-      // Lock this widget.
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
-
-      // Clear the content and draw the new version: we NEED to do that
-      // before rendering children elements so that we maintain some
-      // kind of ordering in the depth of widgets.
-      // Note that this is not optimal as we depend on the order
-      // in which widgets are rendered.
-      // TODO: This method should probably only use the cached content
-      // without needing to redraw anything. The actual drawing is
-      // performed in the `repaintEvent` method. This brings the question
-      // about how children widgets will notify the parent to be redrawn.
-      // Indeed imagine the following architecture:
-      //
-      // root_widget
-      //  |
-      //  +- child_1
-      //  |    |
-      //  |    + child_3
-      //  |
-      //  +- child_2
-      //
-      // The `child_3` gets updated, but if it does not tell its parent `child_2`
-      // that it should be redrawn, the `draw` method of `child_1` will reuse the
-      // cached data to display. Same problem with `child_1` and `root_widget`.
-      // So we need to have some sort of mechanism to post a repaint event to the
-      // parent with the area covered by this widget. It should also transmit to
-      // siblings of the parent widget if the area is too big to fit inside the
-      // parent's widget.
-      clearContentPrivate(m_content);
-      drawContentPrivate(m_content);
+      // Lock this widget in order to access to the cached content.
+      std::lock_guard<std::mutex> guard(m_cacheLocker);
 
       // Convert the drawing area to output coordinate frame.
       drawing.x() += (dims.w() / 2.0f);
       drawing.y() = (dims.h() / 2.0f) - drawing.y();
 
       getEngine().drawTexture(
-        m_content,
+        m_cachedContent,
         nullptr,
         &drawing
       );
@@ -219,39 +200,53 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::repaintEvent(const engine::PaintEvent& e) {
-      // In order to repaint the widget, a valid rendering area
-      // must have been defined through another process (usually
-      // by updating the layout of the parent widget).
-      // If this is not the case, an error is raised.
-      // Also the widget should be visible: if this is not the
-      // case we know that the `setVIsible` method will trigger
-      // a repaint when called with a `true` value (i.e. when the
-      // widget is set back to visible). So no need to worry of
-      // these events if the widget is not visible.
-      if (!isVisible()) {
-        // Use the base handler to determine the return value.
-        return engine::EngineObject::repaintEvent(e);
-      }
-
-      utils::Boxf area = LayoutItem::getRenderingArea();
-
-      if (!area.valid()) {
-        error(std::string("Could not repaint widget"), std::string("Invalid size"));
-      }
-
-      // Perform the repaint if the content has changed.
-      // This check should not be really useful because
-      // the `repaintEvent` should already be triggered
-      // at the most appropriate time.
-      if (hasContentChanged()) {
-        clearTexture();
-        m_content = createContentPrivate();
-        m_contentDirty = false;
-      }
+    SdlWidget::refreshEvent(const engine::Event& e) {
+      // The refresh event is meant to allow the update of the internal
+      // cached content with the up-to-date actual content. However this
+      // includes creating a new texture or destroying any existing
+      // cached content and due to limitations of the engine is meant to
+      // be done in the main thread.
+      // As we cannot guarantee that this operation will be performed in
+      // the main thread we chose to save internally such events to process
+      // them later on, during a call to `draw` method which is surely
+      // called from the main thread.
+      // So in here we just have to save the event for further processing.
+      // TODO: Handle merging ?
+      m_refreshOperations.push_back(e);
 
       // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::repaintEvent(e);
+      return LayoutItem::refreshEvent(e);
+
+    }
+
+    bool
+    SdlWidget::repaintEvent(const engine::PaintEvent& e) {
+      // Usually the paint event is meant to update the internal
+      // visual representation of this widget. It is important so
+      // that the display for this widget is always up-to-date
+      // with its content.
+      // Unfortunately some limitations in the engine we're using
+      // make it impossible to create textures outside of the
+      // main thread. This is particularly problematic because
+      // the whole events' system is designed to handle easily
+      // the repaint operation just like any operation.
+      // We chose to use a workaround: we save the repaint events
+      // in an internal array so that they can be processed later
+      // on during a call to the `draw` method. This method is
+      // called by the application into which the widget is used
+      // and always from the main thread.
+      // We handle caching and the repaint operation itself over
+      // there.
+      // So in here we just have to save the event for further
+      // processing.
+      // TODO: Handle merging ?
+      m_repaintOperations.push_back(e);
+
+      // Trigger a refresh.
+      requestRefresh();
+
+      // Use base handler to determine whether the event was recognized.
+      return LayoutItem::repaintEvent(e);
     }
 
     bool
@@ -276,6 +271,97 @@ namespace sdl {
 
       // Use the base handler method to provide a return value.
       return LayoutItem::zOrderChanged(e);
+    }
+
+    void
+    SdlWidget::refreshEventPrivate(const engine::Event& /*e*/) {
+      // Replace the cached content.
+      std::lock_guard<std::mutex> guard(m_cacheLocker);
+
+      // Create a new cached texture if the size of the cached content is
+      // different from the current size of the content.
+      utils::Sizei old;
+      if (m_cachedContent.valid()) {
+        old = getEngine().queryTexture(m_cachedContent);
+      }
+      utils::Sizei cur = getEngine().queryTexture(m_content);
+
+      if (!m_cachedContent.valid() || old != cur) {
+        // Clear existing cached texture.
+        clearCachedTexture();
+
+        // Create new one with required dimensions.
+        m_cachedContent = createContentPrivate();
+        
+        // In order to make the texture valid for rendering we need to clear it
+        // with a valid color.
+        getEngine().fillTexture(m_cachedContent, getPalette());
+      }
+
+      // Copy the data of `m_content` onto `m_cachedContent`.
+      // We can copy withtout specifying dimensions as both
+      // textures should have similar sizes.
+      getEngine().drawTexture(m_content, &m_cachedContent);
+    }
+
+    void
+    SdlWidget::repaintEventPrivate(const engine::PaintEvent& e) {
+      // When calling this method we should be in the main thread.
+      // This means that it is ok to create a texture, it will be
+      // usable in the main thread for display purposes.
+      // So in order to repaint the widget, a valid rendering area
+      // must have been defined through another process (usually
+      // by updating the layout of the parent widget). If this is
+      // not the case, an error is raised. Also the widget should
+      // be visible: if this is not the case we know that the
+      // `setVisible` method will trigger a repaint when called
+      // with a `true` value (i.e. when the widget is set back to
+      // visible). So no need to worry of these events if the
+      // widget is not visible.
+      // We also need to handle caching of the data so that it can
+      // be reused later on withtout modifications and need to
+      // redraw everything.
+
+      // So first check that the widget is visible.
+      if (!isVisible()) {
+        // Return early.
+        return;
+      }
+
+      // Retrieve and check the rendering area for this widget.
+      utils::Boxf area = LayoutItem::getRenderingArea();
+
+      if (!area.valid()) {
+        error(std::string("Could not repaint widget"), std::string("Invalid size"));
+      }
+
+      // We are certain that the repaint operation is valid. In order
+      // to perform the repaint we need to either completely recreate
+      // the content or only update part of it.
+      // The information about the area to repaint is available in the
+      // input event but it's not enough. Indeed we are able to determine
+      // whether only a part of the widget should be updated but not
+      // whether the widget needs to be recreated. This information is
+      // describes internally with the `m_contentDirty` boolean.
+      // Checking it will allow us to precisely determine whether a global
+      // paint event should also be paired with the creation of a new
+      // texture for this widget or the content can only be redrawn.
+
+      if (m_contentDirty) {
+        // Clear the internal texture.
+        clearTexture();
+
+        // Create the new content.
+        m_content = createContentPrivate();
+
+        // Until further notice the content is up-to-date.
+        m_contentDirty = false;
+      }
+
+      // Perform the update of the area described by the input
+      // paint event.
+      clearContentPrivate(m_content, e.getUpdateRegion());
+      drawContentPrivate(m_content, e.getUpdateRegion());
     }
 
   }

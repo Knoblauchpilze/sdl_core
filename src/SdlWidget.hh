@@ -275,11 +275,46 @@ namespace sdl {
         virtual utils::Uuid
         createContentPrivate() const;
 
+        /**
+         * @brief - Base implementation of the clear operation for this widget.
+         *          The clear operation includes refreshing the base canvas provided
+         *          by this widget to inheriting classes to perform their visual
+         *          interpretation.
+         *          The canvas usually has a base color and other information are
+         *          displayed on top of it. During the process of rendering the ui,
+         *          some elements might be displayed on top of it, hiding it partially
+         *          if not totally. When these elements are hidden/removed, the part
+         *          behind it should be redrawn: this is performed by this method.
+         *          The input arguments represents the base canvas to clear and the
+         *          `area` represents the area of the canvas which should be clered.
+         * @param uuid - an identifier provided by the internal engine representing
+         *               the canvas to clear.
+         * @param area - a box representing the area to clear. Note that the area
+         *               might represent the entirety of the canvas.
+         */
         virtual void
-        clearContentPrivate(const utils::Uuid& uuid) const;
+        clearContentPrivate(const utils::Uuid& uuid,
+                            const utils::Boxf& area) const;
 
+        /**
+         * @brief - Base implementation of the drawing operation for this widget. The
+         *          drtawing operation includes drawing all the additional content
+         *          needed by inheriting classes on top of the base canvas. This method
+         *          does nothing as no other information is available for the base
+         *          widget but typically it is the method to overload to display a
+         *          picture on top of the canvas for example. Or some text.
+         *          This method is only called upon repainting the widget. The input
+         *          arguments represents an identifier to retrieve the base canvas
+         *          where we can draw and an area representing the portion of the base
+         *          canvas to update.
+         * @param uuid - an identifier provided by the internal enigne representing the
+         *               canvas to drawn onto.
+         * @param area - a box representing the area which should be redrawn. Note that
+         *               the area might represent the entirety of the canvas.
+         */
         virtual void
-        drawContentPrivate(const utils::Uuid& uuid) const;
+        drawContentPrivate(const utils::Uuid& uuid,
+                           const utils::Boxf& area) const;
 
         /**
          * @brief - Proceeds to add the input `widget` as a child of this object.
@@ -315,8 +350,23 @@ namespace sdl {
 
       private:
 
+        /**
+         * @brief - Asks the engine to perform the needed operations to release the
+         *          memory used by the internal `m_content` texture.
+         *          Assumes that the `m_drawingLocker` is already locked.
+         *          No other texture is created.
+         */
         void
         clearTexture();
+
+        /**
+         * @brief - Asks the engine to perform the needed operations to release the
+         *          memory used by the internal `m_cachedContent` texture.
+         *          Assumes that the `m_cacheLocker` is already locked.
+         *          No other texture is created.
+         */
+        void
+        clearCachedTexture();
 
         /**
          * @brief - Used to share the configuration data of this widget with the
@@ -466,6 +516,18 @@ namespace sdl {
         utils::Uuid m_content;
 
         /**
+         * @brief - Containes the identifier of the texture currently cached for display purpose.
+         *          While the container or one of its children is not modified it will be used
+         *          when handling `draw` request.
+         *          This value is protected by a separate mutex to allow for easy access to it even
+         *          when the `m_content` is being updated simulatenously.
+         *          One of the goal of the `repaintEvent` method is to create the `m_content` value
+         *          and to copy it into the `m_cachedContent` so that it can be used in external
+         *          `draw` requests.
+         */
+        utils::Uuid m_cachedContent;
+
+        /**
          * @brief - Used to protect the above identifier from concurrent accesses. Any application has
          *          two main loops running in parallel: the events loop and the rendering loop. Any
          *          modifications triggered by processing an event may or may not have an impact on the
@@ -477,6 +539,14 @@ namespace sdl {
          *          child semantic. Doing so allows event to generate new insertion events.
          */
         mutable std::recursive_mutex m_drawingLocker;
+
+        /**
+         * @brief - Used to protect the `m_cachedContent` from concurrent access. This identifier can
+         *          indeed be accessed when a `draw` request is handled or when the `repaintEvent`
+         *          function finishes its process and perform the swap of the old content with the new
+         *          one to cache.
+         */
+        mutable std::mutex m_cacheLocker;
 
         /**
          * @brief - True if the mouse cursor is currently hovering over this widget. False otherwise. This

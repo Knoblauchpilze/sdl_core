@@ -110,12 +110,19 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::makeContentDirty(const bool allArea,
-                                const utils::Boxf& area) noexcept
-    {
+    SdlWidget::makeContentDirty() {
       // Mark the content as dirty.
       m_contentDirty = true;
 
+      // Request a repaint event.
+      requestRepaint();
+    }
+
+    inline
+    void
+    SdlWidget::requestRepaint(const bool allArea,
+                              const utils::Boxf& area) noexcept
+    {
       // Determine the area which should be updated: this will
       // indicate the type of event to create.
       engine::PaintEventShPtr e;
@@ -129,6 +136,13 @@ namespace sdl {
 
       // Trigger a content update event.
       postEvent(e);
+    }
+
+    inline
+    void
+    SdlWidget::requestRefresh() {
+      // Post a refresh event.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::Refresh));
     }
 
     inline
@@ -200,7 +214,7 @@ namespace sdl {
     void
     SdlWidget::setPalette(const engine::Palette& palette) noexcept {
       m_palette = palette;
-      makeContentDirty();
+      requestRepaint();
     }
 
     inline
@@ -353,12 +367,6 @@ namespace sdl {
     }
 
     inline
-    bool
-    SdlWidget::hasContentChanged() const noexcept {
-      return m_contentDirty && isVisible();
-    }
-
-    inline
     utils::Vector2f
     SdlWidget::mapToGlobal(const utils::Vector2f& local) const noexcept {
       // To transform `local` coordinate to global, we need to first
@@ -443,6 +451,28 @@ namespace sdl {
     }
 
     inline
+    void
+    SdlWidget::handleGraphicOperations() {
+      // Lock the drawing locker in order to perform pending operations.
+      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+
+      // Iterate over registered pending operations.
+      for (int id = 0 ; id < static_cast<int>(m_repaintOperations.size()) ; ++id) {
+        repaintEventPrivate(m_repaintOperations[id]);
+      }
+
+      // Clear the processed operations.
+      m_repaintOperations.clear();
+
+      // Handle refresh operations.
+      for (int id = 0 ; id < static_cast<int>(m_refreshOperations.size()) ; ++id) {
+        refreshEventPrivate(m_refreshOperations[id]);
+      }
+
+      m_refreshOperations.clear();
+    }
+
+    inline
     bool
     SdlWidget::handleEvent(engine::EventShPtr e) {
       // Lock the widget to prevent concurrent accesses.
@@ -458,6 +488,9 @@ namespace sdl {
       // Update the role of the background texture if the item is not selected.
       if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Background) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
+
+        // Post a repaint event.
+        requestRepaint();
       }
 
       // The mouse is now inside this widget.
@@ -473,6 +506,9 @@ namespace sdl {
       // Update the role of the background texture if the item is not selected.
       if (m_content.valid() && getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+
+        // Post a repaint event.
+        requestRepaint();
       }
 
       // The mouse is now outside this widget.
@@ -500,6 +536,9 @@ namespace sdl {
         else {
           getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
         }
+
+        // Post a repaint event.
+        requestRepaint();
       }
 
       // Use the base handler to determine whether the event was recognized.
@@ -566,7 +605,7 @@ namespace sdl {
       // through the color role. The corresponding color will be retrieved
       // from the palette to produce the corresponding rendering.
       // TODO: Handle area.
-      getEngine().fillTexture(uuid, m_palette);
+      getEngine().fillTexture(uuid, getPalette());
     }
 
     inline

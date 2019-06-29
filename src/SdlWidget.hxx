@@ -110,12 +110,20 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::makeContentDirty() noexcept {
+    SdlWidget::makeContentDirty(const bool allArea,
+                                const utils::Boxf& area) noexcept
+    {
       // Mark the content as dirty.
       m_contentDirty = true;
 
+      // Determine the area which should be updated.
+      utils::Boxf repaintArea = LayoutItem::getRenderingArea();
+      if (!allArea) {
+        repaintArea = area;
+      }
+
       // Trigger a geometry update event.
-      postEvent(std::make_shared<engine::PaintEvent>(LayoutItem::getRenderingArea()));
+      postEvent(std::make_shared<engine::PaintEvent>(repaintArea));
     }
 
     inline

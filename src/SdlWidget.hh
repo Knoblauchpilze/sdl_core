@@ -117,9 +117,36 @@ namespace sdl {
 
       protected:
 
+        /**
+         * @brief - This method can be used to indicate that the content of the widget
+         *          should be redrawn. Most of the time this indicates a modification
+         *          in the structrue of the content displayed by the widget.
+         *          Depending of the inheriting class it can mean a variety of things,
+         *          from new widget displayed in selector widget to picture modified
+         *          in picture widget.
+         *          By default the user is not supposed to provide any area for which
+         *          the content is provided (as `allArea` is true) but one can choose
+         *          to specify that only part of the widget should be redrawn using
+         *          the second parameter `area` and setting the value of `ællArea` to
+         *          `false`.
+         * @param allArea - true if the whole area of the widget should be redrawn
+         *                  and false if only part of the content is dirty.
+         *                  Note that if this value is `true` the second argument is
+         *                  ignored.
+         * @param area - the area of the content which should be redrawn. Allows to
+         *               indicate that only part of the widget's content is actually
+         *               dirty. This value is ignored if `allArea` is `true` and the
+         *               whole widget's area is used instead.
+         */
         void
-        makeContentDirty() noexcept;
+        makeContentDirty(const bool allArea = true,
+                         const utils::Boxf& area = utils::Boxf()) noexcept;
 
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` method to also invalidate the
+         *          internal layout associated to this widget if any.
+         *          Triggers a call to the base method nonetheless.
+         */
         void
         makeGeometryDirty() override;
 

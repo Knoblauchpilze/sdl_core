@@ -116,14 +116,19 @@ namespace sdl {
       // Mark the content as dirty.
       m_contentDirty = true;
 
-      // Determine the area which should be updated.
-      utils::Boxf repaintArea = LayoutItem::getRenderingArea();
-      if (!allArea) {
-        repaintArea = area;
+      // Determine the area which should be updated: this will
+      // indicate the type of event to create.
+      engine::PaintEventShPtr e;
+
+      if (allArea) {
+        e = std::make_shared<engine::PaintEvent>();
+      }
+      else {
+        e = std::make_shared<engine::PaintEvent>(area);
       }
 
-      // Trigger a geometry update event.
-      postEvent(std::make_shared<engine::PaintEvent>(repaintArea));
+      // Trigger a content update event.
+      postEvent(e);
     }
 
     inline
@@ -553,17 +558,22 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::clearContentPrivate(const utils::Uuid& uuid) const {
+    SdlWidget::clearContentPrivate(const utils::Uuid& uuid,
+                                   const utils::Boxf& /*area*/) const
+    {
       // Use the engine to fill the texture with the color provided by the
       // internal palette. The state of the widget is stored in the texture
       // through the color role. The corresponding color will be retrieved
       // from the palette to produce the corresponding rendering.
+      // TODO: Handle area.
       getEngine().fillTexture(uuid, m_palette);
     }
 
     inline
     void
-    SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/) const {
+    SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/,
+                                  const utils::Boxf& /*area*/) const
+    {
       // Empty implementation.
     }
 
@@ -633,6 +643,15 @@ namespace sdl {
       if (m_content.valid()) {
         getEngine().destroyTexture(m_content);
         m_content.invalidate();
+      }
+    }
+
+    inline
+    void
+    SdlWidget::clearCachedTexture() {
+      if (m_cachedContent.valid()) {
+        getEngine().destroyTexture(m_cachedContent);
+        m_cachedContent.invalidate();
       }
     }
 

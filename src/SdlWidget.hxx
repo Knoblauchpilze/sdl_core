@@ -128,7 +128,16 @@ namespace sdl {
       engine::PaintEventShPtr e;
 
       if (allArea) {
-        e = std::make_shared<engine::PaintEvent>();
+        // Check whether the area is valid.
+        utils::Boxf total = LayoutItem::getRenderingArea();
+
+        if (!total.valid()) {
+          // No vaild area provided, do not post the event as nothing will
+          // happen anyway.
+          return;
+        }
+
+        e = std::make_shared<engine::PaintEvent>(total);
       }
       else {
         e = std::make_shared<engine::PaintEvent>(area);
@@ -456,20 +465,18 @@ namespace sdl {
       // Lock the drawing locker in order to perform pending operations.
       std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
 
-      // Iterate over registered pending operations.
-      for (int id = 0 ; id < static_cast<int>(m_repaintOperations.size()) ; ++id) {
-        repaintEventPrivate(m_repaintOperations[id]);
+      // Perform both repaint and refresh operations registered internally.
+      if (m_repaintOperation != nullptr) {
+        repaintEventPrivate(*m_repaintOperation);
+
+        m_repaintOperation.reset();
       }
 
-      // Clear the processed operations.
-      m_repaintOperations.clear();
+      if (m_refreshOperation != nullptr) {
+        refreshEventPrivate(*m_refreshOperation);
 
-      // Handle refresh operations.
-      for (int id = 0 ; id < static_cast<int>(m_refreshOperations.size()) ; ++id) {
-        refreshEventPrivate(m_refreshOperations[id]);
+        m_refreshOperation.reset();
       }
-
-      m_refreshOperations.clear();
     }
 
     inline

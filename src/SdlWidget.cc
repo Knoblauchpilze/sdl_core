@@ -24,8 +24,8 @@ namespace sdl {
 
       m_content(),
       m_drawingLocker(),
-      m_repaintOperations(),
-      m_refreshOperations(),
+      m_repaintOperation(nullptr),
+      m_refreshOperation(nullptr),
       m_cachedContent(),
       m_cacheLocker(),
 
@@ -211,8 +211,18 @@ namespace sdl {
       // them later on, during a call to `draw` method which is surely
       // called from the main thread.
       // So in here we just have to save the event for further processing.
-      // TODO: Handle merging ?
-      m_refreshOperations.push_back(e);
+
+      // If no previous refresh operations were registered, we need to
+      // create a new one.
+      if (m_refreshOperation == nullptr) {
+        m_refreshOperation = std::make_shared<engine::Event>(e);
+      }
+      else {
+        // Should not happen: proceed to merge both elements.
+        log(std::string("Merging duplicated refresh operation in widget"), utils::Level::Warning);
+
+        m_refreshOperation->merge(e);
+      }
 
       // Use base handler to determine whether the event was recognized.
       return LayoutItem::refreshEvent(e);
@@ -239,8 +249,18 @@ namespace sdl {
       // there.
       // So in here we just have to save the event for further
       // processing.
-      // TODO: Handle merging ?
-      m_repaintOperations.push_back(e);
+
+      // If no previous repaint operations were registered, we need to
+      // create a new one.
+      if (m_repaintOperation == nullptr) {
+        m_repaintOperation = std::make_shared<engine::PaintEvent>(e);
+      }
+      else {
+        // Should not happen: proceed to merge both elements.
+        log(std::string("Merging duplicated repaint operation in widget"), utils::Level::Warning);
+
+        m_repaintOperation->merge(e);
+      }
 
       // Trigger a refresh.
       requestRefresh();
@@ -251,12 +271,14 @@ namespace sdl {
 
     bool
     SdlWidget::resizeEvent(engine::ResizeEvent& e) {
+      // Use the base handler to handle the resize.
+      bool toReturn = LayoutItem::resizeEvent(e);
+
       // Mark the content as dirty.
       makeContentDirty();
 
-      // Use the base handler method to perform additional operations and
-      // also to provide a return value.
-      return LayoutItem::resizeEvent(e);
+      // Return the value provided by the base handler.
+      return toReturn;
     }
 
     bool
@@ -360,8 +382,13 @@ namespace sdl {
 
       // Perform the update of the area described by the input
       // paint event.
-      clearContentPrivate(m_content, e.getUpdateRegion());
-      drawContentPrivate(m_content, e.getUpdateRegion());
+      const std::vector<utils::Boxf> regions = e.getUpdateRegions();
+
+      for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+        log("Updating region " + regions[id].toString());
+        clearContentPrivate(m_content, regions[id]);
+        drawContentPrivate(m_content, regions[id]);
+      }
     }
 
   }

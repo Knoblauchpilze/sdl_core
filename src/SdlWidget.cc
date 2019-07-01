@@ -326,6 +326,8 @@ namespace sdl {
       // We can copy withtout specifying dimensions as both
       // textures should have similar sizes.
       getEngine().drawTexture(m_content, &m_cachedContent);
+
+      // TODO: Should notify the parent.
     }
 
     void

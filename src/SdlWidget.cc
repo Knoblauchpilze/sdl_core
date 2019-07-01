@@ -60,37 +60,14 @@ namespace sdl {
       }
     }
 
-    void
-    SdlWidget::draw(const utils::Sizef& dims) {
-      // Perform the lock to process repaint events.
+    utils::Uuid
+    SdlWidget::draw() {
+      // Perform the lock to process oending repaint events.
       handleGraphicOperations();
 
-      // Retrieve the drawing area for this widget before locking it,
-      // as it also locks the widget.
-      utils::Boxf drawing = getDrawingArea();
-
-      // Lock this widget in order to access to the cached content.
+      // Return the cached texture.
       std::lock_guard<std::mutex> guard(m_cacheLocker);
-
-      // Convert the drawing area to output coordinate frame.
-      drawing.x() += (dims.w() / 2.0f);
-      drawing.y() = (dims.h() / 2.0f) - drawing.y();
-
-      getEngine().drawTexture(
-        m_cachedContent,
-        nullptr,
-        &drawing
-      );
-
-      // Proceed to update of children containers if any: at this point
-      // the `m_children` array is already sorted by z order so we can
-      // just iterate over it and we will process children in a valid
-      // order.
-      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        if (child->widget->isVisible()) {
-          drawChild(*child->widget, dims);
-        }
-      }
+      return m_cachedContent;
     }
 
     void
@@ -189,11 +166,36 @@ namespace sdl {
     SdlWidget::drawChild(SdlWidget& child,
                          const utils::Sizef& dims)
     {
+      const utils::Uuid& uuid = m_content;
+      engine::Engine& engine = getEngine();
+
       // Protect against errors.
       withSafetyNet(
-        [&child, &dims]() {
+        [&child, &uuid, &engine, &dims]() {
           // Draw this object (caching is handled by the object itself).
-          child.draw(dims);
+          utils::Uuid picture = child.draw();
+
+          // Draw the picture at the corresponding place. Note that the
+          // coordinates of the box of each child is in local coordinates
+          // relatively to this widget.
+          // In order to obtain good results, we need to convert to an
+          // intermediate coordinate frame not centered on the origin but
+          // rather on the position of this widget.
+          // This is because the SDL talks in terms of top left corner
+          // and we talk in terms of center.
+          // The conversion cannot happen without knowing the dimension
+          // of the input texture, which is only known here.
+          utils::Boxf render = child.getRenderingArea();
+
+          // Account for the intermediate coordinate frame transformation.
+          render.x() += (dims.w() / 2.0f);
+          render.y() = (dims.h() / 2.0f) - render.y();
+
+          engine.drawTexture(
+            picture,
+            &uuid,
+            &render
+          );
         },
         std::string("draw_child(") + child.getName() + ")"
       );
@@ -272,7 +274,7 @@ namespace sdl {
     bool
     SdlWidget::resizeEvent(engine::ResizeEvent& e) {
       // Use the base handler to handle the resize.
-      bool toReturn = LayoutItem::resizeEvent(e);
+      const bool toReturn = LayoutItem::resizeEvent(e);
 
       // Mark the content as dirty.
       makeContentDirty();
@@ -388,6 +390,20 @@ namespace sdl {
         log("Updating region " + regions[id].toString());
         clearContentPrivate(m_content, regions[id]);
         drawContentPrivate(m_content, regions[id]);
+      }
+
+      // Copy also the internal area in order to perform the coordinate
+      // frame transform.
+      utils::Sizef dims = area.toSize();
+
+      // Proceed to update of children containers if any: at this point
+      // the `m_children` array is already sorted by z order so we can
+      // just iterate over it and we will process children in a valid
+      // order.
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+        if (child->widget->isVisible()) {
+          drawChild(*child->widget, dims);
+        }
       }
     }
 

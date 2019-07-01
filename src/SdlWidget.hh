@@ -71,18 +71,21 @@ namespace sdl {
 
         /**
          * @brief - Used to perform the rendering of this widget using the internal engine
-         *          provided to it. The user needs to specify the general dimensions of the
-         *          area into whith the widget is rendered. This allows the widget to know
-         *          how to compute its position based on its position and the position of
-         *          its parent.
-         *          Note that children widgets will also be rendered by this method so that
-         *          higher order item do not have to care about that.
+         *          provided to it. This method mostly returns the cached texture to use
+         *          for this widget.
+         *          If some pending repaint and refresh operations they are also handled
+         *          there as we know that this method will be called by the main thread.
+         *          Most of the time this method will be really quick, but it might happen
+         *          that it takes a bit longer due to some pending repaint operations to
+         *          process.
          *          Failure to draw the widget will raise an error.
-         * @param dims - the total dimensions of the environment into which the widget is
-         *               rendered.
+         *          The return value corresponds to the index of the texture representing
+         *          this widget.
+         * @return - the index of the texture which has been produced by the drawing
+         *           operation.
          */
-        virtual void
-        draw(const utils::Sizef& dims);
+        virtual utils::Uuid
+        draw();
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method which allows to
@@ -483,10 +486,10 @@ namespace sdl {
          * @brief - Used to perform the rendering of the input `child` widget while
          *          providing a safety net in case the drawing fails and raises an
          *          error.
-         *          This function will pass on the input dimensions to the child so
-         *          that it can draw itself properly on the general canvas.
+         *          This function will use the provided dimensions so that each child
+         *          widget is drawn properly on the local canvas.
          * @param child - the child widget to draw.
-         * @param dims - total size of the window into which the widget is drawn.
+         * @param dims - total size of the canvas into which the child is drawn.
          */
         void
         drawChild(SdlWidget& child,

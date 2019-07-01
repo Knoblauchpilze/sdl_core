@@ -534,18 +534,32 @@ namespace sdl {
       // selection of the item if any.
 
       if (m_content.valid()) {
+        bool needRepaint = false;
+
         if (m_mouseInside) {
-          getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
+          if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Background) {
+            getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
+
+            // Request a repaint.
+            needRepaint = true;
+          }
 
           log("Emitting on click for " + getName(), utils::Level::Notice);
           onClick.emit(getName());
         }
         else {
-          getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+          if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Background) {
+            getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+
+            // Request a repaint.
+            needRepaint = true;
+          }
         }
 
-        // Post a repaint event.
-        requestRepaint();
+        // Post a repaint event if needed.
+        if (needRepaint) {
+          requestRepaint();
+        }
       }
 
       // Use the base handler to determine whether the event was recognized.

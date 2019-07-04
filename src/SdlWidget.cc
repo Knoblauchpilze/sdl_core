@@ -350,6 +350,7 @@ namespace sdl {
         engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(LayoutItem::getRenderingArea(), m_parent);
         pe->setEmitter(this);
 
+        // TODO: Check whether this creates unneeded events
         m_parent->postEvent(pe);
       }
     }

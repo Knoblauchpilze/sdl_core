@@ -127,20 +127,22 @@ namespace sdl {
       // indicate the type of event to create.
       engine::PaintEventShPtr e;
 
+      utils::Boxf toRepaint = area;
+
       if (allArea) {
         // Check whether the area is valid.
-        utils::Boxf total = LayoutItem::getRenderingArea();
+        toRepaint = LayoutItem::getRenderingArea();
 
-        if (!total.valid()) {
-          // No vaild area provided, do not post the event as nothing will
+        if (!toRepaint.valid()) {
+          // No valid area provided, do not post the event as nothing will
           // happen anyway.
           return;
         }
 
-        e = std::make_shared<engine::PaintEvent>(total);
+        e = std::make_shared<engine::PaintEvent>(toRepaint);
       }
       else {
-        e = std::make_shared<engine::PaintEvent>(area);
+        e = std::make_shared<engine::PaintEvent>(toRepaint);
       }
 
       // Trigger a content update event.

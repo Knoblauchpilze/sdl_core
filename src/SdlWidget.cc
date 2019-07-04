@@ -65,6 +65,23 @@ namespace sdl {
       // Perform the lock to process oending repaint events.
       handleGraphicOperations();
 
+      // We also need to traverse the list of children and
+      // call the `draw` method on each one. This allows to
+      // actually perform the pending graphic operations.
+      // This will guarantee that repaint operations can
+      // bubble up to the top level when needed.
+      {
+        std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+
+        utils::Sizef area = LayoutItem::getRenderingArea().toSize();
+
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+          if (child->widget->isVisible()) {
+            child->widget->draw();
+          }
+        }
+      }
+
       // Return the cached texture.
       std::lock_guard<std::mutex> guard(m_cacheLocker);
       return m_cachedContent;
@@ -327,7 +344,14 @@ namespace sdl {
       // textures should have similar sizes.
       getEngine().drawTexture(m_content, &m_cachedContent);
 
-      // TODO: Should notify the parent.
+      // Also, notify the parent if needed.
+      if (hasParent()) {
+        // As we will set a new emitter we need to create a new event.
+        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(LayoutItem::getRenderingArea(), m_parent);
+        pe->setEmitter(this);
+
+        m_parent->postEvent(pe);
+      }
     }
 
     void

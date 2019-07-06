@@ -210,6 +210,7 @@ namespace sdl {
 
           engine.drawTexture(
             picture,
+            nullptr,
             &uuid,
             &render
           );
@@ -342,7 +343,7 @@ namespace sdl {
       // Copy the data of `m_content` onto `m_cachedContent`.
       // We can copy withtout specifying dimensions as both
       // textures should have similar sizes.
-      getEngine().drawTexture(m_content, &m_cachedContent);
+      getEngine().drawTexture(m_content, nullptr, &m_cachedContent);
 
       // Also, notify the parent if needed.
       if (hasParent()) {

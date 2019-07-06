@@ -14,7 +14,7 @@ namespace sdl {
       m_maxSize(utils::Sizef::max()),
       m_sizePolicy(),
       m_geometryDirty(true),
-      m_area(utils::Boxf(0.0f, 0.0f, sizeHint.w(), sizeHint.h())),
+      m_area(utils::Boxf::fromSize(sizeHint, true)),
       m_nested(false),
       m_needsConvert(needsConvert),
       m_visible(true),

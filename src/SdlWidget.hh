@@ -315,6 +315,21 @@ namespace sdl {
         utils::Vector2f
         mapFromGlobal(const utils::Vector2f& global) const noexcept;
 
+        /**
+         * @brief - Used to convert the input box expressed in relative coordinate frame
+         *          relatively to this widget into an area expressed in a coordinate frame
+         *          which can be used by the internal engine.
+         *          This new coordinate frame is similar to the relative frame for this
+         *          widget but the top left corner is at `[0, 0]`.
+         * @param area - the area to convert. Note that this area should be expressed in a
+         *               coordinate frame relative to this widget where the center is at
+         *               `[0, 0]`.
+         * @return - a converted version of the input `area` to a coordinate frame usable
+         *           by the engine.
+         */
+        utils::Boxf
+        convertToEngineFormat(const utils::Boxf& area) const noexcept;
+
         bool
         isInsideWidget(const utils::Vector2f& global) const noexcept;
 

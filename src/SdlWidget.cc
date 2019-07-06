@@ -350,7 +350,6 @@ namespace sdl {
         engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(LayoutItem::getRenderingArea(), m_parent);
         pe->setEmitter(this);
 
-        // TODO: Check whether this creates unneeded events
         m_parent->postEvent(pe);
       }
     }
@@ -414,9 +413,11 @@ namespace sdl {
       const std::vector<utils::Boxf> regions = e.getUpdateRegions();
 
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-        log("Updating region " + regions[id].toString());
-        clearContentPrivate(m_content, regions[id]);
-        drawContentPrivate(m_content, regions[id]);
+        const utils::Boxf region = e.convertToLocal(regions[id], area);
+
+        log("Updating region " + regions[id].toString() + " (local: " + region.toString() + ")");
+        clearContentPrivate(m_content, region);
+        drawContentPrivate(m_content, region);
       }
 
       // Copy also the internal area in order to perform the coordinate

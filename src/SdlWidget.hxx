@@ -429,6 +429,22 @@ namespace sdl {
     }
 
     inline
+    utils::Boxf
+    SdlWidget::convertToEngineFormat(const utils::Boxf& area) const noexcept {
+      // Retrieve the size of this widget: this will help convert the input `area`.
+      const utils::Boxf thisSize = LayoutItem::getRenderingArea();
+
+      // Convert the input `area` by shifting the x axis by half the dimension and
+      // by inverting the `y` axis.
+      utils::Boxf converted = area;
+      converted.x() += (thisSize.w() / 2.0f);
+      converted.y() = (thisSize.h() / 2.0f) - area.y();
+
+      // Return the converted area.
+      return converted;
+    }
+
+    inline
     bool
     SdlWidget::isInsideWidget(const utils::Vector2f& global) const noexcept {
       // Compute the local position of the mouse.
@@ -621,14 +637,37 @@ namespace sdl {
     inline
     void
     SdlWidget::clearContentPrivate(const utils::Uuid& uuid,
-                                   const utils::Boxf& /*area*/) const
+                                   const utils::Boxf& area) const
     {
       // Use the engine to fill the texture with the color provided by the
       // internal palette. The state of the widget is stored in the texture
       // through the color role. The corresponding color will be retrieved
       // from the palette to produce the corresponding rendering.
-      // TODO: Handle area.
-      getEngine().fillTexture(uuid, getPalette());
+      //
+      // The input `area` should be checked against the internal area in
+      // order to determine whether we want to clear only part of the widget
+      // or all of it. If we want to re-render the whole widget we will just
+      // let the argument empty otherwise we need to convert the provided
+      // area into a valid local area.
+      
+      // Retrieve the internal area.
+      utils::Boxf thisSize = LayoutItem::getRenderingArea();
+
+      if (thisSize == area) {
+        // Just fill the whole texture.
+        log("Clearing whole widget " + thisSize.toString() + " (input: " + area.toString() + ")");
+        getEngine().fillTexture(uuid, getPalette(), nullptr);
+      }
+      else {
+        // We need to convert the input area to a valid coordinate frame
+        // which can be interpreted by the engine.
+        utils::Boxf converted = convertToEngineFormat(area);
+
+        log("Clearing region " + converted.toString() + " from " + area.toString() + " (local: " + thisSize.toString() + ")");
+
+        // Perform the repaint.
+        getEngine().fillTexture(uuid, getPalette(), &converted);
+      }
     }
 
     inline

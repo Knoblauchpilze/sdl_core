@@ -324,11 +324,13 @@ namespace sdl {
          * @param area - the area to convert. Note that this area should be expressed in a
          *               coordinate frame relative to this widget where the center is at
          *               `[0, 0]`.
+         * @param reference - the reference area to use to performt he conversion.
          * @return - a converted version of the input `area` to a coordinate frame usable
          *           by the engine.
          */
         utils::Boxf
-        convertToEngineFormat(const utils::Boxf& area) const noexcept;
+        convertToEngineFormat(const utils::Boxf& area,
+                              const utils::Boxf& reference) const noexcept;
 
         bool
         isInsideWidget(const utils::Vector2f& global) const noexcept;

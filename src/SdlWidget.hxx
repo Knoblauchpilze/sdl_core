@@ -430,15 +430,14 @@ namespace sdl {
 
     inline
     utils::Boxf
-    SdlWidget::convertToEngineFormat(const utils::Boxf& area) const noexcept {
-      // Retrieve the size of this widget: this will help convert the input `area`.
-      const utils::Boxf thisSize = LayoutItem::getRenderingArea();
-
+    SdlWidget::convertToEngineFormat(const utils::Boxf& area,
+                                     const utils::Boxf& reference) const noexcept
+    {
       // Convert the input `area` by shifting the x axis by half the dimension and
       // by inverting the `y` axis.
       utils::Boxf converted = area;
-      converted.x() += (thisSize.w() / 2.0f);
-      converted.y() = (thisSize.h() / 2.0f) - area.y();
+      converted.x() += (reference.w() / 2.0f);
+      converted.y() = (reference.h() / 2.0f) - area.y();
 
       // Return the converted area.
       return converted;
@@ -555,7 +554,7 @@ namespace sdl {
         bool needRepaint = false;
 
         if (m_mouseInside) {
-          if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Background) {
+          if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Dark) {
             getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
 
             // Request a repaint.
@@ -661,7 +660,8 @@ namespace sdl {
       else {
         // We need to convert the input area to a valid coordinate frame
         // which can be interpreted by the engine.
-        utils::Boxf converted = convertToEngineFormat(area);
+        utils::Boxf converted = convertToEngineFormat(area, thisSize);
+
 
         log("Clearing region " + converted.toString() + " from " + area.toString() + " (local: " + thisSize.toString() + ")");
 

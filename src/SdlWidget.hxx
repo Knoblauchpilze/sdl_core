@@ -444,6 +444,22 @@ namespace sdl {
     }
 
     inline
+    utils::Boxf
+    SdlWidget::convertToLocal(const utils::Boxf& area,
+                              const utils::Boxf& reference) const noexcept
+    {
+      // The position of the `reference` is used to convert the position of the
+      // input `area`. To do so we compute the relative offset between both areas.
+      // The dimensions are kept unchanged as there is no scaling.
+      return utils::Boxf(
+        area.x() - reference.x(),
+        area.y() - reference.y(),
+        area.w(),
+        area.h()
+      );
+    }
+
+    inline
     bool
     SdlWidget::isInsideWidget(const utils::Vector2f& global) const noexcept {
       // Compute the local position of the mouse.

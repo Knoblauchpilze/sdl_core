@@ -329,6 +329,9 @@ namespace sdl {
       utils::Sizei cur = getEngine().queryTexture(m_content);
 
       if (!m_cachedContent.valid() || old != cur) {
+
+        log("Recreating cached content, old size was " + old.toString() + ", new is " + cur.toString());
+
         // Clear existing cached texture.
         clearCachedTexture();
 
@@ -354,7 +357,26 @@ namespace sdl {
       // Also, notify the parent if needed.
       if (hasParent()) {
         // As we will set a new emitter we need to create a new event.
-        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(LayoutItem::getRenderingArea(), m_parent);
+        // The size associated to the paint event corresponds to the
+        // largest size between the new and old size. Indeed the parent
+        // needs to repaint areas which might not be covered by this
+        // widget anymore.
+        utils::Boxf thisArea = LayoutItem::getRenderingArea();
+
+        const float w = old.w() > cur.w() ? old.w() : cur.w();
+        const float h = old.h() > cur.h() ? old.h() : cur.h();
+
+        // TODO: Still some problems with repaint.
+        utils::Boxf toRepaint(
+          thisArea.x() - (w - thisArea.w()) / 2.0f,
+          thisArea.y() - (h - thisArea.h()) / 2.0f,
+          w,
+          h
+        );
+
+        log("Triggering repaint event for area " + thisArea.toString() + ", old was " + old.toString() + " so repaint is " + toRepaint.toString());
+
+        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, m_parent);
         pe->setEmitter(this);
 
         m_parent->postEvent(pe);
@@ -430,6 +452,8 @@ namespace sdl {
       // Copy also the internal area in order to perform the coordinate
       // frame transform.
       utils::Sizef dims = area.toSize();
+
+      log("Drawing " + std::to_string(m_children.size()) + " child(ren)");
 
       // Proceed to update of children containers if any: at this point
       // the `m_children` array is already sorted by z order so we can

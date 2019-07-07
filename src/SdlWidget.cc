@@ -339,6 +339,12 @@ namespace sdl {
         // with a valid color.
         getEngine().fillTexture(m_cachedContent, getPalette());
       }
+      else {
+        // Clear content so that we do not get polluted by the remains of old
+        // renderings.
+        // TODO: Check whether this does not lead to weird repaint with transparency.
+        clearContentPrivate(m_cachedContent, utils::Boxf::fromSize(old, true));
+      }
 
       // Copy the data of `m_content` onto `m_cachedContent`.
       // We can copy withtout specifying dimensions as both

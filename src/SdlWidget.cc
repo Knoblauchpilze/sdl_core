@@ -414,7 +414,7 @@ namespace sdl {
       const std::vector<utils::Boxf> regions = e.getUpdateRegions();
 
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-        const utils::Boxf region = e.convertToLocal(regions[id], area);
+        const utils::Boxf region = convertToLocal(regions[id], area);
 
         log("Updating region " + regions[id].toString() + " (local: " + region.toString() + ")");
         clearContentPrivate(m_content, region);

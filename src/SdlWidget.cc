@@ -427,6 +427,7 @@ namespace sdl {
       // Checking it will allow us to precisely determine whether a global
       // paint event should also be paired with the creation of a new
       // texture for this widget or the content can only be redrawn.
+      const bool redraw = m_contentDirty;
 
       if (m_contentDirty) {
         // Clear the internal texture.
@@ -460,8 +461,30 @@ namespace sdl {
       // the `m_children` array is already sorted by z order so we can
       // just iterate over it and we will process children in a valid
       // order.
+      // In addition to that we only need to repaint children which have
+      // a non empty intersection with any of the regions to update.
+      // This behavior might be overriden by the `redraw` operation as
+      // obviously if the whole widget has been recreated we need to
+      // repaint chidlren.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        if (child->widget->isVisible()) {
+        // The chidlren needs to be repainted if:
+        // 1. It is visible.
+        // 2. It needs a repaint from the input `event`.
+        // 3. It needs a repaint because the widget has been recreated.
+        // The only tricky part is determining whether the widget has
+        // some intersection with any of the update regions.
+
+        bool intersectWithRepaint = false;
+        int id = 0;
+        const utils::Boxf childBox = child->widget->getRenderingArea();
+
+        while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
+          intersectWithRepaint = convertToLocal(regions[id], area).intersect(childBox).valid();
+          ++id;
+        }
+
+        // Check whether we should repaint this child.
+        if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
           drawChild(*child->widget, dims);
         }
       }

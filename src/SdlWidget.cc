@@ -366,16 +366,18 @@ namespace sdl {
         const float w = old.w() > cur.w() ? old.w() : cur.w();
         const float h = old.h() > cur.h() ? old.h() : cur.h();
 
-        // TODO: Still some problems with repaint.
-        utils::Boxf toRepaint(
-          thisArea.x() - (w - thisArea.w()) / 2.0f,
-          thisArea.y() - (h - thisArea.h()) / 2.0f,
-          w,
-          h
+        // The paint event are supposed to express the coordinates using
+        // global coordinate frame. So after computing the local values
+        // we need to transform using the position of the parent.
+        const utils::Vector2f local(
+          0.0f + (w - thisArea.w()) / 2.0f,
+          0.0f - (h - thisArea.h()) / 2.0f
         );
+        const utils::Vector2f global = mapToGlobal(local);
 
-        log("Triggering repaint event for area " + thisArea.toString() + ", old was " + old.toString() + " so repaint is " + toRepaint.toString());
+        utils::Boxf toRepaint(global, w, h);
 
+        // Once we have the coordinates, create and post the paint event.
         engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, m_parent);
         pe->setEmitter(this);
 
@@ -444,7 +446,8 @@ namespace sdl {
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
         const utils::Boxf region = convertToLocal(regions[id], area);
 
-        log("Updating region " + regions[id].toString() + " (local: " + region.toString() + ")");
+        log("Updating region " + region.toString() + " from " + regions[id].toString());
+
         clearContentPrivate(m_content, region);
         drawContentPrivate(m_content, region);
       }
@@ -452,8 +455,6 @@ namespace sdl {
       // Copy also the internal area in order to perform the coordinate
       // frame transform.
       utils::Sizef dims = area.toSize();
-
-      log("Drawing " + std::to_string(m_children.size()) + " child(ren)");
 
       // Proceed to update of children containers if any: at this point
       // the `m_children` array is already sorted by z order so we can

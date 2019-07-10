@@ -486,16 +486,6 @@ namespace sdl {
           const utils::Boxf region = mapFromGlobal(regions[id]);
 
           // Determine whether the region has an intersection with the child.
-          // TODO: Transparency not working anymore.
-          // TODO: In the case of the `gany` widget the box is relative to the parent (i.e. the `tabwidget_selector` but
-          // does not include the translation of the `right_tab_widget`). This is a problem.
-          // Log extract:
-          // // Supposedly local box:
-          // [Box: pos: 267.500000x0.000000, dims: 94.000000x235.000000]
-          // // Update from gany, relative to global coordinate frame:
-          // from [Box: pos: 267.500000x-117.500000, dims: 94.000000x235.000000]
-          // // Ref (i.e. box of `tabwidget_selector`) does not account for position of `right_tabwidget`.
-          // (ref: [Box: pos: 0.000000x-117.500000, dims: 94.500000x235.000000])
           intersectWithRepaint = region.intersect(childBox).valid();
 
           // Move to the next one.

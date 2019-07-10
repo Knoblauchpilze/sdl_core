@@ -140,7 +140,7 @@ namespace sdl {
       }
 
       // Convert the area to repaint to global coordinate frame.
-      utils::Boxf global = mapToGlobal(toRepaint);
+      utils::Boxf global = mapToGlobal(toRepaint, false);
 
       log("Posting repaint event with area " + toRepaint.toString() + ", global is " + global.toString());
 
@@ -432,9 +432,11 @@ namespace sdl {
 
     inline
     utils::Boxf
-    SdlWidget::mapToGlobal(const utils::Boxf& local) const noexcept {
+    SdlWidget::mapToGlobal(const utils::Boxf& local,
+                           const bool accountForPosition) const noexcept
+    {
       return utils::Boxf(
-        mapToGlobal(local.getCenter()),
+        accountForPosition ? mapToGlobal(local.getCenter()) : mapToGlobal(utils::Vector2f()),
         local.w(),
         local.h()
       );

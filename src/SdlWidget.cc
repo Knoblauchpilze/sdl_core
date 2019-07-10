@@ -486,6 +486,7 @@ namespace sdl {
           const utils::Boxf region = convertToLocal(regions[id], area);
 
           // Determine whether the region has an intersection with the child.
+          // TODO: Transparency not working anymore.
           // TODO: In the case of the `gany` widget the box is relative to the parent (i.e. the `tabwidget_selector` but
           // does not include the translation of the `right_tab_widget`). This is a problem.
           // Log extract:

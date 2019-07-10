@@ -342,12 +342,27 @@ namespace sdl {
          *          This method is a convenience method which transforms the center of the
          *          input box and creates a new box with the global version of the center
          *          of the `local` box and the same dimensions.
+         *          The user can specify whether the mapping to global coordinate frame needs
+         *          to account for the local position of the widget. This comes from the fact
+         *          that some usage of this method are like so:
+         *          `mapToGlobal(getRenderingArea())`.
+         *          It seems like a pain to be able to call the method like so:
+         *          `mapToGlobal(utils::Boxf(
+         *              0,
+         *              0,
+         *              getRenderingArea().w(),
+         *              getRenderingArea().h()
+         *          ))`
+         *          So the boolean allows to skip this part in the process. If the boolean is
+         *          true we basically do not care about the position defined in the `local`
+         *          argument and consider that the value is `[0; 0]`.
          * @param local - the box expressed in local coordinate frame to transform to global
          *                frame.
          * @return - the global equivalent of the local box.
          */
         utils::Boxf
-        mapToGlobal(const utils::Boxf& local) const noexcept;
+        mapToGlobal(const utils::Boxf& local,
+                    const bool accountForPosition = true) const noexcept;
 
         /**
          * @brief - Similar behavior to `mapFromGlobal` with a vector in argument but outputs

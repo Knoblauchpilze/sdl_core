@@ -322,11 +322,11 @@ namespace sdl {
 
       // Create a new cached texture if the size of the cached content is
       // different from the current size of the content.
-      utils::Sizei old;
+      utils::Sizef old;
       if (m_cachedContent.valid()) {
         old = getEngine().queryTexture(m_cachedContent);
       }
-      utils::Sizei cur = getEngine().queryTexture(m_content);
+      utils::Sizef cur = getEngine().queryTexture(m_content);
 
       if (!m_cachedContent.valid() || old != cur) {
 

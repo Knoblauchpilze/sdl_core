@@ -642,8 +642,7 @@ namespace sdl {
       // Create the texture using the engine. The dmensions are retrieved from the
       // internal area.
       utils::Boxf area = LayoutItem::getRenderingArea();
-      utils::Sizei size(static_cast<int>(area.w()), static_cast<int>(area.h()));
-      utils::Uuid uuid = getEngine().createTexture(size, engine::Palette::ColorRole::Background);
+      utils::Uuid uuid = getEngine().createTexture(area.toSize(), engine::Palette::ColorRole::Background);
 
       // Return the texture.
       return uuid;

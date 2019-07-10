@@ -309,11 +309,58 @@ namespace sdl {
         std::recursive_mutex&
         getLocker() const noexcept;
 
+        /**
+         * @brief - Takes the input `local` vector in argument assuming it represents a
+         *          position in local coordinate frame and transform it into global frame.
+         *          If no parent is assigned to this widget the position is just offseted
+         *          by the local rendering area. Otherwise the parent object is used to
+         *          determine the local transformation applied to this widget in order to
+         *          derive the global transformation.
+         * @param local - the local vector to transform.
+         * @return - the global equivalent of the local vector.
+         */
         utils::Vector2f
         mapToGlobal(const utils::Vector2f& local) const noexcept;
 
+        /**
+         * @brief - Converts the input `global` vector in argument assuming it represents
+         *          a position in the global coordinate frame and transform it into local
+         *          frame.
+         *          If no parent is assigned to this widget the position is just offseted
+         *          with the local rendering area. Otherwise the parent obejct is used to
+         *          determine the global transformation applied to this widget in order to
+         *          derive the local transformation.
+         * @param global - the global vector to transform
+         * @return - the local equivalent of the global vector.
+         */
         utils::Vector2f
         mapFromGlobal(const utils::Vector2f& global) const noexcept;
+
+        /**
+         * @brief - Similar behavior to `mapToGlobal` with a vector in argument but outputs
+         *          and takes a box in argument.
+         *          This method is a convenience method which transforms the center of the
+         *          input box and creates a new box with the global version of the center
+         *          of the `local` box and the same dimensions.
+         * @param local - the box expressed in local coordinate frame to transform to global
+         *                frame.
+         * @return - the global equivalent of the local box.
+         */
+        utils::Boxf
+        mapToGlobal(const utils::Boxf& local) const noexcept;
+
+        /**
+         * @brief - Similar behavior to `mapFromGlobal` with a vector in argument but outputs
+         *          and takes a box in argument.
+         *          This method is a convenience method which transforms the center of the
+         *          input box and creates a new box with the local version of the center
+         *          of the `global` box and the same dimensions.
+         * @param global - the box expressed in global coordinate frame to transform to local
+         *                frame.
+         * @return - the local equivalent of the global box.
+         */
+        utils::Boxf
+        mapFromGlobal(const utils::Boxf& global) const noexcept;
 
         /**
          * @brief - Used to convert the input box expressed in relative coordinate frame

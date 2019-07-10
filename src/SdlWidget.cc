@@ -368,16 +368,16 @@ namespace sdl {
         // The paint event are supposed to express the coordinates using
         // global coordinate frame. So after computing the local values
         // we need to transform using the position of the parent.
-        const utils::Vector2f local(
+        const utils::Boxf local(
           0.0f + (w - thisArea.w()) / 2.0f,
-          0.0f - (h - thisArea.h()) / 2.0f
+          0.0f - (h - thisArea.h()) / 2.0f,
+          w,
+          h
         );
-        const utils::Vector2f global = mapToGlobal(local);
-
-        utils::Boxf toRepaint(global, w, h);
+        const utils::Boxf toRepaint = mapToGlobal(local);
 
         log("Old area is " + old.toString() + " new is " + cur.toString(), utils::Level::Info);
-        log("This area is " + thisArea.toString() + ", local is " + local.toString() + ", global is " + global.toString(), utils::Level::Info);
+        log("This area is " + thisArea.toString() + ", local is " + local.toString() + ", global is " + toRepaint.toString(), utils::Level::Info);
         log("To repaint for parent " + m_parent->getName() + " is " + toRepaint.toString(), utils::Level::Info);
 
         // Once we have the coordinates, create and post the paint event.
@@ -448,7 +448,7 @@ namespace sdl {
       const std::vector<utils::Boxf> regions = e.getUpdateRegions();
 
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-        const utils::Boxf region = convertToLocal(regions[id], area);
+        const utils::Boxf region = mapFromGlobal(regions[id]);
 
         log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ")");
 

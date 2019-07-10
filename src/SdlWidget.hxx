@@ -125,7 +125,6 @@ namespace sdl {
     {
       // Determine the area which should be updated: this will
       // indicate the type of event to create.
-      engine::PaintEventShPtr e;
 
       utils::Boxf toRepaint = area;
 
@@ -138,14 +137,17 @@ namespace sdl {
           // happen anyway.
           return;
         }
-
-        e = std::make_shared<engine::PaintEvent>(toRepaint);
-      }
-      else {
-        e = std::make_shared<engine::PaintEvent>(toRepaint);
       }
 
-      // Trigger a content update event.
+      // Convert the area to repaint to global coordinate frame.
+      utils::Boxf global = mapToGlobal(toRepaint);
+
+      log("Posting repaint event with area " + toRepaint.toString() + ", global is " + global.toString());
+
+      // Create the paint event.
+      engine::PaintEventShPtr e = std::make_shared<engine::PaintEvent>(global);
+
+      // Post it to trigger a content update.
       postEvent(e);
     }
 
@@ -426,6 +428,26 @@ namespace sdl {
 
       // This is the local representation of the input global position.
       return local;
+    }
+
+    inline
+    utils::Boxf
+    SdlWidget::mapToGlobal(const utils::Boxf& local) const noexcept {
+      return utils::Boxf(
+        mapToGlobal(local.getCenter()),
+        local.w(),
+        local.h()
+      );
+    }
+
+    inline
+    utils::Boxf
+    SdlWidget::mapFromGlobal(const utils::Boxf& global) const noexcept {
+      return utils::Boxf(
+        mapFromGlobal(global.getCenter()),
+        global.w(),
+        global.h()
+      );
     }
 
     inline

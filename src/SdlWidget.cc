@@ -483,7 +483,7 @@ namespace sdl {
 
         while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
           // Convert region from global to local.
-          const utils::Boxf region = convertToLocal(regions[id], area);
+          const utils::Boxf region = mapFromGlobal(regions[id]);
 
           // Determine whether the region has an intersection with the child.
           // TODO: Transparency not working anymore.

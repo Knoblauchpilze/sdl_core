@@ -208,6 +208,8 @@ namespace sdl {
           render.x() += (dims.w() / 2.0f);
           render.y() = (dims.h() / 2.0f) - render.y();
 
+          // TODO: This idea actually prevents to have children spanning
+          // areas beyong the parent area.
           engine.drawTexture(
             picture,
             nullptr,
@@ -238,9 +240,10 @@ namespace sdl {
         m_refreshOperation = std::make_shared<engine::Event>(e);
       }
       else {
-        // Should not happen: proceed to merge both elements.
-        log(std::string("Merging duplicated refresh operation in widget"), utils::Level::Warning);
-
+        // Might happen if events are posted faster than the repaint from
+        // the main thread occurs. Should not happen too often if the fps
+        // for both the repaint and events system are set to work well
+        // together.
         m_refreshOperation->merge(e);
       }
 
@@ -276,9 +279,10 @@ namespace sdl {
         m_repaintOperation = std::make_shared<engine::PaintEvent>(e);
       }
       else {
-        // Should not happen: proceed to merge both elements.
-        log(std::string("Merging duplicated repaint operation in widget"), utils::Level::Warning);
-
+        // Might happen if events are posted faster than the repaint from
+        // the main thread occurs. Should not happen too often if the fps
+        // for both the repaint and events system are set to work well
+        // together.
         m_repaintOperation->merge(e);
       }
 
@@ -329,15 +333,12 @@ namespace sdl {
       utils::Sizef cur = getEngine().queryTexture(m_content);
 
       if (!m_cachedContent.valid() || old != cur) {
-
-        log("Recreating cached content, old size was " + old.toString() + ", new is " + cur.toString());
-
         // Clear existing cached texture.
         clearCachedTexture();
 
         // Create new one with required dimensions.
         m_cachedContent = createContentPrivate();
-        
+
         // In order to make the texture valid for rendering we need to clear it
         // with a valid color.
         getEngine().fillTexture(m_cachedContent, getPalette());
@@ -375,10 +376,6 @@ namespace sdl {
           h
         );
         const utils::Boxf toRepaint = mapToGlobal(local);
-
-        log("Old area is " + old.toString() + " new is " + cur.toString(), utils::Level::Info);
-        log("This area is " + thisArea.toString() + ", local is " + local.toString() + ", global is " + toRepaint.toString(), utils::Level::Info);
-        log("To repaint for parent " + m_parent->getName() + " is " + toRepaint.toString(), utils::Level::Info);
 
         // Once we have the coordinates, create and post the paint event.
         engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, m_parent);
@@ -490,10 +487,6 @@ namespace sdl {
 
           // Move to the next one.
           ++id;
-        }
-
-        if (!intersectWithRepaint) {
-          log("Child " + child->widget->getName() + " does not intersect with any of the repaint areas (" + std::to_string(regions.size()) + ")");
         }
 
         // Check whether we should repaint this child.

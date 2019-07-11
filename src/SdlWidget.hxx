@@ -125,7 +125,6 @@ namespace sdl {
     {
       // Determine the area which should be updated: this will
       // indicate the type of event to create.
-
       utils::Boxf toRepaint = area;
 
       if (allArea) {
@@ -141,8 +140,6 @@ namespace sdl {
 
       // Convert the area to repaint to global coordinate frame.
       utils::Boxf global = mapToGlobal(toRepaint, false);
-
-      log("Posting repaint event with area " + toRepaint.toString() + ", global is " + global.toString());
 
       // Create the paint event.
       engine::PaintEventShPtr e = std::make_shared<engine::PaintEvent>(global);
@@ -687,22 +684,18 @@ namespace sdl {
       // or all of it. If we want to re-render the whole widget we will just
       // let the argument empty otherwise we need to convert the provided
       // area into a valid local area.
-      
+
       // Retrieve the internal area.
       utils::Boxf thisSize = LayoutItem::getRenderingArea();
 
       if (thisSize == area) {
         // Just fill the whole texture.
-        log("Clearing whole widget " + thisSize.toString() + " (input: " + area.toString() + ")");
         getEngine().fillTexture(uuid, getPalette(), nullptr);
       }
       else {
         // We need to convert the input area to a valid coordinate frame
         // which can be interpreted by the engine.
         utils::Boxf converted = convertToEngineFormat(area, thisSize);
-
-
-        log("Clearing region " + converted.toString() + " from " + area.toString() + " (local: " + thisSize.toString() + ")");
 
         // Perform the repaint.
         getEngine().fillTexture(uuid, getPalette(), &converted);

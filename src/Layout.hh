@@ -145,8 +145,29 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& window) override;
 
+        /**
+         * @brief - Interface method called by the `updatePrivate` method which is
+         *          triggered after the size of this layout has been updated and
+         *          some checkes have been performed to determine whether this
+         *          layout is empty or not.
+         *          Note that inheriting classes need to redefine this method in
+         *          order to be concrete implementation of a layout object.
+         * @param window - the box describing the available space for this layout.
+         */
         virtual void
         computeGeometry(const utils::Boxf& window) = 0;
+
+        /**
+         * @brief - Redefinition of the base `EngineObject` class. This method
+         *          will allow to transmit the paint event to children which have
+         *          an overlap with one of the area described in the event.
+         *          This mechanism is used to transmit events from siblings items
+         *          to other.
+         * @param e - the paint event to process.
+         * @return - true if the event was recognized, false otherwise.
+         */
+        bool
+        repaintEvent(const engine::PaintEvent& e) override;
 
         /**
          * @brief - Try to retrieve the index of the item specified as argument.

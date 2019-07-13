@@ -367,6 +367,97 @@ namespace sdl {
       // We can copy withtout specifying dimensions as both
       // textures should have similar sizes.
       getEngine().drawTexture(m_content, nullptr, &m_cachedContent);
+
+      // So the cached content is now up-to-date with the real content of this
+      // widget. Theoretically we also issued some repaint event for the parent
+      // widget when we processed the associated repaint event.
+      // But there might be a problem if the size of the old content was different
+      // from the current size.
+      // Indeed the paint event at most occupied the whole current size of the
+      // widget but this might not be enough if the widget shrinked upon the
+      // updating the cached content.
+      // In this case we need to issue a new paint event to the parent (which
+      // might get merged with the old one) in order to increase the size of the
+      // area to update to be in fact equal to the size of the old content.
+      // This only stands if the size of the cached content is different from
+      // the current size of the content. And even more specifically we only
+      // want to issue a new paint event if the old size was *greater* than the
+      // current one: otherwise the current paint event is already enough.
+      log ("Handling refresh with new size " + cur.toString() + " and old " + old.toString());
+      if (cur != old) {
+        // Determine the dimensions of the new paint event to issue. For each
+        // axis we keep the maximum size between the current and old areas.
+        const float w = old.w() > cur.w() ? old.w() : cur.w();
+        const float h = old.h() > cur.h() ? old.h() : cur.h();
+
+        // The current content is smaller than the old content, issue a new
+        // paint event.
+        const utils::Boxf local(
+          0.0f + (w - cur.w()) / 2.0f,
+          0.0f - (h - cur.h()) / 2.0f,
+          w,
+          h
+        );
+        const utils::Boxf toRepaint = mapToGlobal(local);
+
+        // Once we have the coordinates, create the paint event.
+        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, nullptr);
+        pe->setEmitter(this);
+
+        EngineObject* o = nullptr;
+
+        log("Updating paint event from existing area to " + local.toString() + " (global: " + toRepaint.toString() + ")");
+
+        // We should either send the paint event to the parent or if there is no
+        // parent, we need to send the event to the manager layout. If no such
+        // layout exists, do nothing as we cannot determine what to do.
+        if (hasParent()) {
+          log("Posting to parent");
+          pe->setReceiver(m_parent);
+          o = m_parent;
+        }
+        else if (isManaged()) {
+          log("Posting to layout");
+          pe->setReceiver(getManager());
+          o = getManager();
+        }
+
+        // Post the event if we have an object where to post it.
+        if (o != nullptr) {
+          o->postEvent(pe);
+        }
+      }
+
+
+      // Also, notify the parent if needed.
+      if (hasParent()) {
+        // As we will set a new emitter we need to create a new event.
+        // The size associated to the paint event corresponds to the
+        // largest size between the new and old size. Indeed the parent
+        // needs to repaint areas which might not be covered by this
+        // widget anymore.
+        utils::Boxf thisArea = LayoutItem::getRenderingArea();
+
+        const float w = old.w() > cur.w() ? old.w() : cur.w();
+        const float h = old.h() > cur.h() ? old.h() : cur.h();
+
+        // The paint event are supposed to express the coordinates using
+        // global coordinate frame. So after computing the local values
+        // we need to transform using the position of the parent.
+        const utils::Boxf local(
+          0.0f + (w - thisArea.w()) / 2.0f,
+          0.0f - (h - thisArea.h()) / 2.0f,
+          w,
+          h
+        );
+        const utils::Boxf toRepaint = mapToGlobal(local);
+
+        // Once we have the coordinates, create and post the paint event.
+        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, m_parent);
+        pe->setEmitter(this);
+
+        m_parent->postEvent(pe);
+      }
     }
 
     void
@@ -478,10 +569,6 @@ namespace sdl {
           drawChild(*child->widget, dims);
         }
       }
-
-      ////////////////////////////
-      // TODO: Does this work ? //
-      ////////////////////////////
 
       // Now we updated children and recreated our internal content if needed.
       // We can now notify the parent widget (if any) to update itself with

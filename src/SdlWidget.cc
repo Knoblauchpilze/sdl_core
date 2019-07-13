@@ -383,7 +383,6 @@ namespace sdl {
       // the current size of the content. And even more specifically we only
       // want to issue a new paint event if the old size was *greater* than the
       // current one: otherwise the current paint event is already enough.
-      log ("Handling refresh with new size " + cur.toString() + " and old " + old.toString());
       if (cur != old) {
         // Determine the dimensions of the new paint event to issue. For each
         // axis we keep the maximum size between the current and old areas.
@@ -406,18 +405,18 @@ namespace sdl {
 
         EngineObject* o = nullptr;
 
-        log("Updating paint event from existing area to " + local.toString() + " (global: " + toRepaint.toString() + ")");
+        log("Updating paint event from " + LayoutItem::getRenderingArea().toString() + " to " + local.toString() + " (global: " + toRepaint.toString() + ")");
 
         // We should either send the paint event to the parent or if there is no
         // parent, we need to send the event to the manager layout. If no such
         // layout exists, do nothing as we cannot determine what to do.
         if (hasParent()) {
-          log("Posting to parent");
+          log("Posting to parent " + m_parent->getName());
           pe->setReceiver(m_parent);
           o = m_parent;
         }
         else if (isManaged()) {
-          log("Posting to layout");
+          log("Posting to layout " + getManager()->getName());
           pe->setReceiver(getManager());
           o = getManager();
         }
@@ -657,6 +656,7 @@ namespace sdl {
       engine::PaintEventShPtr ne = std::make_shared<engine::PaintEvent>(this);
 
       const utils::Boxf global = mapToGlobal(area, false);
+      int badFitCount = 0;
 
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
         // Check whether the intersection of this region with the area defined
@@ -669,12 +669,17 @@ namespace sdl {
           log("Area " + regions[id].toString() + " does not fit into widget's area of " + area.toString() + ", propagating to manager layout");
           // The area has part of it which do not lie in `this` widget's area.
           ne->addUpdateRegion(ref);
+
+          ++badFitCount;
         }
       }
 
-      // Post the event to the director's layout queue.
-      ne->setReceiver(getManager());
-      getManager()->postEvent(ne);
+      // Post the event to the director's layout queue if at least one area did
+      // not fit in the widget.
+      if (badFitCount > 0) {
+        ne->setReceiver(getManager());
+        getManager()->postEvent(ne);
+      }
     }
 
   }

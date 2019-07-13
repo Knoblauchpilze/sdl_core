@@ -42,7 +42,14 @@ namespace sdl {
       computeGeometry(window);
     }
 
-    inline
+    bool
+    Layout::repaintEvent(const engine::PaintEvent& e) {
+      log("Should handle repaint for event containing " + std::to_string(e.getUpdateRegions().size()) + " region(s) to update", utils::Level::Error);
+
+      // Use the base method to handle the return value.
+      return LayoutItem::repaintEvent(e);
+    }
+
     int
     Layout::addItem(LayoutItem* item) {
       // Check for valid items.
@@ -61,6 +68,9 @@ namespace sdl {
 
       // Insert the item into the layout.
       m_items.push_back(item);
+
+      // Set this item as `managed` by this layout.
+      item->setManager(this);
 
       // Compute the physical id of this item.
       const int physID = m_items.size() - 1;

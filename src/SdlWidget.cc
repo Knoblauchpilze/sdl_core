@@ -353,36 +353,6 @@ namespace sdl {
       // We can copy withtout specifying dimensions as both
       // textures should have similar sizes.
       getEngine().drawTexture(m_content, nullptr, &m_cachedContent);
-
-      // Also, notify the parent if needed.
-      if (hasParent()) {
-        // As we will set a new emitter we need to create a new event.
-        // The size associated to the paint event corresponds to the
-        // largest size between the new and old size. Indeed the parent
-        // needs to repaint areas which might not be covered by this
-        // widget anymore.
-        utils::Boxf thisArea = LayoutItem::getRenderingArea();
-
-        const float w = old.w() > cur.w() ? old.w() : cur.w();
-        const float h = old.h() > cur.h() ? old.h() : cur.h();
-
-        // The paint event are supposed to express the coordinates using
-        // global coordinate frame. So after computing the local values
-        // we need to transform using the position of the parent.
-        const utils::Boxf local(
-          0.0f + (w - thisArea.w()) / 2.0f,
-          0.0f - (h - thisArea.h()) / 2.0f,
-          w,
-          h
-        );
-        const utils::Boxf toRepaint = mapToGlobal(local);
-
-        // Once we have the coordinates, create and post the paint event.
-        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, m_parent);
-        pe->setEmitter(this);
-
-        m_parent->postEvent(pe);
-      }
     }
 
     void
@@ -494,6 +464,116 @@ namespace sdl {
           drawChild(*child->widget, dims);
         }
       }
+
+      ////////////////////////////
+      // TODO: Does this work ? //
+      ////////////////////////////
+
+      // Now we updated children and recreated our internal content if needed.
+      // We can now notify the parent widget (if any) to update itself with
+      // our up-to-date content.
+      // One last thing to worry about is if any of the areas specified in the
+      // paint event overflows the area defined for `this` widget.
+      // If this is the case it means that we potentially need to udpate other
+      // siblings elements of this widget with some content from this widget.
+      // At this point the fact that we have a parent or not is important: indeed
+      // if we have a parent we can just proceed to post a repait event for the
+      // parent and we should be good. Indeed either the parent covers all the
+      // areas defined by the input paint event in which case it can handle all
+      // of them or it is not the case and whatever decision we could make can
+      // also be done by the parent.
+      // The only problem is when we don't have any parent. In this case we can
+      // either stop the process, which means that we potentially skipped parts
+      // of the repaint process or try to notify siblings of `this` widget in
+      // order to trigger a repaint on their behalf.
+      // This is made possible if `this` widget has a layout: in this case it
+      // is the best candidate to transmit the paint event to siblings of `this`
+      // widget.
+      //
+      // Finally we also need to take into consideration the fact that `this`
+      // widget might have been completely repainted. If this is the case, we
+      // need to add the whole widget's area to the repaint event. The event
+      // will handle internally the necessary merge operation to remove the
+      // regions which might be redundant after that.
+
+      // Determine whether a parent is available for this widget: if this
+      // is the case we need to transmit the repaint event to it as we just
+      // updated this widget. This most likely has an impact on the parent
+      // widget so we should notify it so that it can performs its own
+      // update process.
+      if (hasParent()) {
+        // Note that we need to create a new event as the one we're using is
+        // not a pointer but a refernece so we cannot directly post it to any
+        // other object.
+        engine::PaintEventShPtr ne = std::make_shared<engine::PaintEvent>(e);
+
+        // Assign the emitter of this event.
+        ne->setEmitter(this);
+
+        // Add the region covered by this widget to the repaint event if it has
+        // been redrawn.
+        if (redraw) {
+          log("Adding redraw region " + mapToGlobal(area, false).toString() + " to repaint event containing " + std::to_string(ne->getUpdateRegions().size()) + " region(s)");
+          ne->addUpdateRegion(mapToGlobal(area, false));
+        }
+
+        // Assign receiver and post the event.
+        ne->setReceiver(m_parent);
+        m_parent->postEvent(ne);
+
+        // All is well.
+        return;
+      }
+
+      // No parent is available for this widget. This usually means that we
+      // reached the top of the widgets' hierarchy and that no matter the
+      // event which started this process in the first place we now have once
+      // again a nice up-to-date cache of all widgets.
+      // So most of the time this would indicate that we're done.
+      // There's one special case though: if one or more of the update regions
+      // overflows this widget (i.e. covers area which are beyond the bounds
+      // of this widget) we might want to notify siblings elements of `this`
+      // widget so that they can repaint tehmselves.
+      // This process is only available through posting a repaint event on the
+      // layout of `this` widget if any: indeed the layout is the best option
+      // to reach siblings as it is likely that is does not manage only `this`
+      // widget but also its siblings.
+      //
+      // This process is only relevant if a layout is defined for this widget,
+      // otherwise we have no idea about the whereabouts of `this` widget's
+      // siblings which is kinda sad.
+      if (!isManaged()) {
+        // Nothing more we can do, no information about the siblings of this
+        // widget so even in the eventuality where we find some areas which
+        // are not fully covered by this widget we can't do anything. Maybe
+        // broadcasting the repaint event would be nice but not sure we want
+        // to do that for now.
+        return;
+      }
+
+      // So first, keep only the regions which are not completely included in
+      // `this` widget's area.
+      engine::PaintEventShPtr ne = std::make_shared<engine::PaintEvent>(this);
+
+      const utils::Boxf global = mapToGlobal(area, false);
+
+      for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+        // Check whether the intersection of this region with the area defined
+        // for this widget is equal to the input area: if this is the case it
+        // means that the area is contained inside `this` widget area, otherwise
+        // it means that at least part of it lies outside of the reference area.
+        const utils::Boxf ref = regions[id].intersect(global);
+
+        if (ref != regions[id]) {
+          log("Area " + regions[id].toString() + " does not fit into widget's area of " + area.toString() + ", propagating to manager layout");
+          // The area has part of it which do not lie in `this` widget's area.
+          ne->addUpdateRegion(ref);
+        }
+      }
+
+      // Post the event to the director's layout queue.
+      ne->setReceiver(getManager());
+      getManager()->postEvent(ne);
     }
 
   }

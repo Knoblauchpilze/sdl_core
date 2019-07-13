@@ -270,6 +270,12 @@ namespace sdl {
         void
         removeWidget(SdlWidget* widget);
 
+        /**
+         * @brief - Returns true if this widget has a layout managing its children's
+         *          size and position, false otherwise.
+         * @return - true if a layout is assigned to manage the children's size and
+         *           position, false otherwise.
+         */
         bool
         hasLayout() const noexcept;
 

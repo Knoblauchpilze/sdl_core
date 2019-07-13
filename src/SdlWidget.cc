@@ -208,8 +208,6 @@ namespace sdl {
           render.x() += (dims.w() / 2.0f);
           render.y() = (dims.h() / 2.0f) - render.y();
 
-          // TODO: This idea actually prevents to have children spanning
-          // areas beyong the parent area.
           engine.drawTexture(
             picture,
             nullptr,

@@ -298,6 +298,20 @@ namespace sdl {
       // Use the base handler to handle the resize.
       const bool toReturn = LayoutItem::resizeEvent(e);
 
+      // We should clear the existing repaint events, as
+      // the sizes associated to them have probably become
+      // obsolete due to the resize event.
+      // And in any case we also issue a new repaint event
+      // so nothing should be lost.
+
+      // First clear internal repaint/refresh operations.
+      m_repaintOperation.reset();
+      m_refreshOperation.reset();
+
+      // Clear existing events as well.
+      removeEvents(engine::Event::Type::Repaint);
+      removeEvents(engine::Event::Type::Refresh);
+
       // Mark the content as dirty.
       makeContentDirty();
 

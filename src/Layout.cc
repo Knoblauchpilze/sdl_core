@@ -44,6 +44,8 @@ namespace sdl {
 
     bool
     Layout::repaintEvent(const engine::PaintEvent& e) {
+      // TODO: Transmit the paint event to the children spanning the areas to repaint.
+      // This will allow to draw children spanning multiple sibling widgets.
       log("Should handle repaint for event containing " + std::to_string(e.getUpdateRegions().size()) + " region(s) to update", utils::Level::Error);
 
       // Use the base method to handle the return value.

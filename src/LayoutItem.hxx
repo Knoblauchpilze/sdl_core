@@ -109,6 +109,18 @@ namespace sdl {
 
     inline
     bool
+    LayoutItem::isManaged() const noexcept {
+      return m_manager != nullptr;
+    }
+
+    inline
+    void
+    LayoutItem::setManager(LayoutItem* item) noexcept {
+      m_manager = item;
+    }
+
+    inline
+    bool
     LayoutItem::isVisible() const noexcept {
       return m_visible;
     }
@@ -144,6 +156,12 @@ namespace sdl {
     void
     LayoutItem::invalidate() {
       makeGeometryDirty();
+    }
+
+    inline
+    LayoutItem*
+    LayoutItem::getManager() const noexcept {
+      return m_manager;
     }
 
     inline

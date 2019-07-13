@@ -100,6 +100,24 @@ namespace sdl {
         void
         setVirtual(const bool virtualItem);
 
+        /**
+         * @brief - Returns true if this item's size and position is managed by a
+         *          layout and false otherwise.
+         * @return - true if this layout item is managed by a super-layout and false
+         *           if its position and size are freely defined.
+         */
+        bool
+        isManaged() const noexcept;
+
+        /**
+         * @brief - Defines a new manager for this item. A manager is usually responsible
+         *          for computing the size and position of an item.
+         *          Note that calling this method will override any existing manager.
+         * @param item - the new manager for this item.
+         */
+        void
+        setManager(LayoutItem* item) noexcept;
+
         bool
         isVisible() const noexcept;
 
@@ -114,6 +132,16 @@ namespace sdl {
         invalidate();
 
       protected:
+
+        /**
+         * @brief - Retrieves the manager for this item. The manager is usually responsible for
+         *          providing a size and position for a layout item.
+         *          Note that the return value may be nil if the size and position for this item
+         *          are freely defined.
+         * @return - a pointer for the manager of this item.
+         */
+        LayoutItem*
+        getManager() const noexcept;
 
         virtual void
         makeGeometryDirty();
@@ -227,6 +255,16 @@ namespace sdl {
          *          removing a child item.
          */
         bool        m_virtual;
+
+        /**
+         * @brief - A pointer to the layout into which this item might be inserted. Most of
+         *          the time a layout item is not used alone byut rather inserted into a
+         *          hierarchy of elements where each layer manage the size and position of
+         *          the layers beneath it. In specific cases where this item is a top-level
+         *          item, this attribute might reference the application's layout into which
+         *          this widget has been inserted.
+         */
+        LayoutItem* m_manager;
     };
 
     using LayoutItemShPtr = std::shared_ptr<LayoutItem>;

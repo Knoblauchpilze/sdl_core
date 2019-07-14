@@ -53,10 +53,11 @@ namespace sdl {
       // each one which contains only the relevant areas.
       const std::vector<utils::Boxf>& regions = e.getUpdateRegions();
 
-      log("Should handle repaint for event containing " + std::to_string(regions.size()) + " region(s) to update (source: " + e.getEmitter()->getName() + ")", utils::Level::Error);
-      for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-        log("Region " + std::to_string(id) + " is " + regions[id].toString(), utils::Level::Error);
-      }
+      log(
+        "Handling repaint for event containing " + std::to_string(regions.size()) + " region(s) to update (source: " +
+        (e.getEmitter() == nullptr ? "null" : e.getEmitter()->getName()) + ")",
+        utils::Level::Error
+      );
 
       // Traverse the internal array of children.
       for (Items::const_iterator child = m_items.cbegin() ;
@@ -82,6 +83,7 @@ namespace sdl {
         // Select only update areas which spans at least a portion
         // of this child's area.
         for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+          // TODO: This area is expressed in local coordinates and should be transformed into global coordinates.
           if (regions[id].intersects((*child)->getRenderingArea(), true)) {
             log("Area " + regions[id].toString() + " intersects area of " + (*child)->getName() + " (area: " + (*child)->getRenderingArea().toString() + ")");
             pe->addUpdateRegion(regions[id]);

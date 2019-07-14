@@ -387,6 +387,8 @@ namespace sdl {
         const float w = old.w() > cur.w() ? old.w() : cur.w();
         const float h = old.h() > cur.h() ? old.h() : cur.h();
 
+        log("Handling refresh with change in size from " + old.toString() + " to " + cur.toString());
+
         // The current content is smaller than the old content, issue a new
         // paint event.
         const utils::Boxf local(
@@ -409,51 +411,20 @@ namespace sdl {
         // parent, we need to send the event to the manager layout. If no such
         // layout exists, do nothing as we cannot determine what to do.
         if (hasParent()) {
-          log("Posting to parent " + m_parent->getName());
           pe->setReceiver(m_parent);
+          log("Posting to parent " + m_parent->getName(), utils::Level::Info);
           o = m_parent;
         }
         else if (isManaged()) {
-          log("Posting to layout " + getManager()->getName());
+          log("Posting to layout " + getManager()->getName(), utils::Level::Info);
           pe->setReceiver(getManager());
           o = getManager();
         }
 
         // Post the event if we have an object where to post it.
         if (o != nullptr) {
-          o->postEvent(pe);
+          o->postEvent(pe, false, false);
         }
-      }
-
-
-      // Also, notify the parent if needed.
-      if (hasParent()) {
-        // As we will set a new emitter we need to create a new event.
-        // The size associated to the paint event corresponds to the
-        // largest size between the new and old size. Indeed the parent
-        // needs to repaint areas which might not be covered by this
-        // widget anymore.
-        utils::Boxf thisArea = LayoutItem::getRenderingArea();
-
-        const float w = old.w() > cur.w() ? old.w() : cur.w();
-        const float h = old.h() > cur.h() ? old.h() : cur.h();
-
-        // The paint event are supposed to express the coordinates using
-        // global coordinate frame. So after computing the local values
-        // we need to transform using the position of the parent.
-        const utils::Boxf local(
-          0.0f + (w - thisArea.w()) / 2.0f,
-          0.0f - (h - thisArea.h()) / 2.0f,
-          w,
-          h
-        );
-        const utils::Boxf toRepaint = mapToGlobal(local);
-
-        // Once we have the coordinates, create and post the paint event.
-        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, m_parent);
-        pe->setEmitter(this);
-
-        m_parent->postEvent(pe);
       }
     }
 
@@ -555,7 +526,7 @@ namespace sdl {
           const utils::Boxf region = mapFromGlobal(regions[id]);
 
           // Determine whether the region has an intersection with the child.
-          intersectWithRepaint = region.intersect(childBox).valid();
+          intersectWithRepaint = region.intersects(childBox);
 
           // Move to the next one.
           ++id;
@@ -575,7 +546,7 @@ namespace sdl {
       // If this is the case it means that we potentially need to udpate other
       // siblings elements of this widget with some content from this widget.
       // At this point the fact that we have a parent or not is important: indeed
-      // if we have a parent we can just proceed to post a repait event for the
+      // if we have a parent we can just proceed to post a repaint event for the
       // parent and we should be good. Indeed either the parent covers all the
       // areas defined by the input paint event in which case it can handle all
       // of them or it is not the case and whatever decision we could make can
@@ -640,6 +611,11 @@ namespace sdl {
       // This process is only relevant if a layout is defined for this widget,
       // otherwise we have no idea about the whereabouts of `this` widget's
       // siblings which is kinda sad.
+      //
+      // Also the paint event we're processing right now should not have as a
+      // source the manager layout. If this is the case it probably means that
+      // the manager is already aware of the modifications and so we can just
+      // stop propagating it.
       if (!isManaged()) {
         // Nothing more we can do, no information about the siblings of this
         // widget so even in the eventuality where we find some areas which
@@ -649,9 +625,16 @@ namespace sdl {
         return;
       }
 
+      if (getManager() == e.getEmitter()) {
+        // Assume that the manager is aware of the event if it is the source
+        // of it.
+        return;
+      }
+
       // So first, keep only the regions which are not completely included in
       // `this` widget's area.
-      engine::PaintEventShPtr ne = std::make_shared<engine::PaintEvent>(this);
+      engine::PaintEventShPtr ne = std::make_shared<engine::PaintEvent>();
+      ne->setEmitter(this);
 
       const utils::Boxf global = mapToGlobal(area, false);
       int badFitCount = 0;
@@ -664,9 +647,11 @@ namespace sdl {
         const utils::Boxf ref = regions[id].intersect(global);
 
         if (ref != regions[id]) {
-          log("Area " + regions[id].toString() + " does not fit into widget's area of " + area.toString() + ", propagating to manager layout");
           // The area has part of it which do not lie in `this` widget's area.
-          ne->addUpdateRegion(ref);
+          // Add this area to the paint event so that it can be processed by
+          // the manager.
+          log("Area " + regions[id].toString() + " does not fit into widget's area of " + area.toString() + ", propagating to manager layout");
+          ne->addUpdateRegion(regions[id]);
 
           ++badFitCount;
         }
@@ -676,7 +661,7 @@ namespace sdl {
       // not fit in the widget.
       if (badFitCount > 0) {
         ne->setReceiver(getManager());
-        getManager()->postEvent(ne);
+        getManager()->postEvent(ne, false, false);
       }
     }
 

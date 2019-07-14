@@ -34,8 +34,6 @@ namespace sdl {
       // the `geometryUpdateEvent` should already be
       // triggered at the most appropriate time.
       if (hasGeometryChanged()) {
-        log(std::string("Updating geometry for layout item"), utils::Level::Notice);
-
         updatePrivate(m_area);
 
         geometryRecomputed();

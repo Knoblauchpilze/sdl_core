@@ -504,7 +504,7 @@ namespace sdl {
 
       // Traverse children and check whether one is on the way.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        if (child->widget->isVisible() && child->widget->getRenderingArea().isInside(local)) {
+        if (child->widget->isVisible() && child->widget->getRenderingArea().contains(local)) {
           return true;
         }
       }

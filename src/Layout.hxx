@@ -138,7 +138,7 @@ namespace sdl {
       }
 
       // Iterate over the internal items to find one equal to the input.
-      std::vector<LayoutItem*>::const_iterator itemToFind = m_items.cbegin();
+      Items::const_iterator itemToFind = m_items.cbegin();
       int itemID = 0;
 
       while (itemToFind != m_items.cend() && item != *itemToFind) {

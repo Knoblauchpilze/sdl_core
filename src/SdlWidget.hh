@@ -721,6 +721,7 @@ namespace sdl {
          *          We make the mutex recursive as it is used both in events handling and in the add
          *          child semantic. Doing so allows event to generate new insertion events.
          */
+        // TODO: Should probably be modified back to simple mutex.
         mutable std::recursive_mutex m_drawingLocker;
 
         /**

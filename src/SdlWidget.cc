@@ -311,6 +311,7 @@ namespace sdl {
       removeEvents(engine::Event::Type::Refresh);
 
       // Mark the content as dirty.
+      // TODO: Maybe get a notion of the old size at this point ? Or is it enough to know the size of the cached content ?
       makeContentDirty();
 
       // Return the value provided by the base handler.
@@ -366,6 +367,7 @@ namespace sdl {
       // textures should have similar sizes.
       getEngine().drawTexture(m_content, nullptr, &m_cachedContent);
 
+      // TODO: We could maybe get rid of this ?
       // So the cached content is now up-to-date with the real content of this
       // widget. Theoretically we also issued some repaint event for the parent
       // widget when we processed the associated repaint event.
@@ -534,6 +536,7 @@ namespace sdl {
 
         // Check whether we should repaint this child.
         if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
+          log("Drawing child " + child->widget->getName());
           drawChild(*child->widget, dims);
         }
       }
@@ -558,12 +561,6 @@ namespace sdl {
       // This is made possible if `this` widget has a layout: in this case it
       // is the best candidate to transmit the paint event to siblings of `this`
       // widget.
-      //
-      // Finally we also need to take into consideration the fact that `this`
-      // widget might have been completely repainted. If this is the case, we
-      // need to add the whole widget's area to the repaint event. The event
-      // will handle internally the necessary merge operation to remove the
-      // regions which might be redundant after that.
 
       // Determine whether a parent is available for this widget: if this
       // is the case we need to transmit the repaint event to it as we just
@@ -578,13 +575,6 @@ namespace sdl {
 
         // Assign the emitter of this event.
         ne->setEmitter(this);
-
-        // Add the region covered by this widget to the repaint event if it has
-        // been redrawn.
-        if (redraw) {
-          log("Adding redraw region " + mapToGlobal(area, false).toString() + " to repaint event containing " + std::to_string(ne->getUpdateRegions().size()) + " region(s)");
-          ne->addUpdateRegion(mapToGlobal(area, false));
-        }
 
         // Assign receiver and post the event.
         ne->setReceiver(m_parent);

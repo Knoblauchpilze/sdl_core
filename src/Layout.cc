@@ -44,9 +44,58 @@ namespace sdl {
 
     bool
     Layout::repaintEvent(const engine::PaintEvent& e) {
+      // The input paint event describes some areas to update. We need to propagate the paint
+      // event to the children which intersect the areas to repaint. We should also avoid sending
+      // the paint event to the child which may have sent this paint event. This can be done by
+      // checking the emitter of the event: if it corredponds to any of the child, we don't send
+      // the event to it when we encounter it.
+      // In order to not flood the children with unneeded areas, we create a new paint event for
+      // each one which contains only the relevant areas.
+      const std::vector<utils::Boxf>& regions = e.getUpdateRegions();
+
+      log("Should handle repaint for event containing " + std::to_string(regions.size()) + " region(s) to update (source: " + e.getEmitter()->getName() + ")", utils::Level::Error);
+      for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+        log("Region " + std::to_string(id) + " is " + regions[id].toString(), utils::Level::Error);
+      }
+
+      // Traverse the internal array of children.
+      for (Items::const_iterator child = m_items.cbegin() ;
+           child != m_items.cend() ;
+           ++child)
+      {
+        // Discard this child if it is the emitter of the event.
+        if ((*child) == e.getEmitter()) {
+          log("Ignoring child " + (*child)->getName() + " which is the source of the paint event");
+          continue;
+        }
+
+        // Also disacrd the child if it is not visible.
+        if (!(*child)->isVisible()) {
+          log("Ignoring child " + (*child)->getName() + " which is not visible");
+          continue;
+        }
+
+        // Create a paint event for this children.
+        engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(*child);
+        pe->setEmitter(this);
+
+        // Select only update areas which spans at least a portion
+        // of this child's area.
+        for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+          if (regions[id].intersects((*child)->getRenderingArea(), true)) {
+            log("Area " + regions[id].toString() + " intersects area of " + (*child)->getName() + " (area: " + (*child)->getRenderingArea().toString() + ")");
+            pe->addUpdateRegion(regions[id]);
+          }
+        }
+
+        // Send this event if it contains at least an update area.
+        if (pe->hasUpdateRegions()) {
+          (*child)->postEvent(pe, false, false);
+        }
+      }
+
       // TODO: Transmit the paint event to the children spanning the areas to repaint.
       // This will allow to draw children spanning multiple sibling widgets.
-      log("Should handle repaint for event containing " + std::to_string(e.getUpdateRegions().size()) + " region(s) to update", utils::Level::Error);
 
       // Use the base method to handle the return value.
       return LayoutItem::repaintEvent(e);

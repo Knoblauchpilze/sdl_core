@@ -520,16 +520,21 @@ namespace sdl {
       std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
 
       // Perform both repaint and refresh operations registered internally.
+      // We need to clear the existing pending operations before starting
+      // the processing as new ones might be produced along the way.
+      // TODO: Recursive mutex probably defeat the protection here.
       if (m_repaintOperation != nullptr) {
-        repaintEventPrivate(*m_repaintOperation);
-
+        engine::PaintEventShPtr e = m_repaintOperation;
         m_repaintOperation.reset();
+
+        repaintEventPrivate(*e);
       }
 
       if (m_refreshOperation != nullptr) {
-        refreshEventPrivate(*m_refreshOperation);
-
+        engine::EventShPtr e = m_refreshOperation;
         m_refreshOperation.reset();
+
+        refreshEventPrivate(*e);
       }
     }
 

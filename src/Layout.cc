@@ -96,9 +96,6 @@ namespace sdl {
         }
       }
 
-      // TODO: Transmit the paint event to the children spanning the areas to repaint.
-      // This will allow to draw children spanning multiple sibling widgets.
-
       // Use the base method to handle the return value.
       return LayoutItem::repaintEvent(e);
     }

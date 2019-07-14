@@ -330,7 +330,9 @@ namespace sdl {
 
         friend class SdlWidget;
 
-        std::vector<LayoutItem*> m_items;
+        using Items = std::vector<LayoutItem*>;
+
+        Items m_items;
         utils::Sizef m_margin;
     };
 

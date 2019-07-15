@@ -22,7 +22,7 @@ namespace sdl {
     inline
     utils::Boxf
     SdlWidget::getDrawingArea() const noexcept {
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // We need to retrieve the position of the parent and factor in its
       // position in order to compute the position of this widget.
@@ -46,7 +46,7 @@ namespace sdl {
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       // Lock this widget.
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // Return the value provided by the base handler.
       return LayoutItem::getRenderingArea();
@@ -186,7 +186,7 @@ namespace sdl {
     inline
     void
     SdlWidget::setVisible(bool visible) noexcept {
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // Use the base handler to perform needed internal updates.
       LayoutItem::setVisible(visible);
@@ -376,7 +376,7 @@ namespace sdl {
     }
 
     inline
-    std::recursive_mutex&
+    SdlWidget::LockerType&
     SdlWidget::getLocker() const noexcept {
       return m_drawingLocker;
     }
@@ -522,7 +522,7 @@ namespace sdl {
     void
     SdlWidget::handleGraphicOperations() {
       // Lock the drawing locker in order to perform pending operations.
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // Perform both repaint and refresh operations registered internally.
       // We need to clear the existing pending operations before starting
@@ -547,7 +547,7 @@ namespace sdl {
     bool
     SdlWidget::handleEvent(engine::EventShPtr e) {
       // Lock the widget to prevent concurrent accesses.
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // Use and return the value provided by the base handler.
       return LayoutItem::handleEvent(e);
@@ -730,7 +730,7 @@ namespace sdl {
 
       // Lock the widget to prevent concurrent modifications of the
       // internal children table.
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // Check for duplicated widget
       if (m_names.find(widget->getName()) != m_names.cend()) {
@@ -765,7 +765,7 @@ namespace sdl {
     inline
     int
     SdlWidget::getZOrder() noexcept {
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
       return m_zOrder;
     }
 
@@ -773,7 +773,7 @@ namespace sdl {
     void
     SdlWidget::setZOrder(const int order) {
       // Lock the widget.
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
 
       // Assign the new z order value.
       m_zOrder = order;

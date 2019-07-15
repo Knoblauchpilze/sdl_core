@@ -44,7 +44,7 @@ namespace sdl {
     }
 
     SdlWidget::~SdlWidget() {
-      std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+      std::lock_guard<LockerType> guard(m_drawingLocker);
       clearTexture();
 
       std::lock_guard<std::mutex> cacheGuard(m_cacheLocker);
@@ -75,7 +75,7 @@ namespace sdl {
       // This will guarantee that repaint operations can
       // bubble up to the top level when needed.
       {
-        std::lock_guard<std::recursive_mutex> guard(m_drawingLocker);
+        std::lock_guard<LockerType> guard(m_drawingLocker);
 
         utils::Sizef area = LayoutItem::getRenderingArea().toSize();
 
@@ -361,7 +361,6 @@ namespace sdl {
       removeEvents(engine::Event::Type::Refresh);
 
       // Mark the content as dirty.
-      // TODO: Maybe get a notion of the old size at this point ? Or is it enough to know the size of the cached content ?
       makeContentDirty();
 
       // Return the value provided by the base handler.
@@ -570,7 +569,6 @@ namespace sdl {
         // Check whether we should repaint this child.
         if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
           log("Drawing child " + child->widget->getName());
-          // TODO: Find a way to ignore paint events produced during this call.
           drawChild(*child->widget, dims);
         }
       }

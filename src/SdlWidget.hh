@@ -121,6 +121,9 @@ namespace sdl {
 
       protected:
 
+        // Convenience define to describe the type of the `m_drawingLocker`.
+        using LockerType = std::recursive_mutex;
+
         /**
          * @brief - Used to mark the internal content as dirty. Updates the internal
          *          `m_contentDirty` flag which will indicate that the content needs
@@ -313,7 +316,7 @@ namespace sdl {
         engine::Engine&
         getEngine() const;
 
-        std::recursive_mutex&
+        LockerType&
         getLocker() const noexcept;
 
         /**
@@ -734,7 +737,7 @@ namespace sdl {
          *          child semantic. Doing so allows event to generate new insertion events.
          */
         // TODO: Should probably be modified back to simple mutex.
-        mutable std::recursive_mutex m_drawingLocker;
+        mutable LockerType m_drawingLocker;
 
         /**
          * @brief - Used to store internally the paint events to process upon calling the `draw` method.

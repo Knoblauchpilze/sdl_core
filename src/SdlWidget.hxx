@@ -284,6 +284,11 @@ namespace sdl {
       // Remove the widget from the children list.
       m_children.erase(m_children.begin() + child->second);
 
+      // Remove the widget from the repaints' timestamps. We might fail to
+      // find this widget if it has not been repainted at all. Weird but
+      // not impossible.
+      m_repaints.erase(widget->getName());
+
       // Rebuild the internal list of associations.
       rebuildZOrdering();
     }
@@ -729,7 +734,11 @@ namespace sdl {
 
       // Check for duplicated widget
       if (m_names.find(widget->getName()) != m_names.cend()) {
-        error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"", getName());
+        error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"");
+      }
+
+      if (m_repaints.find(widget->getName()) != m_repaints.cend()) {
+        error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"");
       }
 
       // Share the data with this widget.

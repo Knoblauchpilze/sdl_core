@@ -14,24 +14,26 @@ namespace sdl {
       m_names(),
       m_children(),
       m_repaints(),
+      m_childrenLocker(),
 
       m_layout(),
-      m_zOrder(0),
       m_palette(engine::Palette::fromButtonColor(color)),
       m_engine(nullptr),
 
       m_parent(nullptr),
 
       m_contentDirty(true),
+      m_mouseInside(false),
+      m_zOrder(0),
+      m_dataLocker(),
 
       m_content(),
-      m_drawingLocker(),
       m_repaintOperation(nullptr),
       m_refreshOperation(nullptr),
+      m_contentLocker(),
+
       m_cachedContent(),
       m_cacheLocker(),
-
-      m_mouseInside(false),
 
       onClick()
     {
@@ -44,24 +46,32 @@ namespace sdl {
     }
 
     SdlWidget::~SdlWidget() {
-      std::lock_guard<LockerType> guard(m_drawingLocker);
-      clearTexture();
-
-      std::lock_guard<std::mutex> cacheGuard(m_cacheLocker);
-      clearCachedTexture();
-
-      m_names.clear();
-
-      for (WidgetsMap::const_iterator child = m_children.cbegin() ;
-           child != m_children.cend() ;
-           ++child)
       {
-        if (child->widget != nullptr) {
-          delete child->widget;
-        }
+        Guard guard(m_contentLocker);
+        clearTexture();
       }
 
-      m_repaints.clear();
+      {
+        Guard cacheGuard(m_cacheLocker);
+        clearCachedTexture();
+      }
+
+      {
+        Guard guard(m_childrenLocker);
+
+        m_names.clear();
+
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ;
+            child != m_children.cend() ;
+            ++child)
+        {
+          if (child->widget != nullptr) {
+            delete child->widget;
+          }
+        }
+
+        m_repaints.clear();
+      }
     }
 
     utils::Uuid
@@ -75,9 +85,9 @@ namespace sdl {
       // This will guarantee that repaint operations can
       // bubble up to the top level when needed.
       {
-        std::lock_guard<LockerType> guard(m_drawingLocker);
+        utils::Sizef area = getRenderingArea().toSize();
 
-        utils::Sizef area = LayoutItem::getRenderingArea().toSize();
+        Guard guard(m_childrenLocker);
 
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
           if (child->widget->isVisible()) {
@@ -87,7 +97,7 @@ namespace sdl {
       }
 
       // Return the cached texture.
-      std::lock_guard<std::mutex> guard(m_cacheLocker);
+      Guard guard(m_cacheLocker);
       return m_cachedContent;
     }
 
@@ -353,8 +363,11 @@ namespace sdl {
       // so nothing should be lost.
 
       // First clear internal repaint/refresh operations.
-      m_repaintOperation.reset();
-      m_refreshOperation.reset();
+      {
+        Guard guard(m_contentLocker);
+        m_repaintOperation.reset();
+        m_refreshOperation.reset();
+      }
 
       // Clear existing events as well.
       removeEvents(engine::Event::Type::Repaint);
@@ -369,6 +382,8 @@ namespace sdl {
 
     bool
     SdlWidget::zOrderChanged(const engine::Event& e) {
+      Guard guard(m_childrenLocker);
+
       // Traverse the children list and updtae the z order for each one.
       for (WidgetsMap::iterator child = m_children.begin() ; child != m_children.end() ; ++child) {
         child->zOrder = child->widget->getZOrder();
@@ -384,7 +399,7 @@ namespace sdl {
     void
     SdlWidget::refreshEventPrivate(const engine::Event& /*e*/) {
       // Replace the cached content.
-      std::lock_guard<std::mutex> guard(m_cacheLocker);
+      Guard guard(m_cacheLocker);
 
       // Create a new cached texture if the size of the cached content is
       // different from the current size of the content.
@@ -504,17 +519,22 @@ namespace sdl {
       // Checking it will allow us to precisely determine whether a global
       // paint event should also be paired with the creation of a new
       // texture for this widget or the content can only be redrawn.
-      const bool redraw = m_contentDirty;
+      bool redraw = false;
+      {
+        Guard guard(m_dataLocker);
 
-      if (m_contentDirty) {
-        // Clear the internal texture.
-        clearTexture();
+        redraw = m_contentDirty;
 
-        // Create the new content.
-        m_content = createContentPrivate();
+        if (m_contentDirty) {
+          // Clear the internal texture.
+          clearTexture();
 
-        // Until further notice the content is up-to-date.
-        m_contentDirty = false;
+          // Create the new content.
+          m_content = createContentPrivate();
+
+          // Until further notice the content is up-to-date.
+          m_contentDirty = false;
+        }
       }
 
       // Perform the update of the area described by the input
@@ -543,6 +563,8 @@ namespace sdl {
       // This behavior might be overriden by the `redraw` operation as
       // obviously if the whole widget has been recreated we need to
       // repaint chidlren.
+      Guard guard(m_childrenLocker);
+
       for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
         // The chidlren needs to be repainted if:
         // 1. It is visible.

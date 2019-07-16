@@ -758,7 +758,6 @@ namespace sdl {
          *          `m_refreshOperation` which directly modify the `m_content`. It makes sense to protect
          *          these attributes behind the same mutex.
          */
-        // TODO: Should probably be modified back to simple mutex.
         mutable std::mutex m_contentLocker;
 
         /**

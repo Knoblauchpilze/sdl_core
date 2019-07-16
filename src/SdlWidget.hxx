@@ -546,7 +546,6 @@ namespace sdl {
       // Perform both repaint and refresh operations registered internally.
       // We need to clear the existing pending operations before starting
       // the processing as new ones might be produced along the way.
-      // TODO: Recursive mutex probably defeat the protection here.
       if (m_repaintOperation != nullptr) {
         engine::PaintEventShPtr e = m_repaintOperation;
         m_repaintOperation.reset();

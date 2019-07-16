@@ -122,6 +122,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::isVisible() const noexcept {
+      std::lock_guard<std::mutex> guard(m_visibleLocker);
       return m_visible;
     }
 
@@ -130,6 +131,8 @@ namespace sdl {
     LayoutItem::setVisible(bool visible) noexcept {
       // Post a show/hide event based on the status of the input `visible` status.
       engine::EventShPtr e;
+
+      std::lock_guard<std::mutex> guard(m_visibleLocker);
 
       // Note: we assign the visible status here and do not wait for the hide, show
       // event in order to directly benefit from the updated status. Indeed if we

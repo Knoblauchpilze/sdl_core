@@ -18,6 +18,7 @@ namespace sdl {
       m_nested(false),
       m_needsConvert(needsConvert),
       m_visible(true),
+      m_visibleLocker(),
       m_virtual(false),
       m_manager(nullptr)
     {

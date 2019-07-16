@@ -1,6 +1,7 @@
 #ifndef    LAYOUT_ITEM_HH
 # define   LAYOUT_ITEM_HH
 
+# include <mutex>
 # include <memory>
 
 # include <maths_utils/Box.hh>
@@ -247,6 +248,11 @@ namespace sdl {
          *          not.
          */
         bool        m_visible;
+
+        /**
+         * @brief - Used to prevent concurrent accesses to the above `m_visible` boolean.
+         */
+        mutable std::mutex  m_visibleLocker;
 
         /**
          * @brief - Indicates whether this layout item is part of a virtual hierarchy, which means

@@ -22,7 +22,7 @@ namespace sdl {
     inline
     utils::Boxf
     SdlWidget::getDrawingArea() const noexcept {
-      std::lock_guard<LockerType> guard(m_drawingLocker);
+      Guard guard(m_contentLocker);
 
       // We need to retrieve the position of the parent and factor in its
       // position in order to compute the position of this widget.
@@ -46,7 +46,7 @@ namespace sdl {
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       // Lock this widget.
-      std::lock_guard<LockerType> guard(m_drawingLocker);
+      Guard guard(m_contentLocker);
 
       // Return the value provided by the base handler.
       return LayoutItem::getRenderingArea();
@@ -82,6 +82,7 @@ namespace sdl {
         registerToSameQueue(m_layout.get());
       }
 
+      Guard guard(m_childrenLocker);
       // Also assign the queue to the children of this widget.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ;
            child != m_children.cend() ;
@@ -111,10 +112,15 @@ namespace sdl {
     inline
     void
     SdlWidget::makeContentDirty() {
-      // Mark the content as dirty.
-      m_contentDirty = true;
+      {
+        Guard guard(m_dataLocker);
+
+        // Mark the content as dirty.
+        m_contentDirty = true;
+      }
 
       // Request a repaint event.
+      Guard guard(m_contentLocker);
       requestRepaint();
     }
 
@@ -171,7 +177,7 @@ namespace sdl {
     void
     SdlWidget::updatePrivate(const utils::Boxf& window) {
       // Keep track of the old size.
-      utils::Boxf old = LayoutItem::getRenderingArea();
+      utils::Boxf old = getRenderingArea();
 
       // Call parent method so that we stay up to date with latest
       // area.
@@ -186,8 +192,6 @@ namespace sdl {
     inline
     void
     SdlWidget::setVisible(bool visible) noexcept {
-      std::lock_guard<LockerType> guard(m_drawingLocker);
-
       // Use the base handler to perform needed internal updates.
       LayoutItem::setVisible(visible);
 
@@ -224,6 +228,8 @@ namespace sdl {
     void
     SdlWidget::setPalette(const engine::Palette& palette) noexcept {
       m_palette = palette;
+
+      Guard guard(m_contentLocker);
       requestRepaint();
     }
 
@@ -231,17 +237,23 @@ namespace sdl {
     void
     SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
       // Release the content of this widget if any.
-      clearTexture();
+      {
+        Guard guard(m_contentLocker);
+        clearTexture();
+      }
 
       // Assign the engine to this widget.
       m_engine = engine;
 
       // Also: assign the engine to children widgets if any.
-      for (WidgetsMap::const_iterator child = m_children.cbegin() ;
-           child != m_children.cend() ;
-           ++child)
       {
-        child->widget->setEngine(engine);
+        Guard guard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ;
+            child != m_children.cend() ;
+            ++child)
+        {
+          child->widget->setEngine(engine);
+        }
       }
 
       makeContentDirty();
@@ -263,6 +275,8 @@ namespace sdl {
           std::string("Invalid null child")
         );
       }
+
+      Guard guard(m_childrenLocker);
 
       // Check whether we can find this widget in the internal table.
       ChildrenMap::const_iterator child = m_names.find(widget->getName());
@@ -326,6 +340,8 @@ namespace sdl {
     template <typename WidgetType>
     WidgetType*
     SdlWidget::getChildOrNull(const std::string& name) {
+      Guard guard(m_childrenLocker);
+
       ChildrenMap::const_iterator child = m_names.find(name);
       if (child == m_names.cend()) {
         return nullptr;
@@ -373,12 +389,6 @@ namespace sdl {
       }
 
       return *m_engine;
-    }
-
-    inline
-    SdlWidget::LockerType&
-    SdlWidget::getLocker() const noexcept {
-      return m_drawingLocker;
     }
 
     inline
@@ -491,7 +501,7 @@ namespace sdl {
       // Compute the local position of the mouse.
       utils::Vector2f local = mapFromGlobal(global);
 
-      utils::Boxf area = LayoutItem::getRenderingArea();
+      utils::Boxf area = getRenderingArea();
 
       // In order to be inside the widget, the local mouse position should lie
       // within the range [-width/2 ; width/2] and [-height/2 ; height/2].
@@ -503,7 +513,16 @@ namespace sdl {
 
     inline
     bool
+    SdlWidget::isMouseInside() const noexcept {
+      Guard guard(m_dataLocker);
+      return m_mouseInside;
+    }
+
+    inline
+    bool
     SdlWidget::isBlockedByChild(const utils::Vector2f& global) const noexcept {
+      Guard guard(m_childrenLocker);
+
       // Compute the local position of the mouse.
       utils::Vector2f local = mapFromGlobal(global);
 
@@ -522,7 +541,7 @@ namespace sdl {
     void
     SdlWidget::handleGraphicOperations() {
       // Lock the drawing locker in order to perform pending operations.
-      std::lock_guard<LockerType> guard(m_drawingLocker);
+      Guard guard(m_contentLocker);
 
       // Perform both repaint and refresh operations registered internally.
       // We need to clear the existing pending operations before starting
@@ -545,17 +564,9 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::handleEvent(engine::EventShPtr e) {
-      // Lock the widget to prevent concurrent accesses.
-      std::lock_guard<LockerType> guard(m_drawingLocker);
-
-      // Use and return the value provided by the base handler.
-      return LayoutItem::handleEvent(e);
-    }
-
-    inline
-    bool
     SdlWidget::enterEvent(const engine::EnterEvent& e) {
+      Guard guard(m_contentLocker);
+
       // Update the role of the background texture if the item is not selected.
       if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Background) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
@@ -565,7 +576,10 @@ namespace sdl {
       }
 
       // The mouse is now inside this widget.
-      m_mouseInside = true;
+      {
+        Guard guard(m_dataLocker);
+        m_mouseInside = true;
+      }
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
@@ -574,6 +588,8 @@ namespace sdl {
     inline
     bool
     SdlWidget::leaveEvent(const engine::Event& e) {
+      Guard guard(m_contentLocker);
+
       // Update the role of the background texture if the item is not selected.
       if (m_content.valid() && getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
@@ -583,7 +599,10 @@ namespace sdl {
       }
 
       // The mouse is now outside this widget.
-      m_mouseInside = false;
+      {
+        Guard guard(m_dataLocker);
+        m_mouseInside = false;
+      }
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
@@ -596,11 +615,12 @@ namespace sdl {
       // to update the role of the content to selected.
       // If the mouse is not inside the widget when the click occurs, we need to unset
       // selection of the item if any.
+      Guard guard(m_contentLocker);
 
       if (m_content.valid()) {
         bool needRepaint = false;
 
-        if (m_mouseInside) {
+        if (isMouseInside()) {
           if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Dark) {
             getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
 
@@ -644,7 +664,7 @@ namespace sdl {
       const bool inside = isInsideWidget(e.getMousePosition());
       const bool blocked = isBlockedByChild(e.getMousePosition());
 
-      if (m_mouseInside) {
+      if (isMouseInside()) {
         // We care about mouse being blocked by a child widget and by mouse leaving
         // the widget.
         if (!inside || blocked) {
@@ -730,15 +750,17 @@ namespace sdl {
 
       // Lock the widget to prevent concurrent modifications of the
       // internal children table.
-      std::lock_guard<LockerType> guard(m_drawingLocker);
+      {
+        Guard guard(m_childrenLocker);
 
-      // Check for duplicated widget
-      if (m_names.find(widget->getName()) != m_names.cend()) {
-        error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"");
-      }
+        // Check for duplicated widget
+        if (m_names.find(widget->getName()) != m_names.cend()) {
+          error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"");
+        }
 
-      if (m_repaints.find(widget->getName()) != m_repaints.cend()) {
-        error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"");
+        if (m_repaints.find(widget->getName()) != m_repaints.cend()) {
+          error(std::string("Cannot add duplicated widget \"") + widget->getName() + "\"");
+        }
       }
 
       // Share the data with this widget.
@@ -750,22 +772,26 @@ namespace sdl {
 
       // Populate internal arrays: first insert the item in the `m_children`
       // array.
-      m_children.push_back(
-        ChildWrapper{
-          widget,
-          widget->getZOrder()
-        }
-      );
+      {
+        Guard guard(m_childrenLocker);
 
-      // And now rebuilt the `m_names` array after sorting items in ascending
-      // z order.
-      rebuildZOrdering();
+        m_children.push_back(
+          ChildWrapper{
+            widget,
+            widget->getZOrder()
+          }
+        );
+
+        // And now rebuilt the `m_names` array after sorting items in ascending
+        // z order.
+        rebuildZOrdering();
+      }
     }
 
     inline
     int
     SdlWidget::getZOrder() noexcept {
-      std::lock_guard<LockerType> guard(m_drawingLocker);
+      Guard guard(m_dataLocker);
       return m_zOrder;
     }
 
@@ -773,7 +799,7 @@ namespace sdl {
     void
     SdlWidget::setZOrder(const int order) {
       // Lock the widget.
-      std::lock_guard<LockerType> guard(m_drawingLocker);
+      Guard guard(m_dataLocker);
 
       // Assign the new z order value.
       m_zOrder = order;

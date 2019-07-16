@@ -121,9 +121,6 @@ namespace sdl {
 
       protected:
 
-        // Convenience define to describe the type of the `m_drawingLocker`.
-        using LockerType = std::recursive_mutex;
-
         /**
          * @brief - Used to mark the internal content as dirty. Updates the internal
          *          `m_contentDirty` flag which will indicate that the content needs
@@ -200,20 +197,6 @@ namespace sdl {
          */
         void
         updatePrivate(const utils::Boxf& window) override;
-
-        /**
-         * @bruef - Reimplementation of the base `EngineObject` method to provide
-         *          a lock of the widget when processing events. This allows to
-         *          prevent the rendering engine to access concurrently to the data
-         *          of this widget while some events are being processed.
-         *          No other specific behavior is added.
-         *          Note that calling this method is equivalent to calling the base
-         *          `EngineObject` method, it only adds the mutex overhead.
-         * @param e - the event to handle.
-         * @return - true if the event was recognized, false otherwise.
-         */
-        bool
-        handleEvent(engine::EventShPtr e) override;
 
         bool
         enterEvent(const engine::EnterEvent& e) override;
@@ -316,9 +299,6 @@ namespace sdl {
         engine::Engine&
         getEngine() const;
 
-        LockerType&
-        getLocker() const noexcept;
-
         /**
          * @brief - Takes the input `local` vector in argument assuming it represents a
          *          position in local coordinate frame and transform it into global frame.
@@ -420,6 +400,13 @@ namespace sdl {
 
         bool
         isInsideWidget(const utils::Vector2f& global) const noexcept;
+
+        /**
+         * @brief - Used to determine whether the mouse is currently inside this widget or not.
+         * @return - true if the mouse is inside this widget, false otherwise.
+         */
+        bool
+        isMouseInside() const noexcept;
 
         bool
         isBlockedByChild(const utils::Vector2f& global) const noexcept;
@@ -552,7 +539,7 @@ namespace sdl {
         /**
          * @brief - Asks the engine to perform the needed operations to release the
          *          memory used by the internal `m_content` texture.
-         *          Assumes that the `m_drawingLocker` is already locked.
+         *          Assumes that the `m_contentLocker` is already locked.
          *          No other texture is created.
          */
         void
@@ -635,6 +622,8 @@ namespace sdl {
         using WidgetsMap = std::vector<ChildWrapper>;
         using RepaintMap = std::unordered_map<std::string, Timestamp>;
 
+        using Guard = std::lock_guard<std::mutex>;
+
       private:
 
         /**
@@ -658,6 +647,11 @@ namespace sdl {
         RepaintMap m_repaints;
 
         /**
+         * @brief - Used to protect the children maps from concurrent accesses.
+         */
+        mutable std::mutex m_childrenLocker;
+
+        /**
          * @brief - The layout which handles positionning of children widget in the space for
          *          this widget. Basically the parent of this widget or the layout it is linked
          *          to will provide some available space to render this widget.
@@ -668,20 +662,6 @@ namespace sdl {
          *          recomputed so that children widgets get an up-to-date area.
          */
         std::shared_ptr<Layout> m_layout;
-
-        /**
-         * @brief - The z order for this widget. The z order allows for specific widgets to be
-         *          drawn after some other widgets so that we get some sort of overlapping
-         *          behavior. basically in the case of a combobox for example, the widget might
-         *          extend beyond its assigned range, thus overlapping with other children
-         *          widgets.
-         *          In order to guarantee that such widgets get drawn after all the other children
-         *          and thus get full advantage of their extended representation, one can use
-         *          the z order.
-         *          The z order is only relevant for siblings widgets and there's no such thing
-         *          as a global z ordering of widgets.
-         */
-        int m_zOrder;
 
         /**
          * @brief - Describes the palette to use for this widget. A palette describes a set of
@@ -717,6 +697,33 @@ namespace sdl {
         bool m_contentDirty;
 
         /**
+         * @brief - True if the mouse cursor is currently hovering over this widget. False otherwise. This
+         *          attribute is updated upon receiving `EnterEvent` and `LeaveEvent`.
+         */
+        bool m_mouseInside;
+
+        /**
+         * @brief - The z order for this widget. The z order allows for specific widgets to be
+         *          drawn after some other widgets so that we get some sort of overlapping
+         *          behavior. basically in the case of a combobox for example, the widget might
+         *          extend beyond its assigned range, thus overlapping with other children
+         *          widgets.
+         *          In order to guarantee that such widgets get drawn after all the other children
+         *          and thus get full advantage of their extended representation, one can use
+         *          the z order.
+         *          The z order is only relevant for siblings widgets and there's no such thing
+         *          as a global z ordering of widgets.
+         */
+        int m_zOrder;
+
+        /**
+         * @brief - Used to protect the access to internal variables when processing events. This
+         *          allow to guarantee some safety when concurrent processes try to access the
+         *          content of this widget.
+         */
+        mutable std::mutex m_dataLocker;
+
+        /**
          * @brief - Contains an identifier representing the current visual content associated to
          *          this widget. Such identifier is related to an underlying engine and allows to
          *          handle some sort of cache mechanism where the information is only recomputed
@@ -724,20 +731,6 @@ namespace sdl {
          *          Note that this identifier may be invalid if no repaint have occurred yet.
          */
         utils::Uuid m_content;
-
-        /**
-         * @brief - Used to protect the above identifier from concurrent accesses. Any application has
-         *          two main loops running in parallel: the events loop and the rendering loop. Any
-         *          modifications triggered by processing an event may or may not have an impact on the
-         *          visual representation of the widget and we want to be sure that a repaint event is
-         *          not processed while an event is updating the visual content of the widget. This is
-         *          made possible by using this mutex in any situation where the `m_content` attribute
-         *          can be modified.
-         *          We make the mutex recursive as it is used both in events handling and in the add
-         *          child semantic. Doing so allows event to generate new insertion events.
-         */
-        // TODO: Should probably be modified back to simple mutex.
-        mutable LockerType m_drawingLocker;
 
         /**
          * @brief - Used to store internally the paint events to process upon calling the `draw` method.
@@ -752,6 +745,21 @@ namespace sdl {
          */
         engine::PaintEventShPtr m_repaintOperation;
         engine::EventShPtr m_refreshOperation;
+
+        /**
+         * @brief - Used to protect the above identifier from concurrent accesses. Any application has
+         *          two main loops running in parallel: the events loop and the rendering loop. Any
+         *          modifications triggered by processing an event may or may not have an impact on the
+         *          visual representation of the widget and we want to be sure that a repaint event is
+         *          not processed while an event is updating the visual content of the widget. This is
+         *          made possible by using this mutex in any situation where the `m_content` attribute
+         *          can be modified.
+         *          This mutex is also used to protect the access to the `m_repaintOperation` and the
+         *          `m_refreshOperation` which directly modify the `m_content`. It makes sense to protect
+         *          these attributes behind the same mutex.
+         */
+        // TODO: Should probably be modified back to simple mutex.
+        mutable std::mutex m_contentLocker;
 
         /**
          * @brief - Containes the identifier of the texture currently cached for display purpose.
@@ -772,12 +780,6 @@ namespace sdl {
          *          one to cache.
          */
         mutable std::mutex m_cacheLocker;
-
-        /**
-         * @brief - True if the mouse cursor is currently hovering over this widget. False otherwise. This
-         *          attribute is updated upon receiving `EnterEvent` and `LeaveEvent`.
-         */
-        bool m_mouseInside;
 
       public:
 

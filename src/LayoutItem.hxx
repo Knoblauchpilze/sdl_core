@@ -68,6 +68,12 @@ namespace sdl {
     }
 
     inline
+    utils::Boxf
+    LayoutItem::getDrawingArea() const noexcept {
+      return m_area;
+    }
+
+    inline
     bool
     LayoutItem::isNested() const noexcept {
       return m_nested;

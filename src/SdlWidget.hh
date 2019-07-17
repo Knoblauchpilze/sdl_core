@@ -37,7 +37,8 @@ namespace sdl {
         virtual ~SdlWidget();
 
         /**
-         * @brief - Returns the area to use to represent this widget on the screen.
+         * @brief - Specialization of the base `LayoutItem` method which returns the
+         *          area to use to represent this widget on the screen.
          *          It slightly differ from the rendering area in the sense that it
          *          is global instead of local to the parent widget.
          *          The fact that it is global allows to locate the widget using an
@@ -50,7 +51,7 @@ namespace sdl {
          *           rendering area.
          */
         utils::Boxf
-        getDrawingArea() const noexcept;
+        getDrawingArea() const noexcept override;
 
         utils::Boxf
         getRenderingArea() const noexcept override;

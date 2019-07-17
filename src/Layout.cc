@@ -83,9 +83,8 @@ namespace sdl {
         // Select only update areas which spans at least a portion
         // of this child's area.
         for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-          // TODO: This area is expressed in local coordinates and should be transformed into global coordinates.
-          if (regions[id].intersects((*child)->getRenderingArea(), true)) {
-            log("Area " + regions[id].toString() + " intersects area of " + (*child)->getName() + " (area: " + (*child)->getRenderingArea().toString() + ")");
+          if (regions[id].intersects((*child)->getDrawingArea(), true)) {
+            log("Area " + regions[id].toString() + " intersects area of " + (*child)->getName() + " (area: " + (*child)->getDrawingArea().toString() + ")");
             pe->addUpdateRegion(regions[id]);
           }
         }

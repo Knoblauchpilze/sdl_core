@@ -80,8 +80,32 @@ namespace sdl {
         void
         setSizePolicy(const SizePolicy& policy) noexcept;
 
+        /**
+         * @brief - Describes the rendering area associated to this layout item. The rendering
+         *          area corresponds to an abstract surface which is allocated to the layout
+         *          item to perform its rendering.
+         *          This area is expressed relatively to its parent layout if any.
+         * @return - a box representing the rendering area for this layout item including the
+         *           transformation in the parent layout.
+         */
         virtual utils::Boxf
         getRenderingArea() const noexcept;
+
+        /**
+         * @brief - Describes the drawing area associated to this layout item. Compared to the
+         *          rendering area a drawing area represents the position at which the layout
+         *          item should be drawn.
+         *          We can describe two abstract coordinate frame one used for rendering in the
+         *          parent frame and one used for drawing in the global coordinate frame.
+         *          At this step this method is equivalent to `getRenderingArea` but inheriting
+         *          classes are encouraged to specialize it when the meaning of `parent layout`
+         *          gets more accurate.
+         * @return - a box composing the transformation of this layout item including the local
+         *           transformation of this layout item in the parent layout but also the parent
+         *           transformation itself.
+         */
+        virtual utils::Boxf
+        getDrawingArea() const noexcept;
 
         bool
         isNested() const noexcept;

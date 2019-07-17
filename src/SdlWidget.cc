@@ -25,7 +25,6 @@ namespace sdl {
       m_contentDirty(true),
       m_mouseInside(false),
       m_zOrder(0),
-      m_dataLocker(),
 
       m_content(),
       m_repaintOperation(nullptr),
@@ -49,9 +48,7 @@ namespace sdl {
       {
         Guard guard(m_contentLocker);
         clearTexture();
-      }
 
-      {
         Guard cacheGuard(m_cacheLocker);
         clearCachedTexture();
       }
@@ -363,11 +360,8 @@ namespace sdl {
       // so nothing should be lost.
 
       // First clear internal repaint/refresh operations.
-      {
-        Guard guard(m_contentLocker);
-        m_repaintOperation.reset();
-        m_refreshOperation.reset();
-      }
+      m_repaintOperation.reset();
+      m_refreshOperation.reset();
 
       // Clear existing events as well.
       removeEvents(engine::Event::Type::Repaint);
@@ -519,22 +513,16 @@ namespace sdl {
       // Checking it will allow us to precisely determine whether a global
       // paint event should also be paired with the creation of a new
       // texture for this widget or the content can only be redrawn.
-      bool redraw = false;
-      {
-        Guard guard(m_dataLocker);
+      const bool redraw = m_contentDirty;
+      if (m_contentDirty) {
+        // Clear the internal texture.
+        clearTexture();
 
-        redraw = m_contentDirty;
+        // Create the new content.
+        m_content = createContentPrivate();
 
-        if (m_contentDirty) {
-          // Clear the internal texture.
-          clearTexture();
-
-          // Create the new content.
-          m_content = createContentPrivate();
-
-          // Until further notice the content is up-to-date.
-          m_contentDirty = false;
-        }
+        // Until further notice the content is up-to-date.
+        m_contentDirty = false;
       }
 
       // Perform the update of the area described by the input

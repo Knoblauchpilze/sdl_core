@@ -22,10 +22,9 @@ namespace sdl {
     inline
     utils::Boxf
     SdlWidget::getDrawingArea() const noexcept {
-      Guard guard(m_contentLocker);
-
       // We need to retrieve the position of the parent and factor in its
       // position in order to compute the position of this widget.
+      Guard guard(m_contentLocker);
 
       // Retrieve the internal box for this widget.
       utils::Boxf thisBox = LayoutItem::getRenderingArea();
@@ -112,15 +111,10 @@ namespace sdl {
     inline
     void
     SdlWidget::makeContentDirty() {
-      {
-        Guard guard(m_dataLocker);
-
-        // Mark the content as dirty.
-        m_contentDirty = true;
-      }
+      // Mark the content as dirty.
+      m_contentDirty = true;
 
       // Request a repaint event.
-      Guard guard(m_contentLocker);
       requestRepaint();
     }
 
@@ -177,7 +171,7 @@ namespace sdl {
     void
     SdlWidget::updatePrivate(const utils::Boxf& window) {
       // Keep track of the old size.
-      utils::Boxf old = getRenderingArea();
+      utils::Boxf old = LayoutItem::getRenderingArea();
 
       // Call parent method so that we stay up to date with latest
       // area.
@@ -187,6 +181,13 @@ namespace sdl {
       if (hasLayout()) {
         postEvent(std::make_shared<engine::ResizeEvent>(window, old, m_layout.get()));
       }
+    }
+
+    inline
+    bool
+    SdlWidget::handleEvent(engine::EventShPtr e) {
+      Guard guard(m_contentLocker);
+      return LayoutItem::handleEvent(e);
     }
 
     inline
@@ -228,8 +229,6 @@ namespace sdl {
     void
     SdlWidget::setPalette(const engine::Palette& palette) noexcept {
       m_palette = palette;
-
-      Guard guard(m_contentLocker);
       requestRepaint();
     }
 
@@ -237,10 +236,7 @@ namespace sdl {
     void
     SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
       // Release the content of this widget if any.
-      {
-        Guard guard(m_contentLocker);
-        clearTexture();
-      }
+      clearTexture();
 
       // Assign the engine to this widget.
       m_engine = engine;
@@ -501,7 +497,7 @@ namespace sdl {
       // Compute the local position of the mouse.
       utils::Vector2f local = mapFromGlobal(global);
 
-      utils::Boxf area = getRenderingArea();
+      utils::Boxf area = LayoutItem::getRenderingArea();
 
       // In order to be inside the widget, the local mouse position should lie
       // within the range [-width/2 ; width/2] and [-height/2 ; height/2].
@@ -514,7 +510,6 @@ namespace sdl {
     inline
     bool
     SdlWidget::isMouseInside() const noexcept {
-      Guard guard(m_dataLocker);
       return m_mouseInside;
     }
 
@@ -564,8 +559,6 @@ namespace sdl {
     inline
     bool
     SdlWidget::enterEvent(const engine::EnterEvent& e) {
-      Guard guard(m_contentLocker);
-
       // Update the role of the background texture if the item is not selected.
       if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Background) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
@@ -575,10 +568,7 @@ namespace sdl {
       }
 
       // The mouse is now inside this widget.
-      {
-        Guard guard(m_dataLocker);
-        m_mouseInside = true;
-      }
+      m_mouseInside = true;
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
@@ -587,8 +577,6 @@ namespace sdl {
     inline
     bool
     SdlWidget::leaveEvent(const engine::Event& e) {
-      Guard guard(m_contentLocker);
-
       // Update the role of the background texture if the item is not selected.
       if (m_content.valid() && getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
         getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
@@ -598,10 +586,7 @@ namespace sdl {
       }
 
       // The mouse is now outside this widget.
-      {
-        Guard guard(m_dataLocker);
-        m_mouseInside = false;
-      }
+      m_mouseInside = false;
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
@@ -614,8 +599,6 @@ namespace sdl {
       // to update the role of the content to selected.
       // If the mouse is not inside the widget when the click occurs, we need to unset
       // selection of the item if any.
-      Guard guard(m_contentLocker);
-
       if (m_content.valid()) {
         bool needRepaint = false;
 
@@ -659,7 +642,6 @@ namespace sdl {
       // And we want to trigger a `LeaveEvent` whenever:
       // 1) The mouse is not inside the widget anymore.
       // 2) The mouse is blocked by a child widget.
-
       const bool inside = isInsideWidget(e.getMousePosition());
       const bool blocked = isBlockedByChild(e.getMousePosition());
 
@@ -790,16 +772,12 @@ namespace sdl {
     inline
     int
     SdlWidget::getZOrder() noexcept {
-      Guard guard(m_dataLocker);
       return m_zOrder;
     }
 
     inline
     void
     SdlWidget::setZOrder(const int order) {
-      // Lock the widget.
-      Guard guard(m_dataLocker);
-
       // Assign the new z order value.
       m_zOrder = order;
 

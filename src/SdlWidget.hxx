@@ -27,7 +27,7 @@ namespace sdl {
       Guard guard(m_contentLocker);
 
       // Retrieve the internal box for this widget.
-      utils::Boxf thisBox = LayoutItem::getRenderingArea();
+      utils::Boxf thisBox = LayoutItem::getDrawingArea();
 
       // Map the center to global coordinate.
       utils::Vector2f globalOffset = mapToGlobal(utils::Vector2f());
@@ -656,11 +656,7 @@ namespace sdl {
         // We care about mouse entering the widget or blocking by child widget not
         // relevant anymore.
         if (inside && !blocked) {
-          postEvent(
-            std::make_shared<engine::EnterEvent>(
-              e.getMousePosition()
-            )
-          );
+          postEvent(std::make_shared<engine::EnterEvent>(e.getMousePosition()));
         }
       }
 

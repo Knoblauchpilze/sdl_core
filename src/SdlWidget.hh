@@ -198,6 +198,15 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& window) override;
 
+        /**
+         * @brief - Specialization of the base `EngineObject` method to allow a lock operation
+         *          on this widget so that we protect concurrent access from drawing routine.
+         * @param e - the event to handle.
+         * @return - true if the event was recognized, false otherwise.
+         */
+        bool
+        handleEvent(engine::EventShPtr e) override;
+
         bool
         enterEvent(const engine::EnterEvent& e) override;
 
@@ -715,13 +724,6 @@ namespace sdl {
          *          as a global z ordering of widgets.
          */
         int m_zOrder;
-
-        /**
-         * @brief - Used to protect the access to internal variables when processing events. This
-         *          allow to guarantee some safety when concurrent processes try to access the
-         *          content of this widget.
-         */
-        mutable std::mutex m_dataLocker;
 
         /**
          * @brief - Contains an identifier representing the current visual content associated to

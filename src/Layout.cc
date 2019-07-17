@@ -95,6 +95,9 @@ namespace sdl {
         }
       }
 
+      // TODO: We should probably handle some kind of z order for children and raise them
+      // in case they get bigger and overlap on other elements.
+
       // Use the base method to handle the return value.
       return LayoutItem::repaintEvent(e);
     }

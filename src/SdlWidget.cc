@@ -442,6 +442,10 @@ namespace sdl {
       const float h = old.h() > cur.h() ? old.h() : cur.h();
 
       // Create the corresponding box.
+      // TODO: Note that we can never produce a repaint area larger than this widget.
+      // This implies that if a child gets larger than the parent we need to either
+      // make the parent larger as well or find a way to not loose the larger area
+      // upon exiting the `repaintEventPrivate` method.
       const utils::Boxf local(0.0f + (w - cur.w()) / 2.0f, 0.0f - (h - cur.h()) / 2.0f, w, h);
       const utils::Boxf toRepaint = mapToGlobal(local);
 

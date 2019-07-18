@@ -159,17 +159,6 @@ namespace sdl {
                        const utils::Boxf& area = utils::Boxf()) noexcept;
 
         /**
-         * @brief - Used to trigger a refresh operation. This will create a refresh
-         *          event and post it on the local queue.
-         *          A refresh operation consists into updating the content of the
-         *          cached content so that it is up-to-date with the modifications
-         *          possibly applied to the actual content.
-         *          A typical use case is for highlighting of a widget.
-         */
-        void
-        requestRefresh();
-
-        /**
          * @brief - Reimplementation of the base `LayoutItem` method to also invalidate the
          *          internal layout associated to this widget if any.
          *          Triggers a call to the base method nonetheless.
@@ -219,19 +208,6 @@ namespace sdl {
 
         bool
         mouseMoveEvent(const engine::MouseEvent& e) override;
-
-
-        /**
-         * @brief - Reimplementation of the base `EngineObject` method to provide
-         *          implementation for the refresh. A widget should refresh its
-         *          cached content upon performing the `refreshEvent`. As we cannot
-         *          do so in a thread different from the main thread we have to save
-         *          these events internally so that they can be processed upon
-         *          calling the `draw` method.
-         * @param e - the refresh event to proces.
-         */
-        bool
-        refreshEvent(const engine::Event& e) override;
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method to provide
@@ -433,15 +409,15 @@ namespace sdl {
         handleGraphicOperations();
 
         /**
-         * @brief - The specialization of the `refreshEvent` which is called
-         *          upon actually processing the events. This method is
-         *          triggered during the `draw` method after all the repaint
-         *          events have been processed.
-         *          It basically consists in refreshing the cached content to
-         *          make it match the actual content.
+         * @brief - Separation of concern compared to the paint event. The
+         *          `repaintEventPrivate` focuses on redrawing the part of
+         *          the widget described by the update regions while this
+         *          method focuses on notifying parent elements of the
+         *          event and also rebuilding the cached content from the
+         *          now up-to-date content.
          */
         void
-        refreshEventPrivate(const engine::Event& e);
+        refreshPrivate(const engine::PaintEvent& e);
 
         /**
          * @brief - The specialization of the `repaintEvent` which is called
@@ -747,7 +723,6 @@ namespace sdl {
          *          if needed. But this shouldn't be the case.
          */
         engine::PaintEventShPtr m_repaintOperation;
-        engine::EventShPtr m_refreshOperation;
 
         /**
          * @brief - Used to protect the above identifier from concurrent accesses. Any application has

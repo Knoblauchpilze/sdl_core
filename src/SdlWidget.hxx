@@ -150,13 +150,6 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::requestRefresh() {
-      // Post a refresh event.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::Refresh));
-    }
-
-    inline
-    void
     SdlWidget::makeGeometryDirty() {
       // Mark the geometry as dirty.
       LayoutItem::makeGeometryDirty();
@@ -546,13 +539,6 @@ namespace sdl {
         m_repaintOperation.reset();
 
         repaintEventPrivate(*e);
-      }
-
-      if (m_refreshOperation != nullptr) {
-        engine::EventShPtr e = m_refreshOperation;
-        m_refreshOperation.reset();
-
-        refreshEventPrivate(*e);
       }
     }
 

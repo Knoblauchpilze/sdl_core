@@ -354,7 +354,7 @@ namespace sdl {
     }
 
     void
-    SdlWidget::refreshPrivate(const engine::PaintEvent& /*e*/) {
+    SdlWidget::refreshPrivate(const engine::PaintEvent& e) {
       // Replace the cached content.
       Guard guard(m_cacheLocker);
 
@@ -398,17 +398,14 @@ namespace sdl {
       // This will allow the parent to update both the area currently occupied
       // by the widget but also the old area previously occupied by the widget
       // and not anymore (in case `this` widget has shrunk).
-
-      // Determine the dimensions of the new paint event to issue. For each
-      // axis we keep the maximum size between the current and old areas.
+      // Not only that but we also need to get the largest area among all the
+      // available ones which are both the old and current size of the widget but
+      // also the available paint areas registered in the input paint event.
+    
+      // Create the maximum area between the old and current size.
       const float w = old.w() > cur.w() ? old.w() : cur.w();
       const float h = old.h() > cur.h() ? old.h() : cur.h();
 
-      // Create the corresponding box.
-      // TODO: Note that we can never produce a repaint area larger than this widget.
-      // This implies that if a child gets larger than the parent we need to either
-      // make the parent larger as well or find a way to not loose the larger area
-      // upon exiting the `repaintEventPrivate` method.
       const utils::Boxf local(0.0f + (w - cur.w()) / 2.0f, 0.0f - (h - cur.h()) / 2.0f, w, h);
       const utils::Boxf toRepaint = mapToGlobal(local);
 
@@ -416,28 +413,52 @@ namespace sdl {
       engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, nullptr);
       pe->setEmitter(this);
 
+      // Don't forget to add the input paint regions. We need to do that only if
+      // the event does not come from the element we want to send it to. As an
+      // example we don't really need to notify the parent widget that a region
+      // has been updated if it is the one which told us in the first place.
+      // The copy is handled on the fly when building the output event. It is
+      // much easier in terms of conditions management.
+
       // Determine the object to which is should be sent: either the parent widget
-      // or the manager layout.
+      // or the manager layout. We only choose the manager layout if the paint event
+      // contains update areas larger than this widget. Indeed otherwise there's no
+      // need to notify siblings that this widget has been updated as all changes are
+      // contained inside it.
+      const utils::Boxf global = mapToGlobal(LayoutItem::getRenderingArea(), false);
       EngineObject* o = nullptr;
 
       // Check for a parent widget or if no such object exist a manager layout.
       if (hasParent()) {
         pe->setReceiver(m_parent);
-        log("Posting repaint for area " + toRepaint.toString() + " to parent " + m_parent->getName() + " (old: " + old.toString() + ", cur: " + cur.toString() + ")", utils::Level::Info);
         o = m_parent;
+
+        if (e.getEmitter() != m_parent) {
+          pe->copyUpdateRegions(e);
+        }
       }
       else if (isManaged()) {
-        log("Posting repaint for area " + toRepaint.toString() + " to layout " + getManager()->getName() + " (old: " + old.toString() + ", cur: " + cur.toString() + ")", utils::Level::Info);
         pe->setReceiver(getManager());
-        o = getManager();
+
+        // Assign the receiver object and copy the update regions only if it is not
+        // already the emitter of the repaint event we're processing.
+        if (e.getEmitter() != getManager()) {
+          pe->copyUpdateRegions(e);
+        }
+
+        if (!pe->isContained(global)) {
+          o = getManager();
+        }
+      }
+
+      if (o == nullptr) {
+        log("Do not post repaint event, no need to do so", utils::Level::Info);
       }
 
       // Post the event if we have an object where to post it.
       if (o != nullptr) {
         o->postEvent(pe, false, false);
       }
-
-      // TODO: Handle the paint event.
     }
 
     void
@@ -502,6 +523,16 @@ namespace sdl {
         const utils::Boxf region = mapFromGlobal(regions[id]);
 
         log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ")");
+
+        // TODO: We should do something when the area extends beyond our
+        // widget: the repaint event should be detected as not coming from
+        // one of our children and thus we should be able to repaint the
+        // corresponding widget.
+        // In order not to break the checks lines 436 and 449 we might
+        // extend them to be like below:
+        // `getChildOrNull(e.getEmitter()->getName()) == null`
+        // This would allow to mark as non-emitter the events coming from
+        // somewhere else in the hierarchy which can make sense.
 
         clearContentPrivate(m_content, region);
         drawContentPrivate(m_content, region);

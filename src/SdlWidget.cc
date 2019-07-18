@@ -28,7 +28,6 @@ namespace sdl {
 
       m_content(),
       m_repaintOperation(nullptr),
-      m_refreshOperation(nullptr),
       m_contentLocker(),
 
       m_cachedContent(),
@@ -236,37 +235,6 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::refreshEvent(const engine::Event& e) {
-      // The refresh event is meant to allow the update of the internal
-      // cached content with the up-to-date actual content. However this
-      // includes creating a new texture or destroying any existing
-      // cached content and due to limitations of the engine is meant to
-      // be done in the main thread.
-      // As we cannot guarantee that this operation will be performed in
-      // the main thread we chose to save internally such events to process
-      // them later on, during a call to `draw` method which is surely
-      // called from the main thread.
-      // So in here we just have to save the event for further processing.
-
-      // If no previous refresh operations were registered, we need to
-      // create a new one.
-      if (m_refreshOperation == nullptr) {
-        m_refreshOperation = std::make_shared<engine::Event>(e);
-      }
-      else {
-        // Might happen if events are posted faster than the repaint from
-        // the main thread occurs. Should not happen too often if the fps
-        // for both the repaint and events system are set to work well
-        // together.
-        m_refreshOperation->merge(e);
-      }
-
-      // Use base handler to determine whether the event was recognized.
-      return LayoutItem::refreshEvent(e);
-
-    }
-
-    bool
     SdlWidget::repaintEvent(const engine::PaintEvent& e) {
       // Usually the paint event is meant to update the internal
       // visual representation of this widget. It is important so
@@ -341,9 +309,6 @@ namespace sdl {
         m_repaintOperation->merge(e);
       }
 
-      // Trigger a refresh.
-      requestRefresh();
-
       // Use base handler to determine whether the event was recognized.
       return LayoutItem::repaintEvent(e);
     }
@@ -361,11 +326,9 @@ namespace sdl {
 
       // First clear internal repaint/refresh operations.
       m_repaintOperation.reset();
-      m_refreshOperation.reset();
 
       // Clear existing events as well.
       removeEvents(engine::Event::Type::Repaint);
-      removeEvents(engine::Event::Type::Refresh);
 
       // Mark the content as dirty.
       makeContentDirty();
@@ -391,7 +354,7 @@ namespace sdl {
     }
 
     void
-    SdlWidget::refreshEventPrivate(const engine::Event& /*e*/) {
+    SdlWidget::refreshPrivate(const engine::PaintEvent& /*e*/) {
       // Replace the cached content.
       Guard guard(m_cacheLocker);
 
@@ -473,6 +436,8 @@ namespace sdl {
       if (o != nullptr) {
         o->postEvent(pe, false, false);
       }
+
+      // TODO: Handle the paint event.
     }
 
     void
@@ -586,6 +551,9 @@ namespace sdl {
           drawChild(*child->widget, dims);
         }
       }
+
+      // Now perform the refresh operation.
+      refreshPrivate(e);
     }
 
   }

@@ -78,6 +78,7 @@ namespace sdl {
 
         // Create a paint event for this children.
         engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(*child);
+        // TODO: Should maybe be set to the initial of the event `e` ?
         pe->setEmitter(this);
 
         // Select only update areas which spans at least a portion
@@ -94,9 +95,6 @@ namespace sdl {
           (*child)->postEvent(pe, false, false);
         }
       }
-
-      // TODO: We should probably handle some kind of z order for children and raise them
-      // in case they get bigger and overlap on other elements.
 
       // Use the base method to handle the return value.
       return LayoutItem::repaintEvent(e);

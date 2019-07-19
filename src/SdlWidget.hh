@@ -262,6 +262,25 @@ namespace sdl {
         bool
         hasParent() const noexcept;
 
+        /**
+         * @brief - Returns true if this widget has a child of any kind with a
+         *          name matching the input string.
+         * @param name - the name of the child which should be searched.
+         * @return - `true` if a child with the specified `name` exists in this
+         *           widget and `false` otherwise.
+         */
+        bool
+        hasChild(const std::string& name) const noexcept;
+
+        /**
+         * @brief - Try to retrieve the child with a name corresponding to the input
+         *          string as a pointer to the specified object type.
+         *          If no such child exist or if the child cannot be casted into the
+         *          specified type an error is raised.
+         * @param name - the name of the child to retrieve.
+         * @return - the child with a name corresponding to the input string as a
+         *           pointer to a `WidgetType` object.
+         */
         template <typename WidgetType>
         WidgetType*
         getChildAs(const std::string& name);

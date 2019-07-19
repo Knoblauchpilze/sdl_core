@@ -417,8 +417,10 @@ namespace sdl {
       // the event does not come from the element we want to send it to. As an
       // example we don't really need to notify the parent widget that a region
       // has been updated if it is the one which told us in the first place.
-      // The copy is handled on the fly when building the output event. It is
-      // much easier in terms of conditions management.
+      // The copy is handled on the fly when building the output event.
+      if (e.getEmitter() != nullptr && hasChild(e.getEmitter()->getName())) {
+        pe->copyUpdateRegions(e);
+      }
 
       // Determine the object to which is should be sent: either the parent widget
       // or the manager layout. We only choose the manager layout if the paint event
@@ -432,23 +434,10 @@ namespace sdl {
       if (hasParent()) {
         pe->setReceiver(m_parent);
         o = m_parent;
-
-        if (e.getEmitter() != m_parent) {
-          pe->copyUpdateRegions(e);
-        }
       }
-      else if (isManaged()) {
+      else if (isManaged() && !pe->isContained(global)) {
         pe->setReceiver(getManager());
-
-        // Assign the receiver object and copy the update regions only if it is not
-        // already the emitter of the repaint event we're processing.
-        if (e.getEmitter() != getManager()) {
-          pe->copyUpdateRegions(e);
-        }
-
-        if (!pe->isContained(global)) {
-          o = getManager();
-        }
+        o = getManager();
       }
 
       if (o == nullptr) {
@@ -551,35 +540,37 @@ namespace sdl {
       // This behavior might be overriden by the `redraw` operation as
       // obviously if the whole widget has been recreated we need to
       // repaint chidlren.
-      Guard guard(m_childrenLocker);
+      {
+        Guard guard(m_childrenLocker);
 
-      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        // The chidlren needs to be repainted if:
-        // 1. It is visible.
-        // 2. It needs a repaint from the input `event`.
-        // 3. It needs a repaint because the widget has been recreated.
-        // The only tricky part is determining whether the widget has
-        // some intersection with any of the update regions.
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+          // The chidlren needs to be repainted if:
+          // 1. It is visible.
+          // 2. It needs a repaint from the input `event`.
+          // 3. It needs a repaint because the widget has been recreated.
+          // The only tricky part is determining whether the widget has
+          // some intersection with any of the update regions.
 
-        bool intersectWithRepaint = false;
-        int id = 0;
-        const utils::Boxf childBox = child->widget->getRenderingArea();
+          bool intersectWithRepaint = false;
+          int id = 0;
+          const utils::Boxf childBox = child->widget->getRenderingArea();
 
-        while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
-          // Convert region from global to local.
-          const utils::Boxf region = mapFromGlobal(regions[id]);
+          while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
+            // Convert region from global to local.
+            const utils::Boxf region = mapFromGlobal(regions[id]);
 
-          // Determine whether the region has an intersection with the child.
-          intersectWithRepaint = region.intersects(childBox);
+            // Determine whether the region has an intersection with the child.
+            intersectWithRepaint = region.intersects(childBox);
 
-          // Move to the next one.
-          ++id;
-        }
+            // Move to the next one.
+            ++id;
+          }
 
-        // Check whether we should repaint this child.
-        if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
-          log("Drawing child " + child->widget->getName());
-          drawChild(*child->widget, dims);
+          // Check whether we should repaint this child.
+          if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
+            log("Drawing child " + child->widget->getName());
+            drawChild(*child->widget, dims);
+          }
         }
       }
 

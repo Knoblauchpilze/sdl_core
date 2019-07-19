@@ -308,6 +308,18 @@ namespace sdl {
       return m_parent != nullptr;
     }
 
+    inline
+    bool
+    SdlWidget::hasChild(const std::string& name) const noexcept {
+      Guard guard(m_childrenLocker);
+
+      // Try to retrieve an iterator on the child.
+      ChildrenMap::const_iterator child = m_names.find(name);
+      
+      // If it is not the end of the map it means that this child exists.
+      return child != m_names.cend();
+    }
+
     template <typename WidgetType>
     inline
     WidgetType*

@@ -511,17 +511,11 @@ namespace sdl {
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
         const utils::Boxf region = mapFromGlobal(regions[id]);
 
-        log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ")");
+        log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")");
 
-        // TODO: We should do something when the area extends beyond our
-        // widget: the repaint event should be detected as not coming from
-        // one of our children and thus we should be able to repaint the
-        // corresponding widget.
-        // In order not to break the checks lines 436 and 449 we might
-        // extend them to be like below:
-        // `getChildOrNull(e.getEmitter()->getName()) == null`
-        // This would allow to mark as non-emitter the events coming from
-        // somewhere else in the hierarchy which can make sense.
+        // TODO: Handle the case where the source of the event does not
+        // come from one of our child this probably means that we need
+        // to repaint the source onto this widget.
 
         clearContentPrivate(m_content, region);
         drawContentPrivate(m_content, region);

@@ -78,8 +78,7 @@ namespace sdl {
 
         // Create a paint event for this children.
         engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(*child);
-        // TODO: Should maybe be set to the initial of the event `e` ?
-        pe->setEmitter(this);
+        pe->setEmitter(e.getEmitter());
 
         // Select only update areas which spans at least a portion
         // of this child's area.

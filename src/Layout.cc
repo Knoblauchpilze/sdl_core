@@ -64,7 +64,7 @@ namespace sdl {
            child != m_items.cend() ;
            ++child)
       {
-        // Discard this child if it is the emitter of the event.
+        // Discard this child if the emitter belongs to its hierarchy.
         if ((*child) == e.getEmitter()) {
           log("Ignoring child " + (*child)->getName() + " which is the source of the paint event");
           continue;

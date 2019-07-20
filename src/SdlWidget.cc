@@ -197,8 +197,6 @@ namespace sdl {
       const utils::Uuid& uuid = m_content;
       engine::Engine& engine = getEngine();
 
-      log("Drawing area " + src.toString() + " from widget " + widget.getName() + " to " + dst.toString());
-
       // Protect against errors.
       withSafetyNet(
         [&widget, &uuid, &engine, &src, &dst]() {
@@ -298,7 +296,14 @@ namespace sdl {
         // the main thread occurs. Should not happen too often if the fps
         // for both the repaint and events system are set to work well
         // together.
+        EngineObject* em = m_repaintOperation->getEmitter();
         m_repaintOperation->merge(e);
+
+        // Also, assign this event's emitter to `this` if both sources are
+        // not equal.
+        if (em != e.getEmitter()) {
+          m_repaintOperation->setEmitter(this);
+        }
       }
 
       // Use base handler to determine whether the event was recognized.
@@ -410,7 +415,7 @@ namespace sdl {
       // example we don't really need to notify the parent widget that a region
       // has been updated if it is the one which told us in the first place.
       // The copy is handled on the fly when building the output event.
-      if (e.getEmitter() != nullptr && hasChild(e.getEmitter()->getName())) {
+      if (e.getEmitter() != nullptr && (e.getEmitter() == this || hasChild(e.getEmitter()->getName()))) {
         pe->copyUpdateRegions(e);
       }
 
@@ -496,67 +501,69 @@ namespace sdl {
         m_contentDirty = false;
       }
 
-      // Perform the update of the area described by the input
-      // paint event.
+      // Perform the update of the area described by the input paint event.
+      // To do so we need to update the content of `this` widget in the input
+      // update areas but also redraw the children which intersect these
+      // locations.
+      // Not that in order to redraw only what's really necessary we process
+      // for each region in a single pass both the update of `this` widget's
+      // content and the update of the children intersecting this area.
       const std::vector<utils::Boxf> regions = e.getUpdateRegions();
 
+      utils::Sizef dims = area.toSize();
+
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+        // Convert the region from global to local coordinate frame.
         const utils::Boxf region = mapFromGlobal(regions[id]);
 
         log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")");
 
+        // Update the content of `this` widget: first clear the content and
+        // then perform the draw operation.
         clearContentPrivate(m_content, region);
         drawContentPrivate(m_content, region);
+
+        // Now iterate over children and draw them if needed (i.e. if they
+        // intersect the current area).
+        {
+          Guard guard(m_childrenLocker);
+
+          for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+            // The child needs to be repainted if:
+            // 1. It is visible.
+            // 2. It needs a repaint from the input `event`.
+            // 3. It needs a repaint because the widget has been recreated.
+
+            // If the widget is not visible, skip this part entirely.
+            if (!child->widget->isVisible()) {
+              continue;
+            }
+
+            // Determine whether this widget intersect the current update region.
+            const utils::Boxf childBox = child->widget->getRenderingArea();
+            utils::Boxf dst = region.intersect(childBox);
+            utils::Boxf dstEngine = convertToEngineFormat(dst, area);
+
+            // If this widget does not intersect the current region, do nothing.
+            // This behavior is overriden by the `redraw` boolean which indicates
+            // that as `this` widget has been recreated we will repaint children
+            // no matter what.
+            if (!dst.valid() && !redraw) {
+              continue;
+            }
+
+            // Determine the source area by converting the `dst` area into
+            // the widget's coordinate frame.
+            const utils::Boxf src = convertToLocal(dst, childBox);
+            const utils::Boxf srcEngine = convertToEngineFormat(src, childBox);
+
+            log("Drawing child " + child->widget->getName() + " (src: " + src.toString() + ", dst: " + dst.toString() + "), intersect with " + region.toString());
+            drawWidget(*child->widget, srcEngine, dstEngine);
+          }
+        }
       }
 
-      // Copy also the internal area in order to perform the coordinate
-      // frame transform.
-      utils::Sizef dims = area.toSize();
-
-      // Proceed to update of children containers if any: at this point
-      // the `m_children` array is already sorted by z order so we can
-      // just iterate over it and we will process children in a valid
-      // order.
-      // In addition to that we only need to repaint children which have
-      // a non empty intersection with any of the regions to update.
-      // This behavior might be overriden by the `redraw` operation as
-      // obviously if the whole widget has been recreated we need to
-      // repaint chidlren.
       Guard guard(m_childrenLocker);
-
-      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-        // The chidlren needs to be repainted if:
-        // 1. It is visible.
-        // 2. It needs a repaint from the input `event`.
-        // 3. It needs a repaint because the widget has been recreated.
-        // The only tricky part is determining whether the widget has
-        // some intersection with any of the update regions.
-
-        bool intersectWithRepaint = false;
-        int id = 0;
-        const utils::Boxf childBox = child->widget->getRenderingArea();
-
-        while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
-          // Convert region from global to local.
-          const utils::Boxf region = mapFromGlobal(regions[id]);
-
-          // Determine whether the region has an intersection with the child.
-          intersectWithRepaint = region.intersects(childBox);
-
-          // Move to the next one.
-          ++id;
-        }
-
-        // Check whether we should repaint this child.
-        if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
-          // Compute the `src` and `dst` areas to draw the widget.
-          // We want to draw the entirety of the widget's texture
-          // at its expected position in this widget.
-          const utils::Boxf dst = convertToEngineFormat(childBox, utils::Boxf::fromSize(dims));
-
-          drawWidget(*child->widget, utils::Boxf::fromSize(childBox.toSize()), dst);
-        }
-      }
 
       // Finally let's handle the repaint of the source of the repaint event
       // if it is not part of our children. This allows to actually display
@@ -593,14 +600,13 @@ namespace sdl {
             const utils::Boxf interG = mapToGlobal(inter);
             const utils::Boxf src = convertToLocal(interG, global);
 
-            // TODO: THe requested area might not exist but rather be spanned by a child of
+            // TODO: The requested area might not exist but rather be spanned by a child of
             // the `source` of the event. We should somehow determine the corresponding
             // widget to display. Maybe the paint event should be linked to the widget which
             // initially started the paint cycle.
-            // TODO: It seems that there is a problem with transparency and `enterEvent`.
 
             log("Drawing " + source->getName() + " to " + dst.toString() + " from " + src.toString());
-            drawWidget(*source, src, region);
+            drawWidget(*source, src, dst);
           }
         }
       }

@@ -597,6 +597,7 @@ namespace sdl {
             // the `source` of the event. We should somehow determine the corresponding
             // widget to display. Maybe the paint event should be linked to the widget which
             // initially started the paint cycle.
+            // TODO: It seems that there is a problem with transparency and `enterEvent`.
 
             log("Drawing " + source->getName() + " to " + dst.toString() + " from " + src.toString());
             drawWidget(*source, src, region);

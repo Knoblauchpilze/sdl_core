@@ -190,48 +190,40 @@ namespace sdl {
     }
 
     void
-    SdlWidget::drawChild(SdlWidget& child,
-                         const utils::Sizef& dims)
+    SdlWidget::drawWidget(SdlWidget& widget,
+                          const utils::Boxf& src,
+                          const utils::Boxf& dst)
     {
       const utils::Uuid& uuid = m_content;
       engine::Engine& engine = getEngine();
 
+      log("Drawing area " + src.toString() + " from widget " + widget.getName() + " to " + dst.toString());
+
       // Protect against errors.
       withSafetyNet(
-        [&child, &uuid, &engine, &dims]() {
-          // Draw this object (caching is handled by the object itself).
-          utils::Uuid picture = child.draw();
+        [&widget, &uuid, &engine, &src, &dst]() {
+          // Retrieve a texture identifier representing the `widget` to draw.
+          utils::Uuid picture = widget.draw();
 
-          // Draw the picture at the corresponding place. Note that the
-          // coordinates of the box of each child is in local coordinates
-          // relatively to this widget.
-          // In order to obtain good results, we need to convert to an
-          // intermediate coordinate frame not centered on the origin but
-          // rather on the position of this widget.
-          // This is because the SDL talks in terms of top left corner
-          // and we talk in terms of center.
-          // The conversion cannot happen without knowing the dimension
-          // of the input texture, which is only known here.
-          utils::Boxf render = child.getRenderingArea();
-
-          // Account for the intermediate coordinate frame transformation.
-          render.x() += (dims.w() / 2.0f);
-          render.y() = (dims.h() / 2.0f) - render.y();
-
+          // Draw the texture at the specified coordinates.
           engine.drawTexture(
             picture,
-            nullptr,
+            &src,
             &uuid,
-            &render
+            &dst
           );
         },
-        std::string("draw_child(") + child.getName() + ")"
+        std::string("draw_child(") + widget.getName() + ")"
       );
 
-      // Register this child with the time stamp of the repaint operation.
+      // Register this widget with the time stamp of the repaint operation.
       // This will help ignoring repaint events which we might receive from
-      // this child.
-      m_repaints[child.getName()] = std::chrono::steady_clock::now();
+      // this widget.
+      // We first need to determine whether the element to repaint belongs
+      // to the children of this widget.
+      if (hasChild(widget.getName())) {
+        m_repaints[widget.getName()] = std::chrono::steady_clock::now();
+      }
     }
 
     bool
@@ -534,36 +526,79 @@ namespace sdl {
       // This behavior might be overriden by the `redraw` operation as
       // obviously if the whole widget has been recreated we need to
       // repaint chidlren.
-      {
-        Guard guard(m_childrenLocker);
+      Guard guard(m_childrenLocker);
 
-        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-          // The chidlren needs to be repainted if:
-          // 1. It is visible.
-          // 2. It needs a repaint from the input `event`.
-          // 3. It needs a repaint because the widget has been recreated.
-          // The only tricky part is determining whether the widget has
-          // some intersection with any of the update regions.
+      for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+        // The chidlren needs to be repainted if:
+        // 1. It is visible.
+        // 2. It needs a repaint from the input `event`.
+        // 3. It needs a repaint because the widget has been recreated.
+        // The only tricky part is determining whether the widget has
+        // some intersection with any of the update regions.
 
-          bool intersectWithRepaint = false;
-          int id = 0;
-          const utils::Boxf childBox = child->widget->getRenderingArea();
+        bool intersectWithRepaint = false;
+        int id = 0;
+        const utils::Boxf childBox = child->widget->getRenderingArea();
 
-          while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
-            // Convert region from global to local.
+        while (id < static_cast<int>(regions.size()) && !intersectWithRepaint) {
+          // Convert region from global to local.
+          const utils::Boxf region = mapFromGlobal(regions[id]);
+
+          // Determine whether the region has an intersection with the child.
+          intersectWithRepaint = region.intersects(childBox);
+
+          // Move to the next one.
+          ++id;
+        }
+
+        // Check whether we should repaint this child.
+        if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
+          // Compute the `src` and `dst` areas to draw the widget.
+          // We want to draw the entirety of the widget's texture
+          // at its expected position in this widget.
+          const utils::Boxf dst = convertToEngineFormat(childBox, utils::Boxf::fromSize(dims));
+
+          drawWidget(*child->widget, utils::Boxf::fromSize(childBox.toSize()), dst);
+        }
+      }
+
+      // Finally let's handle the repaint of the source of the repaint event
+      // if it is not part of our children. This allows to actually display
+      // elements on top of other widgets.
+      if (e.getEmitter() != nullptr && !hasChild(e.getEmitter()->getName()) && e.getEmitter() != this) {
+        // Check whether the emitter can be displayed as a widget.
+        SdlWidget* source = dynamic_cast<SdlWidget*>(e.getEmitter());
+
+        if (source != nullptr) {
+          // Draw all the repaint regions mentionned in the event using the
+          // `source` of the event as repaint base.
+          // For each area described in the paint event we need to compute
+          // its intersection with `this` object: from that we can derive
+          // the `src` area to repaint. The `dst` area corresponds to the
+          // local conversion of the `regions[id]` box. Strictly speaking we
+          // could handle the intersection of this area with the dimensions
+          // of `this` widget's area in order to only blit relevant parts
+          // of the `source` object.
+          const utils::Boxf global = source->getDrawingArea();
+
+          for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+            // Convert the input region expressed in global coordinate frame
+            // into local frame.
             const utils::Boxf region = mapFromGlobal(regions[id]);
 
-            // Determine whether the region has an intersection with the child.
-            intersectWithRepaint = region.intersects(childBox);
+            // The `dst` region of the repaint area corresponds to this region
+            // converted into engine format. Indeed the `region` is already in
+            // local coordinate frame.
+            const utils::Boxf dst = convertToEngineFormat(region, utils::Boxf::fromSize(dims));
 
-            // Move to the next one.
-            ++id;
-          }
+            // Compute the intersection of the regions with `this` object's
+            // area and convert it to global coordinate frame.
+            const utils::Boxf inter = utils::Boxf::fromSize(dims, true).intersect(region);
+            const utils::Boxf interG = mapToGlobal(inter);
+            const utils::Boxf src = convertToLocal(interG, global);
 
-          // Check whether we should repaint this child.
-          if (child->widget->isVisible() && (intersectWithRepaint || redraw)) {
-            log("Drawing child " + child->widget->getName());
-            drawChild(*child->widget, dims);
+            log("Drawing " + source->getName() + " to " + dst.toString() + " from " + src.toString());
+            drawWidget(*source, src, region);
           }
         }
       }

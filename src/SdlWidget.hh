@@ -580,17 +580,22 @@ namespace sdl {
         rebuildZOrdering();
 
         /**
-         * @brief - Used to perform the rendering of the input `child` widget while
+         * @brief - Used to perform the rendering of the input `widget` element while
          *          providing a safety net in case the drawing fails and raises an
          *          error.
-         *          This function will use the provided dimensions so that each child
-         *          widget is drawn properly on the local canvas.
-         * @param child - the child widget to draw.
-         * @param dims - total size of the canvas into which the child is drawn.
+         *          Draws the input `src` area of the texture of the widget into the
+         *          specified `dst` area of t`this` widget's texture.
+         * @param widget - the widget to draw.
+         * @param src - the area of the `widget`'s texture to draw. Expressed in local
+         *              texture coordinate frame.
+         * @param dst - describes where the `src` area of the `widget` should be drawn
+         *              on this widget. Expressed in `this` local widget's coordinate
+         *              frame.
          */
         void
-        drawChild(SdlWidget& child,
-                  const utils::Sizef& dims);
+        drawWidget(SdlWidget& widget,
+                   const utils::Boxf& src,
+                   const utils::Boxf& dst);
 
       protected:
 

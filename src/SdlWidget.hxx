@@ -313,8 +313,8 @@ namespace sdl {
     SdlWidget::hasChild(const std::string& name) const noexcept {
       // Try to retrieve an iterator on the child.
       ChildrenMap::const_iterator child = m_names.find(name);
-      
-      // If it is not the end of the map it means that this child exists.
+
+      // If we managed to find a child with a similar name we're good.
       return child != m_names.cend();
     }
 

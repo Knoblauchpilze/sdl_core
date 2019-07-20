@@ -584,7 +584,7 @@ namespace sdl {
          *          providing a safety net in case the drawing fails and raises an
          *          error.
          *          Draws the input `src` area of the texture of the widget into the
-         *          specified `dst` area of t`this` widget's texture.
+         *          specified `dst` area of `this` widget's texture.
          * @param widget - the widget to draw.
          * @param src - the area of the `widget`'s texture to draw. Expressed in local
          *              texture coordinate frame.

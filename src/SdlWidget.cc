@@ -505,10 +505,6 @@ namespace sdl {
 
         log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")");
 
-        // TODO: Handle the case where the source of the event does not
-        // come from one of our child this probably means that we need
-        // to repaint the source onto this widget.
-
         clearContentPrivate(m_content, region);
         drawContentPrivate(m_content, region);
       }
@@ -596,6 +592,11 @@ namespace sdl {
             const utils::Boxf inter = utils::Boxf::fromSize(dims, true).intersect(region);
             const utils::Boxf interG = mapToGlobal(inter);
             const utils::Boxf src = convertToLocal(interG, global);
+
+            // TODO: THe requested area might not exist but rather be spanned by a child of
+            // the `source` of the event. We should somehow determine the corresponding
+            // widget to display. Maybe the paint event should be linked to the widget which
+            // initially started the paint cycle.
 
             log("Drawing " + source->getName() + " to " + dst.toString() + " from " + src.toString());
             drawWidget(*source, src, region);

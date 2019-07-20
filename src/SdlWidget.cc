@@ -582,7 +582,6 @@ namespace sdl {
           // could handle the intersection of this area with the dimensions
           // of `this` widget's area in order to only blit relevant parts
           // of the `source` object.
-          const utils::Boxf global = source->getDrawingArea();
 
           for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
             // Convert the input region expressed in global coordinate frame
@@ -598,7 +597,7 @@ namespace sdl {
             // area and convert it to global coordinate frame.
             const utils::Boxf inter = utils::Boxf::fromSize(dims, true).intersect(region);
             const utils::Boxf interG = mapToGlobal(inter);
-            const utils::Boxf src = convertToLocal(interG, global);
+            const utils::Boxf src = convertToLocal(interG, regions[id]);
 
             // TODO: The requested area might not exist but rather be spanned by a child of
             // the `source` of the event. We should somehow determine the corresponding

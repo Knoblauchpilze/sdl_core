@@ -265,6 +265,8 @@ namespace sdl {
         /**
          * @brief - Returns true if this widget has a child of any kind with a
          *          name matching the input string.
+         *          Note that this method assumes that the `m_childrenLocker`
+         *          mutex is already acquired.
          * @param name - the name of the child which should be searched.
          * @return - `true` if a child with the specified `name` exists in this
          *           widget and `false` otherwise.

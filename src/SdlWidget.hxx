@@ -52,6 +52,85 @@ namespace sdl {
     }
 
     inline
+    void
+    SdlWidget::setVisible(bool visible) noexcept {
+      // Use the base handler to perform needed internal updates.
+      LayoutItem::setVisible(visible);
+
+      // Trigger a repaint event if the widget is set to visible.
+      if (isVisible()) {
+        makeContentDirty();
+      }
+    }
+
+    inline
+    void
+    SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
+      // Save this layout into the internal attribute.
+      m_layout = layout;
+
+      // Share the events queue if needed.
+      if (hasLayout()) {
+        registerToSameQueue(m_layout.get());
+      }
+
+      // Install this widget as filter for the event of the layout.
+      layout->installEventFilter(this);
+
+      makeGeometryDirty();
+    }
+
+    inline
+    const engine::Palette&
+    SdlWidget::getPalette() const noexcept {
+      return m_palette;
+    }
+
+    inline
+    void
+    SdlWidget::setPalette(const engine::Palette& palette) noexcept {
+      m_palette = palette;
+      requestRepaint();
+    }
+
+    inline
+    void
+    SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
+      // Release the content of this widget if any.
+      clearTexture();
+
+      // Assign the engine to this widget.
+      m_engine = engine;
+
+      // Also: assign the engine to children widgets if any.
+      {
+        Guard guard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ;
+            child != m_children.cend() ;
+            ++child)
+        {
+          child->widget->setEngine(engine);
+        }
+      }
+
+      makeContentDirty();
+    }
+
+    inline
+    utils::Uuid
+    SdlWidget::getContentUuid() {
+      // Acquire the lock on the cached content uuid and return it.
+      // If the cached content is not valid, raise an error.
+      Guard guard(m_cacheLocker);
+
+      if (!m_cachedContent.valid()) {
+        error(std::string("Cannot get content uuid"), std::string("Invalid content uuid"));
+      }
+
+      return m_cachedContent;
+    }
+
+    inline
     bool
     SdlWidget::filterEvent(engine::EngineObject* watched,
                            engine::EventShPtr e)
@@ -181,71 +260,6 @@ namespace sdl {
     SdlWidget::handleEvent(engine::EventShPtr e) {
       Guard guard(m_contentLocker);
       return LayoutItem::handleEvent(e);
-    }
-
-    inline
-    void
-    SdlWidget::setVisible(bool visible) noexcept {
-      // Use the base handler to perform needed internal updates.
-      LayoutItem::setVisible(visible);
-
-      // Trigger a repaint event if the widget is set to visible.
-      if (isVisible()) {
-        makeContentDirty();
-      }
-    }
-
-    inline
-    void
-    SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
-      // Save this layout into the internal attribute.
-      m_layout = layout;
-
-      // Share the events queue if needed.
-      if (hasLayout()) {
-        registerToSameQueue(m_layout.get());
-      }
-
-      // Install this widget as filter for the event of the layout.
-      layout->installEventFilter(this);
-
-      makeGeometryDirty();
-    }
-
-    inline
-    const engine::Palette&
-    SdlWidget::getPalette() const noexcept {
-      return m_palette;
-    }
-
-    inline
-    void
-    SdlWidget::setPalette(const engine::Palette& palette) noexcept {
-      m_palette = palette;
-      requestRepaint();
-    }
-
-    inline
-    void
-    SdlWidget::setEngine(engine::EngineShPtr engine) noexcept {
-      // Release the content of this widget if any.
-      clearTexture();
-
-      // Assign the engine to this widget.
-      m_engine = engine;
-
-      // Also: assign the engine to children widgets if any.
-      {
-        Guard guard(m_childrenLocker);
-        for (WidgetsMap::const_iterator child = m_children.cbegin() ;
-            child != m_children.cend() ;
-            ++child)
-        {
-          child->widget->setEngine(engine);
-        }
-      }
-
-      makeContentDirty();
     }
 
     inline

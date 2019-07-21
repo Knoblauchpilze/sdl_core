@@ -93,8 +93,23 @@ namespace sdl {
       }
 
       // Return the cached texture.
-      Guard guard(m_cacheLocker);
-      return m_cachedContent;
+      return getContentUuid();
+    }
+
+    bool
+    SdlWidget::drawOn(const utils::Uuid& /*on*/,
+                      const utils::Boxf* /*src*/,
+                      const utils::Boxf* /*dst*/)
+    {
+      // The point of this `drawOn` method is to draw the relevant content
+      // of this widget on the specified target. If this widget does not
+      // cover the desired `src` area we need to transmit the request to
+      // children in order to find the one covering the area.
+
+
+      // TODO: Implement blitting and research in the children in case this
+      // widget does not span the source area.
+      return false;
     }
 
     void
@@ -112,14 +127,9 @@ namespace sdl {
           utils::Uuid picture = widget.draw();
 
           // Draw the texture at the specified coordinates.
-          engine.drawTexture(
-            picture,
-            &src,
-            &uuid,
-            &dst
-          );
+          engine.drawTexture(picture, &src, &uuid, &dst);
         },
-        std::string("draw_child(") + widget.getName() + ")"
+        std::string("drawWidget(") + widget.getName() + ")"
       );
 
       // Register this widget with the time stamp of the repaint operation.
@@ -129,6 +139,37 @@ namespace sdl {
       // to the children of this widget.
       if (hasChild(widget.getName())) {
         m_repaints[widget.getName()] = std::chrono::steady_clock::now();
+      }
+    }
+
+    void
+    SdlWidget::drawWidgetOn(SdlWidget& widget,
+                            const utils::Uuid& on,
+                            const utils::Boxf& src,
+                            const utils::Boxf& dst)
+    {
+      bool span = false;
+
+      // Protect against errors.
+      withSafetyNet(
+        [&widget, &on, &src, &dst, &span]() {
+          // Display the widget on the input texture at the specified coordinates.
+          span = widget.drawOn(on, &src, &dst);
+        },
+        std::string("drawWidgetOn(") + widget.getName() + ")"
+      );
+
+      // Register this widget with the time stamp of the repaint operation.
+      // This will help ignoring repaint events which we might receive from
+      // this widget.
+      // We first need to determine whether the element to repaint belongs
+      // to the children of this widget.
+      if (hasChild(widget.getName())) {
+        m_repaints[widget.getName()] = std::chrono::steady_clock::now();
+      }
+
+      if (!span) {
+        log("Widget " + widget.getName() + " does not seem to span area " + src.toString(), utils::Level::Warning);
       }
     }
 
@@ -599,13 +640,8 @@ namespace sdl {
             const utils::Boxf interG = mapToGlobal(inter);
             const utils::Boxf src = convertToLocal(interG, regions[id]);
 
-            // TODO: The requested area might not exist but rather be spanned by a child of
-            // the `source` of the event. We should somehow determine the corresponding
-            // widget to display. Maybe the paint event should be linked to the widget which
-            // initially started the paint cycle.
-
             log("Drawing " + source->getName() + " to " + dst.toString() + " from " + src.toString());
-            drawWidget(*source, src, dst);
+            drawWidgetOn(*source, m_content, src, dst);
           }
         }
       }

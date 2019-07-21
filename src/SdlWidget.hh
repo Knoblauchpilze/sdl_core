@@ -99,6 +99,25 @@ namespace sdl {
         draw();
 
         /**
+         * @brief - Attempts to draw the content of this widget on the provided `on` texture
+         *          at the destination `dst`. The source area is represented using `src` arg
+         *          and represents all the widget if it is left `null`.
+         *          If no element of the hierarchy defined by this widget spans the input
+         *          `src` area this method returns `false`. Otherwise it returns `true`.
+         * @param on - an identifier representing where `this` widget should be displayed.
+         * @param src - the source area of `this` widget should be displayed. This area is
+         *              expressed in local coordinate frame.
+         * @param dst - where the source area should be displayed on the `on` texture. Expressed
+         *              in local `on` coordinate frame.
+         * @return - `true` if the `src` area is spanned by an element of `this` widget's
+         *           hierarchy and `false` otherwise.
+         */
+        virtual bool
+        drawOn(const utils::Uuid& on,
+               const utils::Boxf* src,
+               const utils::Boxf* dst);
+
+        /**
          * @brief - Used to perform the rendering of the input `widget` element while
          *          providing a safety net in case the drawing fails and raises an
          *          error.
@@ -115,6 +134,21 @@ namespace sdl {
         drawWidget(SdlWidget& widget,
                    const utils::Boxf& src,
                    const utils::Boxf& dst);
+
+        /**
+         * @brief - Attempts to perform the rendering of the `src` area of the provided
+         *          `widget` at the specified `dst` position of the `on` texture.
+         * @param widget - the widget to display.
+         * @param on - an identifier representing the texture onto which the `widget` should
+         *             be drawn.
+         * @param src - the source area of ths `widget`'s texture which should be drawn.
+         * @param dst - where the content of the `widget` should be drawn.
+         */
+        void
+        drawWidgetOn(SdlWidget& widget,
+                     const utils::Uuid& on,
+                     const utils::Boxf& src,
+                     const utils::Boxf& dst);
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method which allows to

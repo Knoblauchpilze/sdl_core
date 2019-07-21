@@ -129,6 +129,8 @@ namespace sdl {
 
       // TODO: Should probably be a `intersect` test so that we can draw
       // only the relevant part.
+      // TODO: Weird behavior when entering/leaving combobox items.
+      // TODO: Nothing is displayed.
       if (spanned.contains(*src)) {
         // Draw the internal content at the specified position and call
         // it done.

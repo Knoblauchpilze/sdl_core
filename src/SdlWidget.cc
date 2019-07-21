@@ -97,19 +97,74 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::drawOn(const utils::Uuid& /*on*/,
-                      const utils::Boxf* /*src*/,
-                      const utils::Boxf* /*dst*/)
+    SdlWidget::drawOn(const utils::Uuid& on,
+                      const utils::Boxf* src,
+                      const utils::Boxf* dst)
     {
       // The point of this `drawOn` method is to draw the relevant content
       // of this widget on the specified target. If this widget does not
       // cover the desired `src` area we need to transmit the request to
       // children in order to find the one covering the area.
+      Guard guard(m_cacheLocker);
 
+      // If this widget is hidden, do nothing.
+      if (!isVisible()) {
+        return false;
+      }
 
-      // TODO: Implement blitting and research in the children in case this
-      // widget does not span the source area.
-      return false;
+      // First, handle the case where `src` is null: in this case we just
+      // want to draw the whole internal texture on the `on` texture at
+      // the specified `dst` position.
+      if (src == nullptr) {
+        getEngine().drawTexture(m_cachedContent, src, &on, dst);
+
+        // We're done.
+        return true;
+      }
+
+      // Now we now that `src` contains value, we need to check whether
+      // it is covered by this widget. If this is the case we can just
+      // draw it at the desired position on the `on` texture and we're done.
+      const utils::Boxf spanned = getRenderingArea().toOrigin();
+
+      // TODO: Should probably be a `intersect` test so that we can draw
+      // only the relevant part.
+      if (spanned.contains(*src)) {
+        // Draw the internal content at the specified position and call
+        // it done.
+        log("Widget contains area " + src->toString() + " (total: " + spanned.toString() + ")");
+
+        getEngine().drawTexture(m_cachedContent, src, &on, dst);
+        return true;
+      }
+
+      // The `src` area is not spanned by this widget, we need to transmit
+      // the request to the children so that we can see if one of them can
+      // handle the request.
+      bool drawn = false;
+      {
+        Guard cguard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+          // Do not request children which are not visible.
+          if (!child->widget->isVisible()) {
+            continue;
+          }
+
+          // Convert the `src` area in terms of child coordinate frame and
+          // perform the draw on operation.
+          const utils::Boxf childSrc = convertToLocal(*src, child->widget->getRenderingArea());
+          log("Requesting child " + child->widget->getName() + " with area " + childSrc.toString() + " (from " + src->toString() + ", child: " + child->widget->getRenderingArea().toString() + ")");
+          const bool valid = child->widget->drawOn(on, &childSrc, dst);
+
+          // Update the status boolean.
+          if (valid) {
+            drawn = true;
+          }
+        }
+      }
+
+      // Return the status indicating whether some elements could be drawn.
+      return drawn;
     }
 
     void
@@ -623,6 +678,7 @@ namespace sdl {
           // could handle the intersection of this area with the dimensions
           // of `this` widget's area in order to only blit relevant parts
           // of the `source` object.
+          const utils::Boxf global = source->getDrawingArea();
 
           for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
             // Convert the input region expressed in global coordinate frame
@@ -638,9 +694,9 @@ namespace sdl {
             // area and convert it to global coordinate frame.
             const utils::Boxf inter = utils::Boxf::fromSize(dims, true).intersect(region);
             const utils::Boxf interG = mapToGlobal(inter);
-            const utils::Boxf src = convertToLocal(interG, regions[id]);
+            const utils::Boxf src = convertToLocal(interG, global);
 
-            log("Drawing " + source->getName() + " to " + dst.toString() + " from " + src.toString());
+            log("Drawing " + source->getName() + " from " + src.toString() + " to " + dst.toString(), utils::Level::Info);
             drawWidgetOn(*source, m_content, src, dst);
           }
         }

@@ -98,6 +98,41 @@ namespace sdl {
     }
 
     void
+    SdlWidget::drawWidget(SdlWidget& widget,
+                          const utils::Boxf& src,
+                          const utils::Boxf& dst)
+    {
+      const utils::Uuid& uuid = m_content;
+      engine::Engine& engine = getEngine();
+
+      // Protect against errors.
+      withSafetyNet(
+        [&widget, &uuid, &engine, &src, &dst]() {
+          // Retrieve a texture identifier representing the `widget` to draw.
+          utils::Uuid picture = widget.draw();
+
+          // Draw the texture at the specified coordinates.
+          engine.drawTexture(
+            picture,
+            &src,
+            &uuid,
+            &dst
+          );
+        },
+        std::string("draw_child(") + widget.getName() + ")"
+      );
+
+      // Register this widget with the time stamp of the repaint operation.
+      // This will help ignoring repaint events which we might receive from
+      // this widget.
+      // We first need to determine whether the element to repaint belongs
+      // to the children of this widget.
+      if (hasChild(widget.getName())) {
+        m_repaints[widget.getName()] = std::chrono::steady_clock::now();
+      }
+    }
+
+    void
     SdlWidget::trimEvents(std::vector<engine::EventShPtr>& events) {
       // Traverse the list of events and abalyze each one.
       bool prevWasHide = false;
@@ -186,41 +221,6 @@ namespace sdl {
 
       for (int id = 0 ; id < getChildrenCount() ; ++id) {
         m_names[m_children[id].widget->getName()] = id;
-      }
-    }
-
-    void
-    SdlWidget::drawWidget(SdlWidget& widget,
-                          const utils::Boxf& src,
-                          const utils::Boxf& dst)
-    {
-      const utils::Uuid& uuid = m_content;
-      engine::Engine& engine = getEngine();
-
-      // Protect against errors.
-      withSafetyNet(
-        [&widget, &uuid, &engine, &src, &dst]() {
-          // Retrieve a texture identifier representing the `widget` to draw.
-          utils::Uuid picture = widget.draw();
-
-          // Draw the texture at the specified coordinates.
-          engine.drawTexture(
-            picture,
-            &src,
-            &uuid,
-            &dst
-          );
-        },
-        std::string("draw_child(") + widget.getName() + ")"
-      );
-
-      // Register this widget with the time stamp of the repaint operation.
-      // This will help ignoring repaint events which we might receive from
-      // this widget.
-      // We first need to determine whether the element to repaint belongs
-      // to the children of this widget.
-      if (hasChild(widget.getName())) {
-        m_repaints[widget.getName()] = std::chrono::steady_clock::now();
       }
     }
 

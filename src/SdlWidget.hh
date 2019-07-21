@@ -72,6 +72,15 @@ namespace sdl {
         setEngine(engine::EngineShPtr engine) noexcept;
 
         /**
+         * @brief - Used to retrieve the identifier of the texture representing the
+         *          content for this widget. If no valid identifier is available for
+         *          this widget an error is raised.
+         * @return - an identifier of a texture representing this widget.
+         */
+        virtual utils::Uuid
+        getContentUuid();
+
+        /**
          * @brief - Used to perform the rendering of this widget using the internal engine
          *          provided to it. This method mostly returns the cached texture to use
          *          for this widget.

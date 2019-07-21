@@ -99,6 +99,24 @@ namespace sdl {
         draw();
 
         /**
+         * @brief - Used to perform the rendering of the input `widget` element while
+         *          providing a safety net in case the drawing fails and raises an
+         *          error.
+         *          Draws the input `src` area of the texture of the widget into the
+         *          specified `dst` area of `this` widget's texture.
+         * @param widget - the widget to draw.
+         * @param src - the area of the `widget`'s texture to draw. Expressed in local
+         *              texture coordinate frame.
+         * @param dst - describes where the `src` area of the `widget` should be drawn
+         *              on this widget. Expressed in `this` local widget's coordinate
+         *              frame.
+         */
+        void
+        drawWidget(SdlWidget& widget,
+                   const utils::Boxf& src,
+                   const utils::Boxf& dst);
+
+        /**
          * @brief - Reimplementation of the base `EngineObject` method which allows to
          *          filter out events for children widget in case this widget is made
          *          invisible.
@@ -587,24 +605,6 @@ namespace sdl {
          */
         void
         rebuildZOrdering();
-
-        /**
-         * @brief - Used to perform the rendering of the input `widget` element while
-         *          providing a safety net in case the drawing fails and raises an
-         *          error.
-         *          Draws the input `src` area of the texture of the widget into the
-         *          specified `dst` area of `this` widget's texture.
-         * @param widget - the widget to draw.
-         * @param src - the area of the `widget`'s texture to draw. Expressed in local
-         *              texture coordinate frame.
-         * @param dst - describes where the `src` area of the `widget` should be drawn
-         *              on this widget. Expressed in `this` local widget's coordinate
-         *              frame.
-         */
-        void
-        drawWidget(SdlWidget& widget,
-                   const utils::Boxf& src,
-                   const utils::Boxf& dst);
 
       protected:
 

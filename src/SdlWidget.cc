@@ -129,14 +129,15 @@ namespace sdl {
 
       // TODO: Should probably be a `intersect` test so that we can draw
       // only the relevant part.
-      // TODO: Weird behavior when entering/leaving combobox items.
       // TODO: Nothing is displayed.
       if (spanned.contains(*src)) {
         // Draw the internal content at the specified position and call
         // it done.
         log("Widget contains area " + src->toString() + " (total: " + spanned.toString() + ")");
 
-        getEngine().drawTexture(m_cachedContent, src, &on, dst);
+        const utils::Boxf srcEngine = convertToEngineFormat(*src, spanned);
+
+        getEngine().drawTexture(m_cachedContent, &srcEngine, &on, dst);
         return true;
       }
 

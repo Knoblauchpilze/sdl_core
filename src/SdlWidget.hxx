@@ -653,6 +653,8 @@ namespace sdl {
       // 1) The mouse is not inside the widget anymore.
       // 2) The mouse is blocked by a child widget.
       const bool inside = isInsideWidget(e.getMousePosition());
+      // TODO: The blocked should probably also include some kind of checks on sibling
+      // widgets or a general `isBlockedBySmthg` test altogether.
       const bool blocked = isBlockedByChild(e.getMousePosition());
 
       if (isMouseInside()) {

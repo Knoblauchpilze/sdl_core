@@ -122,19 +122,19 @@ namespace sdl {
         return true;
       }
 
-      // Now we now that `src` contains value, we need to check whether
+      // Now we now that `src` contains a value, we need to check whether
       // it is covered by this widget. If this is the case we can just
       // draw it at the desired position on the `on` texture and we're done.
       const utils::Boxf spanned = getRenderingArea().toOrigin();
+      const utils::Boxf inter = spanned.intersect(*src);
 
-      // TODO: Should probably be a `intersect` test so that we can draw
-      // only the relevant part.
-      if (spanned.contains(*src)) {
+      if (inter.valid()) {
         // Draw the internal content at the specified position and call
-        // it done.
-        log("Widget contains area " + src->toString() + " (total: " + spanned.toString() + ")");
+        // it done. We need to only draw the area which intersects the
+        // actual `src` area.
+        log("Widget contains area " + src->toString() + " (total: " + spanned.toString() + ", intersect: " + inter.toString() + ")");
 
-        const utils::Boxf srcEngine = convertToEngineFormat(*src, spanned);
+        const utils::Boxf srcEngine = convertToEngineFormat(inter, spanned);
 
         getEngine().drawTexture(m_cachedContent, &srcEngine, &on, dst);
         return true;

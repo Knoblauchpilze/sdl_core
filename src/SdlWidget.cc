@@ -691,7 +691,8 @@ namespace sdl {
             // The `dst` region of the repaint area corresponds to this region
             // converted into engine format. Indeed the `region` is already in
             // local coordinate frame.
-            const utils::Boxf dst = convertToEngineFormat(region, utils::Boxf::fromSize(dims));
+            const utils::Boxf interD = utils::Boxf::fromSize(dims, true).intersect(region);
+            const utils::Boxf dst = convertToEngineFormat(interD, utils::Boxf::fromSize(dims));
 
             // Compute the intersection of the regions with `this` object's
             // area and convert it to global coordinate frame.
@@ -699,7 +700,7 @@ namespace sdl {
             const utils::Boxf interG = mapToGlobal(inter);
             const utils::Boxf src = convertToLocal(interG, global);
 
-            log("Drawing " + source->getName() + " from " + src.toString() + " to " + dst.toString(), utils::Level::Info);
+            log("Drawing " + source->getName() + " from " + src.toString() + " to " + dst.toString() + " (raw: " + interD.toString() + ")", utils::Level::Info);
             drawWidgetOn(*source, m_content, src, dst);
           }
         }

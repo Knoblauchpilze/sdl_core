@@ -84,11 +84,11 @@ namespace sdl {
          * @brief - Used to perform the rendering of this widget using the internal engine
          *          provided to it. This method mostly returns the cached texture to use
          *          for this widget.
-         *          If some pending repaint and refresh operations they are also handled
-         *          there as we know that this method will be called by the main thread.
-         *          Most of the time this method will be really quick, but it might happen
-         *          that it takes a bit longer due to some pending repaint operations to
-         *          process.
+         *          If some pending repaint operations are registered internally, they are
+         *          also handled there as we know that this method will be called by the
+         *          main thread. Most of the time this method will be really quick, but it
+         *          might happen that it takes a bit longer if the cached content needs to
+         *          be updated.
          *          Failure to draw the widget will raise an error.
          *          The return value corresponds to the index of the texture representing
          *          this widget.
@@ -692,6 +692,15 @@ namespace sdl {
          */
         ChildrenMap m_names;
         WidgetsMap m_children;
+
+        /**
+         * @brief - Describes the timestamps at which an area containing the children area has
+         *          been processed by this widget. When used in conjunction with the repaint
+         *          time of any child it allows to precisely determine which children need to
+         *          be repainted. We can thus easily trash or keep repaint events coming from
+         *          some particular child.
+         */
+        RepaintMap m_childrenRepaints;
 
         /**
          * @brief - Holds the timestamp of the last successful repaint for this widget. Allows

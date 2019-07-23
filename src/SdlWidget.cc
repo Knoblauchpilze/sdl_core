@@ -13,6 +13,7 @@ namespace sdl {
 
       m_names(),
       m_children(),
+      m_childrenRepaints(),
       m_repaint(),
       m_childrenLocker(),
 
@@ -65,6 +66,8 @@ namespace sdl {
             delete child->widget;
           }
         }
+
+        m_childrenRepaints.clear();
       }
     }
 
@@ -334,17 +337,39 @@ namespace sdl {
       // internal repaint timestamp which allows when compared
       // with the event's timestamp to determine whether the last
       // repaint operation is posterior to the event's creation
-      // date: in this case there's no need to consider the event.
+      // date. In addition to that we will also compare the internal
+      // timestamp at which the widget has completely been redrawn
+      // with its internal repaint timestamp.
+      // Note that we assume here that when an event comes from a
+      // widget it at least contains all its area.
 
       // Compare both timestamps and see whether we need to
       // consider this event or if we can safely trash it.
       if (m_repaint >= e.getTimestamp()) {
+        // The event has been produced before the last repaint
+        // operation of this widget. This is a good sign that the
+        // event could be ignored.
+        // In order to be sure we need to check whether the repaint
+        // timestamp of the emitter is posterior to the internal
+        // repaint timestamp held in this widget.
+        // If this is the case it means that the widget has been
+        // repainted after the last time we drew it completely so
+        // we can use this event to update things.
         if (e.getEmitter() != nullptr) {
-          log("Trashing repaint from " + e.getEmitter()->getName() + " posterior to last refresh", utils::Level::Info);
-        }
+          const std::string name = e.getEmitter()->getName();
 
-        // Use base handler to provide a return value.
-        return LayoutItem::repaintEvent(e);
+          // Retrieve the internal timestamp if any.
+          RepaintMap::const_iterator lastRepaint = m_childrenRepaints.find(name);
+
+          if (lastRepaint != m_childrenRepaints.cend() && lastRepaint->second >= e.getTimestamp()) {
+            // We repainted this widget after the event has been emitted,
+            // no need to paint it again.
+            log("Trashing repaint from " + e.getEmitter()->getName() + " posterior to last refresh", utils::Level::Info);
+
+            // Use base handler to provide a return value.
+            return LayoutItem::repaintEvent(e);
+          }
+        }
       }
 
       // If no previous repaint operations were registered, we need to
@@ -623,6 +648,12 @@ namespace sdl {
 
             log("Drawing child " + child->widget->getName() + " (src: " + src.toString() + ", dst: " + dst.toString() + "), intersect with " + region.toString());
             drawWidget(*child->widget, srcEngine, dstEngine);
+
+            // Update the repaint timestamp for this child if the area contains
+            // the child's area.
+            if (region.contains(childBox)) {
+              m_childrenRepaints[child->widget->getName()] = std::chrono::steady_clock::now();
+            }
           }
         }
       }

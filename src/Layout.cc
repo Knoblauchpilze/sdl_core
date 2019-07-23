@@ -56,7 +56,7 @@ namespace sdl {
       log(
         "Handling repaint for event containing " + std::to_string(regions.size()) + " region(s) to update (source: " +
         (e.getEmitter() == nullptr ? "null" : e.getEmitter()->getName()) + ")",
-        utils::Level::Error
+        utils::Level::Notice
       );
 
       // Traverse the internal array of children.

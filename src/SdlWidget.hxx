@@ -140,6 +140,13 @@ namespace sdl {
         return true;
       }
 
+      // TODO: We should probably check for specific kind of events
+      // like `mouse move` or `click` in general to only transmit
+      // events to the active one.
+      // We could define some kind of focus with keyboard or mouse
+      // (which can be tracked by enter and leave events) so that
+      // we filter events which are directed to other widgets.
+
       // Check whether the parent filters it, in which case we should filter it too.
       if (hasParent()) {
         return m_parent->filterEvent(watched, e);

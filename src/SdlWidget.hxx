@@ -148,8 +148,16 @@ namespace sdl {
       // Check whether the parent filters it, in which case we
       // should filter it too.
       if (hasParent()) {
-        return m_parent->filterEvent(watched, e);
+        return m_parent->filterEvent(this, e);
       }
+
+      // TODO: As we do not transmit event which are transmitted to other
+      // event we also don't create leave event or close combobox as the
+      // clicks outside the box are not transmitted.
+      // We should probably react and unselect the children when the parent
+      // widget gets selected.
+      // TODO: Repaint of other widgets when they are displayed on siblings
+      // of their parent does not work anymore.
 
       // The event is not filtered.
       return false;

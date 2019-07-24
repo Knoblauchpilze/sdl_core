@@ -171,49 +171,6 @@ namespace sdl {
     }
 
     void
-    SdlWidget::drawWidget(SdlWidget& widget,
-                          const utils::Boxf& src,
-                          const utils::Boxf& dst)
-    {
-      const utils::Uuid& uuid = m_content;
-      engine::Engine& engine = getEngine();
-
-      // Protect against errors.
-      withSafetyNet(
-        [&widget, &uuid, &engine, &src, &dst]() {
-          // Retrieve a texture identifier representing the `widget` to draw.
-          utils::Uuid picture = widget.draw();
-
-          // Draw the texture at the specified coordinates.
-          engine.drawTexture(picture, &src, &uuid, &dst);
-        },
-        std::string("drawWidget(") + widget.getName() + ")"
-      );
-    }
-
-    void
-    SdlWidget::drawWidgetOn(SdlWidget& widget,
-                            const utils::Uuid& on,
-                            const utils::Boxf& src,
-                            const utils::Boxf& dst)
-    {
-      bool span = false;
-
-      // Protect against errors.
-      withSafetyNet(
-        [&widget, &on, &src, &dst, &span]() {
-          // Display the widget on the input texture at the specified coordinates.
-          span = widget.drawOn(on, &src, &dst);
-        },
-        std::string("drawWidgetOn(") + widget.getName() + ")"
-      );
-
-      if (!span) {
-        log("Widget " + widget.getName() + " does not seem to span area " + src.toString(), utils::Level::Warning);
-      }
-    }
-
-    void
     SdlWidget::trimEvents(std::vector<engine::EventShPtr>& events) {
       // Traverse the list of events and abalyze each one.
       bool prevWasHide = false;
@@ -411,29 +368,6 @@ namespace sdl {
 
       // Use the base handler method to provide a return value.
       return LayoutItem::zOrderChanged(e);
-    }
-
-    void
-    SdlWidget::rebuildZOrdering() {
-      // First we need to sort the internal `m_children` array.
-      // Note that we want the items to be sorted in ascending
-      // order of their z order.
-      // Indeed as larger values of z order indicates widgets
-      // in front of others, this is the correct behavior to
-      // adopt. The sort should compare `lhs` less than `rhs`
-      // based on their z order.
-      std::sort(m_children.begin(), m_children.end(),
-        [](const ChildWrapper& lhs, const ChildWrapper& rhs) {
-          return lhs.zOrder < rhs.zOrder;
-        }
-      );
-
-      // Now rebuild the internal `m_names` array.
-      m_names.clear();
-
-      for (int id = 0 ; id < getChildrenCount() ; ++id) {
-        m_names[m_children[id].widget->getName()] = id;
-      }
     }
 
     void
@@ -704,6 +638,72 @@ namespace sdl {
 
       // Now perform the refresh operation.
       refreshPrivate(e);
+    }
+
+    void
+    SdlWidget::drawWidget(SdlWidget& widget,
+                          const utils::Boxf& src,
+                          const utils::Boxf& dst)
+    {
+      const utils::Uuid& uuid = m_content;
+      engine::Engine& engine = getEngine();
+
+      // Protect against errors.
+      withSafetyNet(
+        [&widget, &uuid, &engine, &src, &dst]() {
+          // Retrieve a texture identifier representing the `widget` to draw.
+          utils::Uuid picture = widget.draw();
+
+          // Draw the texture at the specified coordinates.
+          engine.drawTexture(picture, &src, &uuid, &dst);
+        },
+        std::string("drawWidget(") + widget.getName() + ")"
+      );
+    }
+
+    void
+    SdlWidget::drawWidgetOn(SdlWidget& widget,
+                            const utils::Uuid& on,
+                            const utils::Boxf& src,
+                            const utils::Boxf& dst)
+    {
+      bool span = false;
+
+      // Protect against errors.
+      withSafetyNet(
+        [&widget, &on, &src, &dst, &span]() {
+          // Display the widget on the input texture at the specified coordinates.
+          span = widget.drawOn(on, &src, &dst);
+        },
+        std::string("drawWidgetOn(") + widget.getName() + ")"
+      );
+
+      if (!span) {
+        log("Widget " + widget.getName() + " does not seem to span area " + src.toString(), utils::Level::Warning);
+      }
+    }
+
+    void
+    SdlWidget::rebuildZOrdering() {
+      // First we need to sort the internal `m_children` array.
+      // Note that we want the items to be sorted in ascending
+      // order of their z order.
+      // Indeed as larger values of z order indicates widgets
+      // in front of others, this is the correct behavior to
+      // adopt. The sort should compare `lhs` less than `rhs`
+      // based on their z order.
+      std::sort(m_children.begin(), m_children.end(),
+        [](const ChildWrapper& lhs, const ChildWrapper& rhs) {
+          return lhs.zOrder < rhs.zOrder;
+        }
+      );
+
+      // Now rebuild the internal `m_names` array.
+      m_names.clear();
+
+      for (int id = 0 ; id < getChildrenCount() ; ++id) {
+        m_names[m_children[id].widget->getName()] = id;
+      }
     }
 
     bool

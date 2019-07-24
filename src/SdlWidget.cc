@@ -707,17 +707,70 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::filterMouseEvents(const EngineObject* /*watched*/,
-                                 const engine::EventShPtr /*e*/) const noexcept
+    SdlWidget::filterMouseEvents(const EngineObject* watched,
+                                 const engine::EventShPtr e) const noexcept
     {
+      // Check whether the input event is an instance of a mouse event: if
+      // this is not the case we won't filter it.
+      engine::MouseEventShPtr me = std::dynamic_pointer_cast<engine::MouseEvent>(e);
+      if (me == nullptr) {
+        return false;
+      }
 
-      // TODO: We should probably check for specific kind of events
-      // like `mouse move` or `click` in general to only transmit
-      // events to the active one.
-      // We could define some kind of focus with keyboard or mouse
-      // (which can be tracked by enter and leave events) so that
-      // we filter events which are directed to other widgets.
-      return false;
+      // Based on the type of mouse event the filtering conditions vary a
+      // little.
+      // In the case a mouse move we just want to activate the widget that
+      // is more specific. This means that we will try to determine whether
+      // the `watched` object should receive the event or if another more
+      // relevant children widget can receive it.
+      // A more relevant widget is found if it spans the area of the mouse
+      // move and has a higher z order.
+      //
+      // In the case of a mouse click the the process is similar except we
+      // are considering the position of the click instead of the mouse
+      // motion.
+
+      // Retrieve the mouse position and convert it to local coordinate
+      // frame.
+      const utils::Vector2f lpos = mapFromGlobal(me->getMousePosition());
+
+      // We can now traverse the list of elements and determine whether
+      // this position should be transmitted to any of the child and more
+      // specifically to the `watched` object.
+      // When traversing the children we will see whether the first child
+      // available for intersection corresponds to the input `watched`
+      // object in which case we do not filter the event, otherwise we
+      // filter it.
+      Guard guard(m_childrenLocker);
+
+      // Traverse the children list and updtae the z order for each one.
+      // Note that we actually traverse the `m_chidlren` array in reverse
+      // order as the z ordering is sorted so that low order comes first
+      // in the vector.
+      bool contained = false;
+      WidgetsMap::const_reverse_iterator child = m_children.crbegin();
+      while (!contained && child != m_children.crend()) {
+        contained = child->widget->getRenderingArea().contains(lpos);
+
+        if (!contained) {
+          ++child;
+        }
+      }
+
+      // Check whether we reached a child containing the current mouse
+      // position.
+      if (!contained) {
+        // No child intersected the mouse position which means that the
+        // `watched` object certainly doesn't. We can filter the event.
+        return true;
+      }
+
+      // We found one of the children widget which intersected the mouse
+      // position. If this widget corresponds to the input `watched`
+      // object it's okay, otherwise it means that another child widget
+      // should intercept the element before the `watched` object and
+      // thus it should not receive the event.
+      return (watched != child->widget);
     }
 
   }

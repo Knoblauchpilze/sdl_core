@@ -282,29 +282,6 @@ namespace sdl {
       }
     }
 
-    void
-    SdlWidget::rebuildZOrdering() {
-      // First we need to sort the internal `m_children` array.
-      // Note that we want the items to be sorted in ascending
-      // order of their z order.
-      // Indeed as larger values of z order indicates widgets
-      // in front of others, this is the correct behavior to
-      // adopt. The sort should compare `lhs` less than `rhs`
-      // based on their z order.
-      std::sort(m_children.begin(), m_children.end(),
-        [](const ChildWrapper& lhs, const ChildWrapper& rhs) {
-          return lhs.zOrder < rhs.zOrder;
-        }
-      );
-
-      // Now rebuild the internal `m_names` array.
-      m_names.clear();
-
-      for (int id = 0 ; id < getChildrenCount() ; ++id) {
-        m_names[m_children[id].widget->getName()] = id;
-      }
-    }
-
     bool
     SdlWidget::repaintEvent(const engine::PaintEvent& e) {
       // Usually the paint event is meant to update the internal
@@ -434,6 +411,29 @@ namespace sdl {
 
       // Use the base handler method to provide a return value.
       return LayoutItem::zOrderChanged(e);
+    }
+
+    void
+    SdlWidget::rebuildZOrdering() {
+      // First we need to sort the internal `m_children` array.
+      // Note that we want the items to be sorted in ascending
+      // order of their z order.
+      // Indeed as larger values of z order indicates widgets
+      // in front of others, this is the correct behavior to
+      // adopt. The sort should compare `lhs` less than `rhs`
+      // based on their z order.
+      std::sort(m_children.begin(), m_children.end(),
+        [](const ChildWrapper& lhs, const ChildWrapper& rhs) {
+          return lhs.zOrder < rhs.zOrder;
+        }
+      );
+
+      // Now rebuild the internal `m_names` array.
+      m_names.clear();
+
+      for (int id = 0 ; id < getChildrenCount() ; ++id) {
+        m_names[m_children[id].widget->getName()] = id;
+      }
     }
 
     void
@@ -704,6 +704,20 @@ namespace sdl {
 
       // Now perform the refresh operation.
       refreshPrivate(e);
+    }
+
+    bool
+    SdlWidget::filterMouseEvents(const EngineObject* /*watched*/,
+                                 const engine::EventShPtr /*e*/) const noexcept
+    {
+
+      // TODO: We should probably check for specific kind of events
+      // like `mouse move` or `click` in general to only transmit
+      // events to the active one.
+      // We could define some kind of focus with keyboard or mouse
+      // (which can be tracked by enter and leave events) so that
+      // we filter events which are directed to other widgets.
+      return false;
     }
 
   }

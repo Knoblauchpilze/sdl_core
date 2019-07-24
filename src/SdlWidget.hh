@@ -640,6 +640,30 @@ namespace sdl {
         void
         rebuildZOrdering();
 
+        /**
+         * @brief - Used to filter the input event if it is an instance of a mouse event.
+         *          Such events need to be filtered carefully so that only the right child
+         *          gets triggered with the corresponding handler.
+         *          It is much easier for the parent to determine if a child is covering
+         *          another one or somehow obstruct the transmission of events as it has
+         *          intuitive notion of the siblings of a widget rather than to delegate
+         *          this job to the child which would havea hard time gathering this info
+         *          in the first place.
+         *          The user needs to specify the child for which the event should be
+         *          filtered. If the input `watched` cannot be casted into a valid widget
+         *          this method returns false.
+         * @param watched - the element for which the mouse event should be filtered. If
+         *                  this method returns  `false` the event `e` will be transmitted
+         *                  to the `watched` object.
+         * @param e - the generic event which should be filtered if it is an instance of
+         *            a mouse event. If it is not the case this method returns false.
+         * @return - `true` if this event should be filtered (should only happen if the event
+         *           is some kind of instance of a mous event) and `false` otherwise.
+         */
+        bool
+        filterMouseEvents(const EngineObject* watched,
+                          const engine::EventShPtr e) const noexcept;
+
       protected:
 
         friend class Layout;

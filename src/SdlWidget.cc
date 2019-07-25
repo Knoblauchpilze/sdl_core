@@ -466,6 +466,7 @@ namespace sdl {
 
       // Post the event if we have an object where to post it.
       if (o != nullptr) {
+        // Should probably use `postEvent` with `o` as receiver.
         o->postEvent(pe, false, false);
       }
     }

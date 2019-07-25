@@ -8,9 +8,11 @@ namespace sdl {
 
     inline
     SdlWidget::ChildWrapper::ChildWrapper(SdlWidget* wid,
-                                          const int zOrder):
+                                          const int zOrder,
+                                          const bool hasFocus):
       widget(wid),
-      zOrder(zOrder)
+      zOrder(zOrder),
+      focused(hasFocus)
     {}
 
     inline
@@ -594,8 +596,34 @@ namespace sdl {
       // The mouse is now inside this widget.
       m_mouseInside = true;
 
+      // Notify the parent if any of the focus in event.
+      if (hasParent()) {
+        engine::EventShPtr foe = std::make_shared<engine::Event>(engine::Event::Type::FocusIn, m_parent);
+        postEvent(foe, false, true);
+      }
+
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::focusInEvent(const engine::Event& e) {
+      // TODO: Should handle focus in.
+      log("Should handle focus in for " + e.getEmitter()->getName());
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::focusInEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::focusOutEvent(const engine::Event& e) {
+      // TODO: Should handle focus out.
+      log("Should handle focus out for " + e.getEmitter()->getName());
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::focusOutEvent(e);
     }
 
     inline
@@ -611,6 +639,12 @@ namespace sdl {
 
       // The mouse is now outside this widget.
       m_mouseInside = false;
+
+      // Notify the parent if any of the focus out event.
+      if (hasParent()) {
+        engine::EventShPtr foe = std::make_shared<engine::Event>(engine::Event::Type::FocusOut, m_parent);
+        postEvent(foe, false, true);
+      }
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
@@ -781,7 +815,8 @@ namespace sdl {
         m_children.push_back(
           ChildWrapper{
             widget,
-            widget->getZOrder()
+            widget->getZOrder(),
+            false
           }
         );
 

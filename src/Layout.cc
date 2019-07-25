@@ -91,8 +91,7 @@ namespace sdl {
 
         // Send this event if it contains at least an update area.
         if (pe->hasUpdateRegions()) {
-          // TODO: Should probably used `postEvent` with `child` as receiver.
-          (*child)->postEvent(pe, false, false);
+          postEvent(pe, false, false);
         }
       }
 

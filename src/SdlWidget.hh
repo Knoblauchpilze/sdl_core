@@ -81,6 +81,14 @@ namespace sdl {
         getContentUuid();
 
         /**
+         * @brief - Retrieves the current focus status for this widget. Returns `true`
+         *          of this widget has gained the focus and `false` otherwise.
+         * @return - `true` if this widget gained focus, `false` otherwise.
+         */
+        virtual bool
+        hasFocus() const noexcept;
+
+        /**
          * @brief - Used to perform the rendering of this widget using the internal engine
          *          provided to it. This method mostly returns the cached texture to use
          *          for this widget.
@@ -742,6 +750,12 @@ namespace sdl {
          *          issued before the last repaint they can be trashed easily.
          */
         Timestamp m_repaint;
+
+        /***
+         * @brief - Allows to determine whether this widget has the focus or not. The widget
+         *          gains focus whenever the mouse enters the widget's boundaries.
+         */
+        bool      m_focused;
 
         /**
          * @brief - Used to protect the children maps from concurrent accesses.

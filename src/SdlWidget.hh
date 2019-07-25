@@ -229,6 +229,12 @@ namespace sdl {
         enterEvent(const engine::EnterEvent& e) override;
 
         bool
+        focusInEvent(const engine::Event& e) override;
+
+        bool
+        focusOutEvent(const engine::Event& e) override;
+
+        bool
         leaveEvent(const engine::Event& e) override;
 
         bool
@@ -676,14 +682,18 @@ namespace sdl {
         struct ChildWrapper {
           SdlWidget* widget;
           int zOrder;
+          bool focused;
 
           /**
            * @brief - Builds a child wrapper with the specified widget and z order.
            * @param wid - the widget associated to this wrapper.
            * @param zOrder - the z order for this widget.
+           * @param hasFocus - true if the widget currently has the focus, false
+           *                   otherwise.
            */
           ChildWrapper(SdlWidget* wid,
-                       const int zOrder = 0);
+                       const int zOrder = 0,
+                       const bool hasFocus = false);
 
           /**
            * @brief - Performs the comparison of `this` with the `rhs` value. The

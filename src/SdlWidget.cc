@@ -15,7 +15,6 @@ namespace sdl {
       m_children(),
       m_childrenRepaints(),
       m_repaint(),
-      m_focused(false),
       m_childrenLocker(),
 
       m_layout(),

@@ -131,10 +131,9 @@ namespace sdl {
     }
 
     inline
-    bool
-    SdlWidget::hasFocus() const noexcept {
-      Guard guard(m_contentLocker);
-      return m_focused;
+    int
+    SdlWidget::getZOrder() noexcept {
+      return m_zOrder;
     }
 
     inline
@@ -609,7 +608,7 @@ namespace sdl {
       log("Handling focus in from " + e.getEmitter()->getName());
 
       // Set this widget as focused.
-      m_focused = true;
+      setFocused(true);
 
       // Post a gain focus first to this widget (so that potential children
       // which are currently focused get deactivated) which will then be
@@ -627,7 +626,7 @@ namespace sdl {
       log("Handling focus out from " + e.getEmitter()->getName());
 
       // Set this widget as not focused.
-      m_focused = false;
+      setFocused(false);
 
       // Post a lost focus first to this widget (so that potential children
       // which are currently focused get deactivated).
@@ -652,7 +651,7 @@ namespace sdl {
       log("Handling gain focus from " + e.getEmitter()->getName());
 
       // This widget now has the focus.
-      m_focused = true;
+      setFocused(true);
 
       // Traverse the internal array of children and unfocus any widget
       // which is not the source of the event.
@@ -745,63 +744,91 @@ namespace sdl {
     inline
     bool
     SdlWidget::mouseButtonReleaseEvent(const engine::MouseEvent& e) {
-      // Check whether the click occured inside the widget. If this is the case, we need
-      // to update the role of the content to selected.
-      // If the mouse is not inside the widget when the click occurs, we need to unset
-      // selection of the item if any.
-      // TODO: The repaint event does not occurr because the mouse button event is not
-      // transmitted to the widget which are not under the click so no deselection.
+      // Mouse events are only transmitted to this widget when the mouse is
+      // inside the widget and if no other child block the view. We still
+      // need to handle the repaint of the widget in case of a click and the
+      // update in texture role.
 
-      if (m_content.valid()) {
-        bool needRepaint = false;
-
-        if (isMouseInside()) {
-          if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Dark) {
-            getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
-
-            // Request a repaint.
-            needRepaint = true;
-          }
-
-          log("Emitting on click for " + getName(), utils::Level::Notice);
-          onClick.emit(getName());
-        }
-        else {
-          if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Background) {
-            getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
-
-            // Request a repaint.
-            needRepaint = true;
-          }
-        }
-
-        // Post a repaint event if needed.
-        if (needRepaint) {
-          requestRepaint();
-        }
+      // Check whether the content for this widget is valid (i.e. at least
+      // a repaint event has successfully been processed). If this is not
+      // the case, return early.
+      if (!m_content.valid()) {
+        // Use the base handler to provide a return value.
+        return engine::EngineObject::mouseButtonReleaseEvent(e);
       }
 
-      // Use the base handler to determine whether the event was recognized.
-      return engine::EngineObject::mouseButtonReleaseEvent(e);
+      // TODO: The repaint event does not occur because the mouse button
+      // event is not transmitted to the widget which are not under the click
+      // so no deselection.
+
+      // We now need to determine whether we need a repaint: this is only
+      // the case if it's the first occurrence of the click inside the
+      // widget in which case we will update the texture's role.
+      // If the widget already is selected just ignore the new click but
+      // still fire the corresponding signal.
+      bool needRepaint = false;
+
+      // If the texture role is not already set to `Selected` (i.e. `Dark`
+      // in engine's semantic) assign it.
+      if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Dark) {
+        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
+
+        // We will need a repaint.
+        needRepaint = true;
+      }
+
+      // Request a repaint event if needed.
+      if (needRepaint) {
+        requestRepaint();
+
+        // Also produce a focus in event.
+        postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusIn));
+      }
+
+      // Fire a signal indicating that a click on this widget has been detected.
+      log("Emitting on click for " + getName(), utils::Level::Notice);
+      onClick.emit(getName());
+    
+      // Use the base handler to provide a return value.
+      return LayoutItem::mouseButtonReleaseEvent(e);
     }
 
     inline
     bool
     SdlWidget::mouseMoveEvent(const engine::MouseEvent& e) {
-      // Check whether the mouse is inside the widget and not blocked by any child.
-      // Basically we want to trigger a `EnterEvent` whenever:
-      // 1) The mouse was not inside the widget before.
-      // 2) The mouse is not blocked by any widget.
-      // And we want to trigger a `LeaveEvent` whenever:
-      // 1) The mouse is not inside the widget anymore.
-      // 2) The mouse is blocked by a child widget.
-      // Most of this job is already performed by the event handling system which
-      // only transmits mouse move events when no other child blocks the cursor
-      // and if the mouse is inside the widget.
-      // The only remaining part is not to trigger `EnterEvent` all the time by
-      // checking whether the mouse is already inside the widget.
+      // Mouse motion events are transmitted to the child as long
+      // as it's inside the widget. This does not account for the
+      // cases where a child is blocking the event and should thus
+      // prevent `this` widget from reacting to it.
+      // This can be checked by the `isBlockedByChild` function so
+      // that we trigger a leave event as soon as the mouse enters
+      // a child.
+
+      // Check whether the mouse is blocked by a child.
+      const bool blocked = isBlockedByChild(e.getMousePosition());
+
+      // Now we need to track when the mouse will get blocked by
+      // a child widget. Indeed the events system already filters
+      // mouse events when the mouse is not inside `this` widget
+      // so we only to handle production of enter and leave events
+      // when the mouse gets blocked by a child.
+
       if (!isMouseInside()) {
-        postEvent(std::make_shared<engine::EnterEvent>(e.getMousePosition()));
+        // If the mouse is not inside the widget (i.e. the mouse
+        // just entered the widget) we need to post a `EnterEvent`
+        // if the mouse is not blocked.
+        if (!blocked) {
+          postEvent(std::make_shared<engine::EnterEvent>(e.getMousePosition()));
+        }
+      }
+      else {
+        // If the mouse is already inside the widget (i.e. the mouse
+        // entered the widget some time ago) we need to keep track
+        // of when it gets blocked by any child, in which case we
+        // need to post a leave event.
+        if (blocked) {
+          postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave));
+        }
       }
 
       // Use base handler to determine whether the event was recognized.
@@ -907,12 +934,6 @@ namespace sdl {
         // z order.
         rebuildZOrdering();
       }
-    }
-
-    inline
-    int
-    SdlWidget::getZOrder() noexcept {
-      return m_zOrder;
     }
 
     inline

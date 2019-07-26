@@ -81,12 +81,11 @@ namespace sdl {
         getContentUuid();
 
         /**
-         * @brief - Retrieves the current focus status for this widget. Returns `true`
-         *          of this widget has gained the focus and `false` otherwise.
-         * @return - `true` if this widget gained focus, `false` otherwise.
+         * @brief - Retrievs the z order for this widget.
+         * @return - the z order for this widget.
          */
-        virtual bool
-        hasFocus() const noexcept;
+        int
+        getZOrder() noexcept;
 
         /**
          * @brief - Used to perform the rendering of this widget using the internal engine
@@ -574,13 +573,6 @@ namespace sdl {
         addWidget(SdlWidget* widget);
 
         /**
-         * @brief - Retrievs the z order for this widget.
-         * @return - the z order for this widget.
-         */
-        int
-        getZOrder() noexcept;
-
-        /**
          * @brief - Assigns a new z order for this widget. This method also notifies
          *          the parent widget to indicate that the z order for this widget
          *          has been modified.
@@ -752,12 +744,6 @@ namespace sdl {
          *          issued before the last repaint they can be trashed easily.
          */
         Timestamp m_repaint;
-
-        /***
-         * @brief - Allows to determine whether this widget has the focus or not. The widget
-         *          gains focus whenever the mouse enters the widget's boundaries.
-         */
-        bool      m_focused;
 
         /**
          * @brief - Used to protect the children maps from concurrent accesses.

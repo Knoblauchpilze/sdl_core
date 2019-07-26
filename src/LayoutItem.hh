@@ -126,6 +126,21 @@ namespace sdl {
         setVirtual(const bool virtualItem);
 
         /**
+         * @brief - Retrieves the current focus status for this widget. Returns `true`
+         *          of this widget has gained the focus and `false` otherwise.
+         * @return - `true` if this widget gained focus, `false` otherwise.
+         */
+        bool
+        hasFocus() const noexcept;
+
+        /**
+         * @brief - Assigns a new focused status for this item.
+         * @param focused - `true` if the item is now focused, false otherwise.
+         */
+        void
+        setFocused(const bool focused) noexcept;
+
+        /**
          * @brief - Returns true if this item's size and position is managed by a
          *          layout and false otherwise.
          * @return - true if this layout item is managed by a super-layout and false
@@ -285,6 +300,12 @@ namespace sdl {
          *          removing a child item.
          */
         bool        m_virtual;
+
+        /***
+         * @brief - Allows to determine whether this item has the focus or not. The item
+         *          gains focus whenever the mouse enters the widget's boundaries.
+         */
+        bool        m_focused;
 
         /**
          * @brief - A pointer to the layout into which this item might be inserted. Most of

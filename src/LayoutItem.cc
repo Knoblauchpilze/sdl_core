@@ -20,6 +20,7 @@ namespace sdl {
       m_visible(true),
       m_visibleLocker(),
       m_virtual(false),
+      m_focused(false),
       m_manager(nullptr)
     {
       setService(std::string("layout_item"));

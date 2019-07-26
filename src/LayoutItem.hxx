@@ -115,6 +115,18 @@ namespace sdl {
 
     inline
     bool
+    LayoutItem::hasFocus() const noexcept {
+      return m_focused;
+    }
+
+    inline
+    void
+    LayoutItem::setFocused(const bool focused) noexcept {
+      m_focused = focused;
+    }
+
+    inline
+    bool
     LayoutItem::isManaged() const noexcept {
       return m_manager != nullptr;
     }

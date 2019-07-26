@@ -795,24 +795,13 @@ namespace sdl {
       // And we want to trigger a `LeaveEvent` whenever:
       // 1) The mouse is not inside the widget anymore.
       // 2) The mouse is blocked by a child widget.
-      const bool inside = isInsideWidget(e.getMousePosition());
-      // TODO: The blocked should probably also include some kind of checks on sibling
-      // widgets or a general `isBlockedBySmthg` test altogether.
-      const bool blocked = isBlockedByChild(e.getMousePosition());
-
-      if (isMouseInside()) {
-        // We care about mouse being blocked by a child widget and by mouse leaving
-        // the widget.
-        if (!inside || blocked) {
-          postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave));
-        }
-      }
-      else {
-        // We care about mouse entering the widget or blocking by child widget not
-        // relevant anymore.
-        if (inside && !blocked) {
-          postEvent(std::make_shared<engine::EnterEvent>(e.getMousePosition()));
-        }
+      // Most of this job is already performed by the event handling system which
+      // only transmits mouse move events when no other child blocks the cursor
+      // and if the mouse is inside the widget.
+      // The only remaining part is not to trigger `EnterEvent` all the time by
+      // checking whether the mouse is already inside the widget.
+      if (!isMouseInside()) {
+        postEvent(std::make_shared<engine::EnterEvent>(e.getMousePosition()));
       }
 
       // Use base handler to determine whether the event was recognized.

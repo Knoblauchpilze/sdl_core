@@ -166,6 +166,7 @@ namespace sdl {
          * @param e - the paint event to process.
          * @return - true if the event was recognized, false otherwise.
          */
+        // TODO: Should handle 'gainFocus' event.
         bool
         repaintEvent(const engine::PaintEvent& e) override;
 

@@ -43,6 +43,26 @@ namespace sdl {
     }
 
     bool
+    Layout::gainFocusEvent(const engine::Event& e) {
+      log("Handling gain focus from " + e.getEmitter()->getName());
+
+      // Traverse the list of items handled by this layout and
+      // propagate a leave event to corresponding children which
+      // still are focused.
+      for (Items::const_iterator item = m_items.cbegin() ; item != m_items.cend() ; ++item) {
+        log("Item " + (*item)->getName() + ((*item)->hasFocus() ? " has " : " has not ") + "focus");
+        // If the child is not the source of the event and is focused, unfocus it.
+        if (e.getEmitter() != *item && (*item)->hasFocus()) {
+          log("Posting leave event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
+          postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, *item), false, true);
+        }
+      }
+
+      // Use base handler to provide a return value.
+      return LayoutItem::gainFocusEvent(e);
+    }
+
+    bool
     Layout::repaintEvent(const engine::PaintEvent& e) {
       // The input paint event describes some areas to update. We need to propagate the paint
       // event to the children which intersect the areas to repaint. We should also avoid sending

@@ -749,6 +749,9 @@ namespace sdl {
       // to update the role of the content to selected.
       // If the mouse is not inside the widget when the click occurs, we need to unset
       // selection of the item if any.
+      // TODO: The repaint event does not occurr because the mouse button event is not
+      // transmitted to the widget which are not under the click so no deselection.
+
       if (m_content.valid()) {
         bool needRepaint = false;
 

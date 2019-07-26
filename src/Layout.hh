@@ -158,6 +158,17 @@ namespace sdl {
         computeGeometry(const utils::Boxf& window) = 0;
 
         /**
+         * @brief - Redefintion of the base `EngineObject` method which allows to
+         *          react to children widgets gaining focus by propagating the
+         *          information to siblings widget for top level items.
+         * @param e - the gain focus event to propagate to siblings widget. We
+         *            assume that the emitter is one of the children of this layout.
+         * @return - true if the event was recognized, false otherwise.
+         */
+        bool
+        gainFocusEvent(const engine::Event& e) override;
+
+        /**
          * @brief - Redefinition of the base `EngineObject` class. This method
          *          will allow to transmit the paint event to children which have
          *          an overlap with one of the area described in the event.
@@ -166,7 +177,6 @@ namespace sdl {
          * @param e - the paint event to process.
          * @return - true if the event was recognized, false otherwise.
          */
-        // TODO: Should handle 'gainFocus' event.
         bool
         repaintEvent(const engine::PaintEvent& e) override;
 

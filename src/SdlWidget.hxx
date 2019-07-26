@@ -8,11 +8,9 @@ namespace sdl {
 
     inline
     SdlWidget::ChildWrapper::ChildWrapper(SdlWidget* wid,
-                                          const int zOrder,
-                                          const bool hasFocus):
+                                          const int zOrder):
       widget(wid),
-      zOrder(zOrder),
-      focused(hasFocus)
+      zOrder(zOrder)
     {}
 
     inline
@@ -599,9 +597,7 @@ namespace sdl {
       m_mouseInside = true;
 
       // We grabbed the focus, notify using an event if needed.
-      if (!m_focused) {
-        postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusIn));
-      }
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusIn));
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
@@ -610,73 +606,16 @@ namespace sdl {
     inline
     bool
     SdlWidget::focusInEvent(const engine::Event& e) {
-      // This kind of event can have several sources: either this
-      // widget itself in the case of a chain of events like so:
-      // `MouseMove -> Enter -> FocusIn` or one of the children
-      // widget in case they have just gained focus, or the parent
-      // widget (which can either means that it received the focus
-      // or that some other widget elsewhere in the hierarchy did
-      // receive focus).
-      //
-      // In both cases we need to handle the needed deactivation
-      // of previously focused element. This is achieved by first
-      // deactivating any of the children of `this` widget and
-      // then transmitting the event to the parent widget/layout
-      // so that other components are also notified.
       log("Handling focus in from " + e.getEmitter()->getName());
 
-      // Deactivate children.
-      Guard guard(m_childrenLocker);
-      for (WidgetsMap::iterator child = m_children.begin() ; child != m_children.end() ; ++child) {
-        // Post leave event for focused children not at the origin of the event.
-        if (child->focused && e.getEmitter() != child->widget) {
-          log("Posting leave event for " + child->widget->getName());
-          postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, child->widget));
-        }
+      // Set this widget as focused.
+      m_focused = true;
 
-        // Update internal state if child is the source of the event.
-        if (e.getEmitter() == child->widget) {
-          log("Child " + child->widget->getName() + " is now focused");
-          child->focused = true;
-        }
-
-        // TODO: When the child of a child loses the focus (or any two
-        // widgets separated by more than one level) the focused property
-        // does not get transmitted.
-        // TODO: We don't get focus in in SelectorWidget.
-      }
-
-      // Activate this widget if needed.
-      m_focused = (e.getEmitter() == this);
-
-      // Notify the parent widget if any, or the layout so that the
-      // event gets transmitted to the rest of the components if it
-      // is not already the source of the event.
-      engine::EventShPtr foe = std::make_shared<engine::Event>(engine::Event::Type::FocusIn);
-      foe->setEmitter(e.getEmitter());
-      EngineObject* o = nullptr;
-
-      if (hasParent()) {
-        foe->setReceiver(m_parent);
-        o = m_parent;
-      }
-      else if (isManaged()) {
-        foe->setReceiver(getManager());
-        o = getManager();
-      }
-
-      if (o == e.getEmitter()) {
-        o = nullptr;
-      }
-
-      if (o == nullptr) {
-        log("Do not post focus in event, no need to do so", utils::Level::Info);
-      }
-
-      // Post the event if we have an object where to post it.
-      if (o != nullptr) {
-        postEvent(foe, false, false);
-      }
+      // Post a gain focus first to this widget (so that potential children
+      // which are currently focused get deactivated) which will then be
+      // transmitted to the parent so that it can do the necessary updates
+      // regarding siblings of `this` widget which may be focused.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GainFocus));
 
       // Use the base handler to provide a return value.
       return LayoutItem::focusInEvent(e);
@@ -685,41 +624,75 @@ namespace sdl {
     inline
     bool
     SdlWidget::focusOutEvent(const engine::Event& e) {
-      // Either we just lose the focus or one of our children did.
-      // If we just lose the focus we need to pass on the information
-      // to our parent if any so that it can update its internal state
-      // and if the event does not come from us we need to deactivate
-      // the corresponding child if it exists.
       log("Handling focus out from " + e.getEmitter()->getName());
 
-      // Deactivate this widget if needed.
-      if (e.getEmitter() == this) {
-        m_focused = false;
-      }
+      // Set this widget as not focused.
+      m_focused = false;
 
-      // Deactivate the corresponding child if we can find one.
-      if (e.getEmitter() != nullptr && e.getEmitter() != this) {
-        const std::string name = e.getEmitter()->getName();
-        Guard guard(m_childrenLocker);
-        ChildrenMap::const_iterator info = m_names.find(name);
-
-        if (info == m_names.cend()) {
-          log(std::string("Processing focus out event for ") + name + " which is not a child of this widget", utils::Level::Warning);
-        }
-        else {
-          log("Widget " + name + " is no more focused");
-          m_children[info->second].focused = false;
-        }
-      }
-
-      // Post to the parent if we're the emitter of this event.
-      if (hasParent() && e.getEmitter() == this) {
-        engine::EventShPtr foe = std::make_shared<engine::Event>(engine::Event::Type::FocusOut, m_parent);
-        postEvent(foe, false, true);
-      }
+      // Post a lost focus first to this widget (so that potential children
+      // which are currently focused get deactivated).
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::LostFocus));
 
       // Use the base handler to provide a return value.
       return LayoutItem::focusOutEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::gainFocusEvent(const engine::Event& e) {
+      // This type of event is triggered by children widget in case they
+      // just gained focus. The event's source should thus be a child
+      // widget.
+      // This method needs to unfocus any other child widget for `this`
+      // widget which may have the focus and also notify the parent widget
+      // or the manager layout if any with the fact that this widget has
+      // now focus.
+      // We also need to focus ourselves so that the chain of widgets
+      // which lead to the deepest focused child can be built.
+      log("Handling gain focus from " + e.getEmitter()->getName());
+
+      // This widget now has the focus.
+      m_focused = true;
+
+      // Traverse the internal array of children and unfocus any widget
+      // which is not the source of the event.
+      {
+        Guard guard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+
+          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
+          // If the child is not the source of the event and is focused, unfocus it.
+          if (e.getEmitter() != child->widget && child->widget->hasFocus()) {
+            log("Posting leave event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
+            postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, child->widget), false, true);
+          }
+        }
+      }
+
+      // Transmit the gain focus event to the parent widget if any or the
+      // manager layout.
+      engine::EventShPtr gfe = std::make_shared<engine::Event>(engine::Event::Type::GainFocus);
+      EngineObject* o = nullptr;
+
+      if (hasParent()) {
+        gfe->setReceiver(m_parent);
+        o = m_parent;
+      }
+      else if (isManaged()) {
+        gfe->setReceiver(getManager());
+        o = getManager();
+      }
+
+      if (o == nullptr) {
+        log("Do not post gain focus event, no need to do so", utils::Level::Info);
+      }
+
+      if (o != nullptr) {
+        postEvent(gfe, false, true);
+      }
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::gainFocusEvent(e);
     }
 
     inline
@@ -736,13 +709,37 @@ namespace sdl {
       // The mouse is now outside this widget.
       m_mouseInside = false;
 
-      // We lost focus, notify using an event if needed.
-      if (m_focused) {
-        postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusOut));
-      }
+      // We lost the focus, notify using an event if needed.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusOut));
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::lostFocusEvent(const engine::Event& e) {
+      log("Handling lost focus from " + e.getEmitter()->getName());
+
+      // A lost focus event comes after a leave event and means that the
+      // focus has been removed from this widget. It also means that no
+      // children can keep the focus, so we should transmit the leave event
+      // to all the children of `this` widget.
+      {
+        Guard guard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+
+          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
+          // If the child is not the source of the event and is focused, unfocus it.
+          if (child->widget->hasFocus()) {
+            log("Posting leave event on " + child->widget->getName() + " due to " + getName() + " losing focus");
+            postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, child->widget), false, true);
+          }
+        }
+      }
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::lostFocusEvent(e);
     }
 
     inline
@@ -910,8 +907,7 @@ namespace sdl {
         m_children.push_back(
           ChildWrapper{
             widget,
-            widget->getZOrder(),
-            false
+            widget->getZOrder()
           }
         );
 

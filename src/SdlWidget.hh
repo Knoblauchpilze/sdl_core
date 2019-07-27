@@ -236,10 +236,10 @@ namespace sdl {
         enterEvent(const engine::EnterEvent& e) override;
 
         bool
-        focusInEvent(const engine::Event& e) override;
+        focusInEvent(const engine::FocusEvent& e) override;
 
         bool
-        focusOutEvent(const engine::Event& e) override;
+        focusOutEvent(const engine::FocusEvent& e) override;
 
         bool
         gainFocusEvent(const engine::Event& e) override;

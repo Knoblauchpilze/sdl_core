@@ -604,7 +604,7 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::focusInEvent(const engine::Event& e) {
+    SdlWidget::focusInEvent(const engine::FocusEvent& e) {
       log("Handling focus in from " + e.getEmitter()->getName());
 
       // Set this widget as focused.
@@ -622,7 +622,7 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::focusOutEvent(const engine::Event& e) {
+    SdlWidget::focusOutEvent(const engine::FocusEvent& e) {
       log("Handling focus out from " + e.getEmitter()->getName());
 
       // Set this widget as not focused.

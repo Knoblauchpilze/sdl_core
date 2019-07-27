@@ -584,19 +584,19 @@ namespace sdl {
     inline
     bool
     SdlWidget::enterEvent(const engine::EnterEvent& e) {
-      // Update the role of the background texture if the item is not selected.
-      if (getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Background) {
-        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Highlight);
-
-        // Post a repaint event.
-        requestRepaint();
-      }
+      // This kind of event is generated whenever the mouse just entered the
+      // current widget. The main goal of this method is to update the mouse
+      // position (which is now by definition inside the widget) and to trigger
+      // a focus event with the corresponding reason.
+      // The actual update of the widget's content based on the focus is left
+      // to be handled in the focus event.
 
       // The mouse is now inside this widget.
       m_mouseInside = true;
 
-      // We grabbed the focus, notify using an event if needed.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusIn));
+      // Post a focus event with the specified reason: redraw of the widget's
+      // content is left to be processed there.
+      postEvent(std::make_shared<engine::FocusEvent>(true, engine::FocusEvent::Reason::HoverFocus));
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
@@ -604,112 +604,20 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::focusInEvent(const engine::FocusEvent& e) {
-      log("Handling focus in from " + e.getEmitter()->getName());
-
-      // Set this widget as focused.
-      setFocused(true);
-
-      // Post a gain focus first to this widget (so that potential children
-      // which are currently focused get deactivated) which will then be
-      // transmitted to the parent so that it can do the necessary updates
-      // regarding siblings of `this` widget which may be focused.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GainFocus));
-
-      // Use the base handler to provide a return value.
-      return LayoutItem::focusInEvent(e);
-    }
-
-    inline
-    bool
-    SdlWidget::focusOutEvent(const engine::FocusEvent& e) {
-      log("Handling focus out from " + e.getEmitter()->getName());
-
-      // Set this widget as not focused.
-      setFocused(false);
-
-      // Post a lost focus first to this widget (so that potential children
-      // which are currently focused get deactivated).
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::LostFocus));
-
-      // Use the base handler to provide a return value.
-      return LayoutItem::focusOutEvent(e);
-    }
-
-    inline
-    bool
-    SdlWidget::gainFocusEvent(const engine::Event& e) {
-      // This type of event is triggered by children widget in case they
-      // just gained focus. The event's source should thus be a child
-      // widget.
-      // This method needs to unfocus any other child widget for `this`
-      // widget which may have the focus and also notify the parent widget
-      // or the manager layout if any with the fact that this widget has
-      // now focus.
-      // We also need to focus ourselves so that the chain of widgets
-      // which lead to the deepest focused child can be built.
-      log("Handling gain focus from " + e.getEmitter()->getName());
-
-      // This widget now has the focus.
-      setFocused(true);
-
-      // Traverse the internal array of children and unfocus any widget
-      // which is not the source of the event.
-      {
-        Guard guard(m_childrenLocker);
-        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-
-          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
-          // If the child is not the source of the event and is focused, unfocus it.
-          if (e.getEmitter() != child->widget && child->widget->hasFocus()) {
-            log("Posting leave event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
-            postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, child->widget), false, true);
-          }
-        }
-      }
-
-      // Transmit the gain focus event to the parent widget if any or the
-      // manager layout.
-      engine::EventShPtr gfe = std::make_shared<engine::Event>(engine::Event::Type::GainFocus);
-      EngineObject* o = nullptr;
-
-      if (hasParent()) {
-        gfe->setReceiver(m_parent);
-        o = m_parent;
-      }
-      else if (isManaged()) {
-        gfe->setReceiver(getManager());
-        o = getManager();
-      }
-
-      if (o == nullptr) {
-        log("Do not post gain focus event, no need to do so", utils::Level::Info);
-      }
-
-      if (o != nullptr) {
-        postEvent(gfe, false, true);
-      }
-
-      // Use the base handler to provide a return value.
-      return LayoutItem::gainFocusEvent(e);
-    }
-
-    inline
-    bool
     SdlWidget::leaveEvent(const engine::Event& e) {
-      // Update the role of the background texture if the item is not selected.
-      if (m_content.valid() && getEngine().getTextureRole(m_content) == engine::Palette::ColorRole::Highlight) {
-        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Background);
+      // This kind of event is generated whenever the mouse just exited the
+      // current widget. The main goal of this method is to update the mouse
+      // position (which is now by definition outside the widget) and to trigger
+      // a focus event with the corresponding reason.
+      // The actual update of the widget's content based on the focus is left
+      // to be handled in the focus event.
 
-        // Post a repaint event.
-        requestRepaint();
-      }
-
-      // The mouse is now outside this widget.
+      // The mouse is now inside this widget.
       m_mouseInside = false;
 
-      // We lost the focus, notify using an event if needed.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusOut));
+      // Post a focus event with the specified reason: redraw of the widget's
+      // content is left to be processed there.
+      postEvent(std::make_shared<engine::FocusEvent>(false, engine::FocusEvent::Reason::HoverFocus));
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
@@ -745,45 +653,20 @@ namespace sdl {
     bool
     SdlWidget::mouseButtonReleaseEvent(const engine::MouseEvent& e) {
       // Mouse events are only transmitted to this widget when the mouse is
-      // inside the widget and if no other child block the view. We still
-      // need to handle the repaint of the widget in case of a click and the
-      // update in texture role.
+      // inside the widget and if no other child block the view.
+      // In the case no child widget blocks the mouse we need to check if
+      // this type of interaction is handled by `this` widget.
+      // This done automatically by the `FocusIn` events so let's just create
+      // one.
 
-      // Check whether the content for this widget is valid (i.e. at least
-      // a repaint event has successfully been processed). If this is not
-      // the case, return early.
-      if (!m_content.valid()) {
-        // Use the base handler to provide a return value.
-        return engine::EngineObject::mouseButtonReleaseEvent(e);
+      // If the mouse is blocked by a child, do nothing.
+      if (isBlockedByChild(e.getMousePosition())) {
+        // Return early using the base handler return value.
+        return LayoutItem::mouseButtonReleaseEvent(e);
       }
 
-      // TODO: The repaint event does not occur because the mouse button
-      // event is not transmitted to the widget which are not under the click
-      // so no deselection.
-
-      // We now need to determine whether we need a repaint: this is only
-      // the case if it's the first occurrence of the click inside the
-      // widget in which case we will update the texture's role.
-      // If the widget already is selected just ignore the new click but
-      // still fire the corresponding signal.
-      bool needRepaint = false;
-
-      // If the texture role is not already set to `Selected` (i.e. `Dark`
-      // in engine's semantic) assign it.
-      if (getEngine().getTextureRole(m_content) != engine::Palette::ColorRole::Dark) {
-        getEngine().setTextureRole(m_content, engine::Palette::ColorRole::Dark);
-
-        // We will need a repaint.
-        needRepaint = true;
-      }
-
-      // Request a repaint event if needed.
-      if (needRepaint) {
-        requestRepaint();
-
-        // Also produce a focus in event.
-        postEvent(std::make_shared<engine::Event>(engine::Event::Type::FocusIn));
-      }
+      // The mouse is not blocked by any child: produce a focus event.
+      postEvent(std::make_shared<engine::FocusEvent>(false, engine::FocusEvent::Reason::MouseFocus));
 
       // Fire a signal indicating that a click on this widget has been detected.
       log("Emitting on click for " + getName(), utils::Level::Notice);
@@ -945,6 +828,31 @@ namespace sdl {
       // Notify the parent widget of this modification if any.
       if (hasParent()) {
         postEvent(std::make_shared<core::engine::Event>(core::engine::Event::Type::ZOrderChanged, m_parent));
+      }
+    }
+
+    inline
+    void
+    SdlWidget::updateStateFromFocus(const engine::FocusEvent::Reason& reason) {
+      // We need to update the widget's content to match the new focus state.
+      // We will use the dedicated focus state and determine whether we need
+      // to update `this` widget's content afterwards.
+      FocusState& state = getFocusState();
+      const bool update = state.handleFocusIn(reason);
+
+      // Check whether the focus state has been updated: if this is the case we
+      // need to update the widget's content accordingly. This can only be done
+      // if the texture is valid of course.
+      if (update) {
+        if (!m_content.valid()) {
+          log("Trashing texture role update because content is not valid", utils::Level::Warning);
+        }
+        else {
+          getEngine().setTextureRole(m_content, state.getColorRole());
+        }
+
+        // Post a repaint event.
+        requestRepaint();
       }
     }
 

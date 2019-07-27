@@ -166,7 +166,7 @@ namespace sdl {
          * @return - true if the event was recognized, false otherwise.
          */
         bool
-        gainFocusEvent(const engine::Event& e) override;
+        gainFocusEvent(const engine::FocusEvent& e) override;
 
         /**
          * @brief - Redefinition of the base `EngineObject` class. This method

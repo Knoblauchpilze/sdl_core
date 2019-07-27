@@ -43,7 +43,7 @@ namespace sdl {
     }
 
     bool
-    Layout::gainFocusEvent(const engine::Event& e) {
+    Layout::gainFocusEvent(const engine::FocusEvent& e) {
       log("Handling gain focus from " + e.getEmitter()->getName());
 
       // Traverse the list of items handled by this layout and

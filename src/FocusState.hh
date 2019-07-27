@@ -61,6 +61,16 @@ namespace sdl {
         getColorRole() const noexcept;
 
         /**
+         * @brief - Used to determine if the internal state provides at least some level of focus
+         *          for this object. The only case where this method returns `false` is when this
+         *          object describes no focus at all.
+         * @return - `true` if the internal state of this object describes some level of focus,
+         *           `false` otherwise.
+         */
+        bool
+        hasFocus() const noexcept;
+
+        /**
          * @brief - Transforms this state into a human readable string.
          * @return - a human readable string representing this state.
          */

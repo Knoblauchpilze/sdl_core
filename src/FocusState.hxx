@@ -58,7 +58,10 @@ namespace sdl {
 
     inline
     engine::Palette::ColorRole
-    FocusState::getColorRole() const noexcept {}
+    FocusState::getColorRole() const noexcept {
+      // TODO: Implement this method.
+      return engine::Palette::ColorRole::Background;
+    }
 
     inline
     bool

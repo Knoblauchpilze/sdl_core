@@ -62,6 +62,18 @@ namespace sdl {
     }
 
     inline
+    FocusPolicy
+    LayoutItem::getFocusPolicy() const noexcept {
+      return m_focusPolicy;
+    }
+
+    inline
+    void
+    LayoutItem::setFocusPolicy(const FocusPolicy& policy) noexcept {
+      m_focusPolicy = policy;
+    }
+
+    inline
     utils::Boxf
     LayoutItem::getRenderingArea() const noexcept {
       return m_area;

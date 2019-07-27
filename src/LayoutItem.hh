@@ -191,6 +191,16 @@ namespace sdl {
         LayoutItem*
         getManager() const noexcept;
 
+        /**
+         * @brief - Used to determine whether this layout item can handle the input focus reason.
+         *          We basically use the internally defined `FocusPolicy` to compute the return
+         *          value.
+         * @param reason - the focus reason which should be analyzed for handling.
+         * @return - `true` if the focus reason can be handled, `false` otherwise.
+         */
+        bool
+        canHandleFocusReason(const engine::FocusEvent::Reason& reason) const noexcept;
+
         virtual void
         makeGeometryDirty();
 

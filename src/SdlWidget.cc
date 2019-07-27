@@ -240,6 +240,131 @@ namespace sdl {
     }
 
     bool
+    SdlWidget::focusInEvent(const engine::FocusEvent& e) {
+      log("Handling focus in from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())) + " (policy: " + getFocusPolicy().toString() + ")");
+
+      // A focus in event has been raised with a specific reason. The first step
+      // in processing this event is to actually determine whether this widget is
+      // sensitive to this kind of focus events: if this is not the case we do
+      // not want to redraw the content or anything, just perform the notification
+      // of this event to the rest of the component to update the needed states.
+      // If the focus event is supported we need to trigger a redraw of the
+      // widget's content if needed in order for it to match its current focus
+      // status.
+      // We should also trigger the generation of a `GainFocus` event which will
+      // handle the propagation of this focus event to parent and children so
+      // that they get notified of the new status for this widget.
+
+      // Determine whether the focus reason provided by the input event is
+      // supported by this widget.
+      if (canHandleFocusReason(e.getReason())) {
+        // Now that we know the focus reason can be handled, we need to update the
+        // widget's content to match the new focus state. Once again use the dedicated
+        // handler.
+        updateStateFromFocus(e.getReason());
+      }
+
+      // Post a gain focus first to this widget (so that potential children
+      // which are currently focused get deactivated) which will then be
+      // transmitted to the parent so that it can do the necessary updates
+      // regarding siblings of `this` widget which may be focused.
+      postEvent(std::make_shared<engine::FocusEvent>(e.getReason()));
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::focusInEvent(e);
+    }
+
+    bool
+    SdlWidget::focusOutEvent(const engine::FocusEvent& e) {
+      log("Handling focus out from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())));
+
+      // A focus out event has been raised with a specific reason. The process to
+      // follow is very similar to the one used in `focusInEvent` except the event
+      // we will generate will be a `LostFocus` instead of a `GainFocus`.
+      // See this function for more details.
+
+      // Determine whether we can handle this reason.
+      if (!canHandleFocusReason(e.getReason())) {
+        // Use the base handler to provide a return value.
+        return LayoutItem::focusInEvent(e);
+      }
+
+      // Update the internal state.
+      updateStateFromFocus(e.getReason());
+
+      // Post the `LostFocus` event.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::LostFocus));
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::focusOutEvent(e);
+    }
+
+    bool
+    SdlWidget::gainFocusEvent(const engine::FocusEvent& e) {
+      // This type of event is triggered by children widget in case they
+      // just gained focus. The event's source should thus be a child
+      // widget.
+      // This method needs to unfocus any other child widget for `this`
+      // widget which may have the focus and also notify the parent widget
+      // or the manager layout if any with the fact that this widget has
+      // now focus.
+      // We also need to focus ourselves so that the chain of widgets
+      // which lead to the deepest focused child can be built.
+      log("Handling gain focus from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())));
+
+      // Apply the focus modification if needed: we also optimize a bit
+      // by checking whether the event is produced by `this` widget: if
+      // this is the case we don't need to update anything as it has most
+      // likely already been handled.
+      if (e.getEmitter() != this && canHandleFocusReason(e.getReason())) {
+        // Now that we know the focus reason can be handled, we need to update the
+        // widget's content to match the new focus state. Once again use the dedicated
+        // handler.
+        updateStateFromFocus(e.getReason());
+      }
+
+      // Traverse the internal array of children and unfocus any widget
+      // which is not the source of the event.
+      {
+        Guard guard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+
+          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
+          // If the child is not the source of the event and is focused, unfocus it.
+          if (e.getEmitter() != child->widget && child->widget->hasFocus()) {
+            log("Posting leave event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
+            postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, child->widget), false, true);
+          }
+        }
+      }
+
+      // Transmit the gain focus event to the parent widget if any or the
+      // manager layout.
+      engine::FocusEventShPtr gfe = std::make_shared<engine::FocusEvent>(e.getReason());
+      EngineObject* o = nullptr;
+
+      if (hasParent()) {
+        gfe->setReceiver(m_parent);
+        o = m_parent;
+      }
+      else if (isManaged()) {
+        gfe->setReceiver(getManager());
+        o = getManager();
+      }
+
+      if (o == nullptr) {
+        log("Do not post gain focus event, no need to do so", utils::Level::Info);
+      }
+
+      if (o != nullptr) {
+        postEvent(gfe, false, true);
+      }
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::gainFocusEvent(e);
+    }
+
+    bool
     SdlWidget::repaintEvent(const engine::PaintEvent& e) {
       // Usually the paint event is meant to update the internal
       // visual representation of this widget. It is important so

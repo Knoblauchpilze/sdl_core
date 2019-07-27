@@ -242,7 +242,7 @@ namespace sdl {
         focusOutEvent(const engine::FocusEvent& e) override;
 
         bool
-        gainFocusEvent(const engine::Event& e) override;
+        gainFocusEvent(const engine::FocusEvent& e) override;
 
         bool
         leaveEvent(const engine::Event& e) override;
@@ -580,6 +580,21 @@ namespace sdl {
          */
         void
         setZOrder(const int order);
+
+        /**
+         * @brief - Used to update the internal focus state from the input focus reason.
+         *          This method also tries to update the widget's content with a suited
+         *          role (and more specifically the texture described by the `m_content`
+         *          attribute).
+         *          A repaint event might be triggered if the input reason requires it.
+         *          Note that no checks are performed to verify that the input focus
+         *          reason is supported by this widget, we assume that such tests have
+         *          been done before.
+         * @param reason - the focus reason which triggered the update of the state in
+         *                 the first place.
+         */
+        void
+        updateStateFromFocus(const engine::FocusEvent::Reason& reason);
 
       private:
 

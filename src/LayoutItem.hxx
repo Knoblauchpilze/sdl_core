@@ -128,13 +128,13 @@ namespace sdl {
     inline
     bool
     LayoutItem::hasFocus() const noexcept {
-      return m_focused;
+      return m_state.hasFocus();
     }
 
     inline
-    void
-    LayoutItem::setFocused(const bool focused) noexcept {
-      m_focused = focused;
+    FocusState&
+    LayoutItem::getFocusState() noexcept {
+      return m_state;
     }
 
     inline

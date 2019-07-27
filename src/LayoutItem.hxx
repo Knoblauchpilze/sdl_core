@@ -198,6 +198,22 @@ namespace sdl {
     }
 
     inline
+    bool
+    LayoutItem::canHandleFocusReason(const engine::FocusEvent::Reason& reason) const noexcept {
+      switch (reason) {
+        case engine::FocusEvent::Reason::HoverFocus:
+          return getFocusPolicy().canGrabHoverFocus();
+        case engine::FocusEvent::Reason::MouseFocus:
+          return getFocusPolicy().canGrabClickFocus();
+        case engine::FocusEvent::Reason::TabFocus:
+        case engine::FocusEvent::Reason::BacktabFocus:
+          return getFocusPolicy().canGrabTabFocus();
+        default:
+          return false;
+      }
+    }
+
+    inline
     void
     LayoutItem::makeGeometryDirty() {
       // Mark the geometry as dirty.

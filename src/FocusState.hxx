@@ -56,8 +56,15 @@ namespace sdl {
       return false;
     }
 
+    inline
     engine::Palette::ColorRole
-    getColorRole() const noexcept;
+    FocusState::getColorRole() const noexcept {}
+
+    inline
+    bool
+    FocusState::hasFocus() const noexcept {
+      return m_state != State::None;
+    }
 
     inline
     std::string
@@ -84,7 +91,7 @@ namespace sdl {
 
     inline
     FocusState::State
-    FocusState::getStateFromFocusReason(const engine::FocusEvent::Reason& reason) const noexcept {
+    FocusState::getStateFromFocusReason(const engine::FocusEvent::Reason& reason) noexcept {
       switch (reason) {
         case engine::FocusEvent::Reason::HoverFocus:
           return State::Hover;

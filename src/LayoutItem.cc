@@ -13,6 +13,7 @@ namespace sdl {
       m_sizeHint(sizeHint),
       m_maxSize(utils::Sizef::max()),
       m_sizePolicy(),
+      m_focusPolicy(),
       m_geometryDirty(true),
       m_area(utils::Boxf::fromSize(sizeHint, true)),
       m_nested(false),

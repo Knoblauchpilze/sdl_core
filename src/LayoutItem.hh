@@ -7,8 +7,9 @@
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
 # include <sdl_engine/EngineObject.hh>
-
 # include "SizePolicy.hh"
+# include "FocusPolicy.hh"
+# include "FocusState.hh"
 
 namespace sdl {
   namespace core {
@@ -79,6 +80,12 @@ namespace sdl {
 
         void
         setSizePolicy(const SizePolicy& policy) noexcept;
+
+        FocusPolicy
+        getFocusPolicy() const noexcept;
+
+        void
+        setFocusPolicy(const FocusPolicy& policy) noexcept;
 
         /**
          * @brief - Describes the rendering area associated to this layout item. The rendering
@@ -246,6 +253,18 @@ namespace sdl {
          *          into consideration when computing the space to assign to the widget.
          */
         SizePolicy m_sizePolicy;
+
+        /**
+         * @brief - Defines the strategy of the widget to handle focus. The focus action allows
+         *          the widget to intercept specific user's actions if it is activated and prevent
+         *          other elements from getting these actions.
+         *          This is useful both for performing specific operations on such actions and also
+         *          improve performance by filtering these actions from being sent to other elements
+         *          of the `ui`.
+         *          Several level of awareness of the focus can be defined, the default being that
+         *          no focus actions are transmitted to the item.
+         */
+        FocusPolicy m_focusPolicy;
 
         /**
          * @brief - Used to determine whether the geometry information held by this widget is

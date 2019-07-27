@@ -7,6 +7,7 @@
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
 # include <sdl_engine/EngineObject.hh>
+# include <sdl_engine/FocusEvent.hh>
 # include "SizePolicy.hh"
 # include "FocusPolicy.hh"
 # include "FocusState.hh"
@@ -141,11 +142,11 @@ namespace sdl {
         hasFocus() const noexcept;
 
         /**
-         * @brief - Assigns a new focused status for this item.
-         * @param focused - `true` if the item is now focused, false otherwise.
+         * @brief - Returns the focus state associated to this item as a reference.
+         * @return - a reference to the focus state for this item.
          */
-        void
-        setFocused(const bool focused) noexcept;
+        FocusState&
+        getFocusState() noexcept;
 
         /**
          * @brief - Returns true if this item's size and position is managed by a
@@ -322,9 +323,12 @@ namespace sdl {
 
         /***
          * @brief - Allows to determine whether this item has the focus or not. The item
-         *          gains focus whenever the mouse enters the widget's boundaries.
+         *          can gain focus for a variety of reasons which include (but not limit to)
+         *          whenever the mouse enters the item's boundaries, when a click is made
+         *          inside the item's boundaries or when it gets focused by repeatingly
+         *          pressing the `Tab` key until the tab chain reach this item.
          */
-        bool        m_focused;
+        FocusState  m_state;
 
         /**
          * @brief - A pointer to the layout into which this item might be inserted. Most of
@@ -332,7 +336,7 @@ namespace sdl {
          *          hierarchy of elements where each layer manage the size and position of
          *          the layers beneath it. In specific cases where this item is a top-level
          *          item, this attribute might reference the application's layout into which
-         *          this widget has been inserted.
+         *          this item has been inserted.
          */
         LayoutItem* m_manager;
     };

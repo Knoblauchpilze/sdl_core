@@ -157,9 +157,6 @@ namespace sdl {
         return m_parent->filterEvent(this, e);
       }
 
-      // TODO: Repaint of other widgets when they are displayed on siblings
-      // of their parent does not work anymore.
-
       // The event is not filtered.
       return false;
     }
@@ -590,6 +587,11 @@ namespace sdl {
       // a focus event with the corresponding reason.
       // The actual update of the widget's content based on the focus is left
       // to be handled in the focus event.
+
+      // TODO: When a combobox is larger than the size of its parent widget
+      // and thus overlaps the content of the sibling of its parent, the
+      // event system is not able to correctly prevent the transmission of
+      // events to the sibling. How should we correct that ?
 
       // The mouse is now inside this widget.
       m_mouseInside = true;

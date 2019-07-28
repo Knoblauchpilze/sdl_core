@@ -59,7 +59,7 @@ namespace sdl {
 
         static
         std::string
-        getNameFromPolicy(const Policy& policy) noexcept;
+        getNameFromPolicy(const FocusPolicy& policy) noexcept;
 
       private:
 

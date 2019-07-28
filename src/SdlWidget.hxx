@@ -593,9 +593,6 @@ namespace sdl {
       // event system is not able to correctly prevent the transmission of
       // events to the sibling. How should we correct that ?
 
-      // The mouse is now inside this widget.
-      m_mouseInside = true;
-
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.
       postEvent(std::make_shared<engine::FocusEvent>(true, engine::FocusEvent::Reason::HoverFocus));
@@ -613,9 +610,6 @@ namespace sdl {
       // a focus event with the corresponding reason.
       // The actual update of the widget's content based on the focus is left
       // to be handled in the focus event.
-
-      // The mouse is now inside this widget.
-      m_mouseInside = false;
 
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.

@@ -255,6 +255,14 @@ namespace sdl {
       // handle the propagation of this focus event to parent and children so
       // that they get notified of the new status for this widget.
 
+      // If the focus event has a hover event as a cause, update the position of
+      // the mouse. This should be done no matter if this widget will actually
+      // handle the focus reason.
+      if (e.getReason() == engine::FocusEvent::Reason::HoverFocus) {
+        // The mouse is now inside this widget.
+        m_mouseInside = true;
+      }
+
       // Determine whether the focus reason provided by the input event is
       // supported by this widget.
       if (canHandleFocusReason(e.getReason())) {
@@ -282,6 +290,14 @@ namespace sdl {
       // follow is very similar to the one used in `focusInEvent` except the event
       // we will generate will be a `LostFocus` instead of a `GainFocus`.
       // See this function for more details.
+
+      // If the focus event has a hover event as a cause, update the position of
+      // the mouse. This should be done no matter if this widget will actually
+      // handle the focus reason.
+      if (e.getReason() == engine::FocusEvent::Reason::HoverFocus) {
+        // The mouse is now outside this widget.
+        m_mouseInside = false;
+      }
 
       // Determine whether we can handle this reason.
       if (!canHandleFocusReason(e.getReason())) {

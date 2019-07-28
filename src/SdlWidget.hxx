@@ -668,7 +668,7 @@ namespace sdl {
       }
 
       // The mouse is not blocked by any child: produce a focus event.
-      postEvent(std::make_shared<engine::FocusEvent>(false, engine::FocusEvent::Reason::MouseFocus));
+      postEvent(std::make_shared<engine::FocusEvent>(true, engine::FocusEvent::Reason::MouseFocus));
 
       // Fire a signal indicating that a click on this widget has been detected.
       log("Emitting on click for " + getName(), utils::Level::Notice);

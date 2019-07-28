@@ -621,7 +621,7 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::lostFocusEvent(const engine::Event& e) {
+    SdlWidget::lostFocusEvent(const engine::FocusEvent& e) {
       log("Handling lost focus from " + e.getEmitter()->getName());
 
       // A lost focus event comes after a leave event and means that the
@@ -635,8 +635,8 @@ namespace sdl {
           log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
           // If the child is not the source of the event and is focused, unfocus it.
           if (child->widget->hasFocus()) {
-            log("Posting leave event on " + child->widget->getName() + " due to " + getName() + " losing focus");
-            postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, child->widget), false, true);
+            log("Posting lost focus event on " + child->widget->getName() + " due to " + getName() + " losing focus");
+            postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), false, child->widget), false, true);
           }
         }
       }

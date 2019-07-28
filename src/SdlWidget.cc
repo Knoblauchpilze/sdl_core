@@ -276,7 +276,7 @@ namespace sdl {
       // which are currently focused get deactivated) which will then be
       // transmitted to the parent so that it can do the necessary updates
       // regarding siblings of `this` widget which may be focused.
-      postEvent(std::make_shared<engine::FocusEvent>(e.getReason()));
+      postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), true));
 
       // Use the base handler to provide a return value.
       return LayoutItem::focusInEvent(e);
@@ -309,7 +309,7 @@ namespace sdl {
       updateStateFromFocus(e.getReason(), false);
 
       // Post the `LostFocus` event.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::LostFocus));
+      postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), false));
 
       // Use the base handler to provide a return value.
       return LayoutItem::focusOutEvent(e);
@@ -356,7 +356,7 @@ namespace sdl {
 
       // Transmit the gain focus event to the parent widget if any or the
       // manager layout.
-      engine::FocusEventShPtr gfe = std::make_shared<engine::FocusEvent>(e.getReason());
+      engine::FocusEventShPtr gfe = std::make_shared<engine::FocusEvent>(e.getReason(), true);
       EngineObject* o = nullptr;
 
       if (hasParent()) {

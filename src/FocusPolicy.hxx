@@ -55,26 +55,40 @@ namespace sdl {
     inline
     std::string
     FocusPolicy::toString() const noexcept {
-      return std::string("[Policy: ") + getNameFromPolicy(m_policy) + "]";
+      return std::string("[Policy: ") + getNameFromPolicy(*this) + "]";
     }
 
     inline
     std::string
-    FocusPolicy::getNameFromPolicy(const Policy& policy) noexcept {
-      switch (policy) {
-        case None:
-          return "No focus";
-        case Hover:
-          return "Hover";
-        case Click:
-          return "Click";
-        case Tab:
-          return "Tab";
-        case Wheel:
-          return "Wheel";
-        default:
-          return "Unknown";
+    FocusPolicy::getNameFromPolicy(const FocusPolicy& policy) noexcept {
+      std::string name;
+      if (policy.canGrabHoverFocus()) {
+        name += "Hover";
       }
+      if (policy.canGrabHoverFocus()) {
+        if (!name.empty()) {
+          name += "|";
+        }
+        name += "Click";
+      }
+      if (policy.canGrabHoverFocus()) {
+        if (!name.empty()) {
+          name += "|";
+        }
+        name += "Tab";
+      }
+      if (policy.canGrabHoverFocus()) {
+        if (!name.empty()) {
+          name += "|";
+        }
+        name += "Wheel";
+      }
+      
+      if (name.empty()) {
+        name = "No focus";
+      }
+
+      return name;
     }
 
   }

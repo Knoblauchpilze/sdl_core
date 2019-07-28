@@ -42,7 +42,7 @@ namespace sdl {
 
       // If the resulting state is the same as the current state or greater,
       // reset the focus.
-      if (isLessThan(m_state, resultingState)) {
+      if (isLessThan(m_state, resultingState, false)) {
         // As the action is enough to completely override the current state
         // we can reset it to no focus.
         m_state = State::None;
@@ -59,8 +59,20 @@ namespace sdl {
     inline
     engine::Palette::ColorRole
     FocusState::getColorRole() const noexcept {
-      // TODO: Implement this method.
-      return engine::Palette::ColorRole::Background;
+      // Based on the internal state we can associate a color role.
+      // If the state is not recognized assume we will use the default
+      // color role to represent it.
+      switch (m_state) {
+        case State::Hover:
+          return engine::Palette::ColorRole::Highlight;
+        case State::Tab:
+          return engine::Palette::ColorRole::Dark;
+        case State::Click:
+          return engine::Palette::ColorRole::Dark;
+        case State::None:
+        default:
+          return engine::Palette::ColorRole::Background;
+      }
     }
 
     inline
@@ -111,8 +123,15 @@ namespace sdl {
 
     inline
     bool
-    FocusState::isLessThan(const State& lhs, const State& rhs) noexcept {
-      return static_cast<std::underlying_type_t<State>>(lhs) < static_cast<std::underlying_type_t<State>>(rhs);
+    FocusState::isLessThan(const State& lhs,
+                           const State& rhs,
+                           const bool strict) noexcept
+    {
+      if (strict) {
+        return static_cast<std::underlying_type_t<State>>(lhs) < static_cast<std::underlying_type_t<State>>(rhs);
+      }
+
+      return static_cast<std::underlying_type_t<State>>(lhs) <= static_cast<std::underlying_type_t<State>>(rhs);
     }
 
   }

@@ -116,13 +116,18 @@ namespace sdl {
         /**
          * @brief - Compares `lhs` with `rhs` and returns `true` if `lhs` is smaller to the
          *          `rhs` value. Basically returns `true` if `lhs < rhs` and `false` otherwise.
+         *          If `strict` is `false` this function becomes equivalent to `lhs <= rhs`.
          * @param lhs - the first value to compare.
          * @param rhs - the second value to compare.
+         * @param strict - `true` if the comparison should be strict and false if `lhs` can
+         *                 be equal to `rhs` and still be considered smaller.
          * @return - `true` if `lhs < rhs`, `false` otherwise.
          */
         static
         bool
-        isLessThan(const State& lhs, const State& rhs) noexcept;
+        isLessThan(const State& lhs,
+                   const State& rhs,
+                   const bool strict = true) noexcept;
 
 
       private:

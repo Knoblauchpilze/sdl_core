@@ -522,22 +522,6 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::isInsideWidget(const utils::Vector2f& global) const noexcept {
-      // Compute the local position of the mouse.
-      utils::Vector2f local = mapFromGlobal(global);
-
-      utils::Boxf area = LayoutItem::getRenderingArea();
-
-      // In order to be inside the widget, the local mouse position should lie
-      // within the range [-width/2 ; width/2] and [-height/2 ; height/2].
-      return
-        std::abs(local.x()) < area.w() / 2.0f &&
-        std::abs(local.y()) < area.h() / 2.0f
-      ;
-    }
-
-    inline
-    bool
     SdlWidget::isMouseInside() const noexcept {
       return m_mouseInside;
     }

@@ -452,10 +452,6 @@ namespace sdl {
         convertToLocal(const utils::Boxf& area,
                        const utils::Boxf& reference) const noexcept;
 
-        // TODO: Maybe remove this ?
-        bool
-        isInsideWidget(const utils::Vector2f& global) const noexcept;
-
         /**
          * @brief - Used to determine whether the mouse is currently inside this widget or not.
          * @return - true if the mouse is inside this widget, false otherwise.

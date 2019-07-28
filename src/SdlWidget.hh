@@ -463,6 +463,17 @@ namespace sdl {
         bool
         isMouseInside() const noexcept;
 
+        /**
+         * @brief - Determine whether the input global position is blocked by any child of this
+         *          widget. This method will try to acquire the lock on the children list so it
+         *          should not be already lock upon calling this function.
+         *          It might be used to filter some events based on whether they actually occur
+         *          inside the widget and not the children.
+         * @param global - the global position to check. It will be converted to local coordinate
+         *                 frame internally.
+         * @return - `true` if the global position is contained inside the rendering area of any
+         *           child widget, `false` otherwise.
+         */
         bool
         isBlockedByChild(const utils::Vector2f& global) const noexcept;
 

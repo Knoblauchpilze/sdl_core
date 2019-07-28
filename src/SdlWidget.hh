@@ -248,7 +248,7 @@ namespace sdl {
         leaveEvent(const engine::Event& e) override;
 
         bool
-        lostFocusEvent(const engine::Event& e) override;
+        lostFocusEvent(const engine::FocusEvent& e) override;
 
         bool
         mouseButtonReleaseEvent(const engine::MouseEvent& e) override;

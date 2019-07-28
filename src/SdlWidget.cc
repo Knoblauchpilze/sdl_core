@@ -261,7 +261,7 @@ namespace sdl {
         // Now that we know the focus reason can be handled, we need to update the
         // widget's content to match the new focus state. Once again use the dedicated
         // handler.
-        updateStateFromFocus(e.getReason());
+        updateStateFromFocus(e.getReason(), true);
       }
 
       // Post a gain focus first to this widget (so that potential children
@@ -290,7 +290,7 @@ namespace sdl {
       }
 
       // Update the internal state.
-      updateStateFromFocus(e.getReason());
+      updateStateFromFocus(e.getReason(), false);
 
       // Post the `LostFocus` event.
       postEvent(std::make_shared<engine::Event>(engine::Event::Type::LostFocus));
@@ -320,7 +320,7 @@ namespace sdl {
         // Now that we know the focus reason can be handled, we need to update the
         // widget's content to match the new focus state. Once again use the dedicated
         // handler.
-        updateStateFromFocus(e.getReason());
+        updateStateFromFocus(e.getReason(), true);
       }
 
       // Traverse the internal array of children and unfocus any widget

@@ -835,12 +835,22 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::updateStateFromFocus(const engine::FocusEvent::Reason& reason) {
+    SdlWidget::updateStateFromFocus(const engine::FocusEvent::Reason& reason,
+                                    const bool gainedFocus)
+    {
       // We need to update the widget's content to match the new focus state.
       // We will use the dedicated focus state and determine whether we need
       // to update `this` widget's content afterwards.
       FocusState& state = getFocusState();
-      const bool update = state.handleFocusIn(reason);
+      bool update = false;
+      switch (gainedFocus) {
+        case true:
+          update = state.handleFocusIn(reason);
+          break;
+        default:
+          update = state.handleFocusOut(reason);
+          break;
+      }
 
       // Check whether the focus state has been updated: if this is the case we
       // need to update the widget's content accordingly. This can only be done

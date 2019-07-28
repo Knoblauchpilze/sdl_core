@@ -768,7 +768,7 @@ namespace sdl {
     inline
     void
     SdlWidget::drawContentPrivate(const utils::Uuid& /*uuid*/,
-                                  const utils::Boxf& /*area*/) const
+                                  const utils::Boxf& /*area*/)
     {
       // Empty implementation.
     }
@@ -834,7 +834,7 @@ namespace sdl {
     }
 
     inline
-    void
+    bool
     SdlWidget::updateStateFromFocus(const engine::FocusEvent::Reason& reason,
                                     const bool gainedFocus)
     {
@@ -866,6 +866,9 @@ namespace sdl {
         // Post a repaint event.
         requestRepaint();
       }
+
+      // Return the update status.
+      return update;
     }
 
     inline

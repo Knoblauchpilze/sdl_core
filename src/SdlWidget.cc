@@ -302,7 +302,7 @@ namespace sdl {
       // Determine whether we can handle this reason.
       if (!canHandleFocusReason(e.getReason())) {
         // Use the base handler to provide a return value.
-        return LayoutItem::focusInEvent(e);
+        return LayoutItem::focusOutEvent(e);
       }
 
       // Update the internal state.

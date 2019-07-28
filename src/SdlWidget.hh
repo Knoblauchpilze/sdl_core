@@ -585,16 +585,20 @@ namespace sdl {
          * @brief - Used to update the internal focus state from the input focus reason.
          *          This method also tries to update the widget's content with a suited
          *          role (and more specifically the texture described by the `m_content`
-         *          attribute).
+         *          attribute). Based on the value of `gainedFocus` the state will either
+         *          be updated due to a focus gain or a focus loss.
          *          A repaint event might be triggered if the input reason requires it.
          *          Note that no checks are performed to verify that the input focus
          *          reason is supported by this widget, we assume that such tests have
          *          been done before.
          * @param reason - the focus reason which triggered the update of the state in
          *                 the first place.
+         * @param gainedFocus - `true` if this widget just gained focus, `false` if it
+         *                      just lost the focus.
          */
         void
-        updateStateFromFocus(const engine::FocusEvent::Reason& reason);
+        updateStateFromFocus(const engine::FocusEvent::Reason& reason,
+                             const bool gainedFocus);
 
       private:
 

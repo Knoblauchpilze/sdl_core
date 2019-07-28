@@ -452,6 +452,7 @@ namespace sdl {
         convertToLocal(const utils::Boxf& area,
                        const utils::Boxf& reference) const noexcept;
 
+        // TODO: Maybe remove this ?
         bool
         isInsideWidget(const utils::Vector2f& global) const noexcept;
 
@@ -554,7 +555,7 @@ namespace sdl {
          */
         virtual void
         drawContentPrivate(const utils::Uuid& uuid,
-                           const utils::Boxf& area) const;
+                           const utils::Boxf& area);
 
         /**
          * @brief - Proceeds to add the input `widget` as a child of this object.
@@ -591,12 +592,19 @@ namespace sdl {
          *          Note that no checks are performed to verify that the input focus
          *          reason is supported by this widget, we assume that such tests have
          *          been done before.
+         *          This method returns `true` or `false` based on whether the role of
+         *          the main texture for `this` widget has been updated or not. This
+         *          allows inheriting classes to react to a modification of the base
+         *          widget's content to update the additional layers of information
+         *          such as text, images, etc. If the return value is `false` no
+         *          modifications have been made to the base texture.
          * @param reason - the focus reason which triggered the update of the state in
          *                 the first place.
          * @param gainedFocus - `true` if this widget just gained focus, `false` if it
          *                      just lost the focus.
+         * @return - `true` if the base texture role has been updated, `false` otherwise.
          */
-        void
+        virtual bool
         updateStateFromFocus(const engine::FocusEvent::Reason& reason,
                              const bool gainedFocus);
 

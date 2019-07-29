@@ -655,11 +655,11 @@ namespace sdl {
       // texture for this widget or the content can only be redrawn.
       const bool redraw = m_contentDirty;
       if (m_contentDirty) {
-        // Clear the internal texture.
-        clearTexture();
+        // Clear the internal texture and retrieve its color role.
+        engine::Palette::ColorRole role = clearTexture();
 
         // Create the new content.
-        m_content = createContentPrivate();
+        m_content = createContentPrivate(role);
 
         // Until further notice the content is up-to-date.
         m_contentDirty = false;

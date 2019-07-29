@@ -518,10 +518,15 @@ namespace sdl {
          *          it should not be useful. It is encouraged to rather overload
          *          the `drawContentPrivate` method, which is used to draw on the
          *          texture produced by this method.
+         *          The user can specify the role with which the texture should be
+         *          created. The default value is `Background` which indicates a
+         *          default background color but one can choose any role.
+         * @param role - the color role to assign to the texture upon creating it,
+         *               default value being `Background`.
          * @return - the identifier of the texture which has been created.
          */
         virtual utils::Uuid
-        createContentPrivate() const;
+        createContentPrivate(const engine::Palette::ColorRole& role = engine::Palette::ColorRole::Background) const;
 
         /**
          * @brief - Base implementation of the clear operation for this widget.
@@ -622,8 +627,13 @@ namespace sdl {
          *          memory used by the internal `m_content` texture.
          *          Assumes that the `m_contentLocker` is already locked.
          *          No other texture is created.
+         *          The return value indicates the color role assumed by the texture
+         *          which is destroyed if any. If no valid texture were found the
+         *          default `engine::Palette::ColorRole::Background` value is returned.
+         * @return - the color role assumed by the texture destroyed by this method or
+         *           `engine::Palette::ColorRole::Background` if no valid texture exists.
          */
-        void
+        engine::Palette::ColorRole
         clearTexture();
 
         /**

@@ -619,8 +619,8 @@ namespace sdl {
           log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
           // If the child is not the source of the event and is focused, unfocus it.
           if (child->widget->hasFocus()) {
-            log("Posting lost focus event on " + child->widget->getName() + " due to " + getName() + " losing focus");
-            postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), false, child->widget), false, true);
+            log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus");
+            postEvent(std::make_shared<engine::FocusEvent>(false, e.getReason(), child->widget), false, true);
           }
         }
       }
@@ -700,11 +700,11 @@ namespace sdl {
 
     inline
     utils::Uuid
-    SdlWidget::createContentPrivate() const {
+    SdlWidget::createContentPrivate(const engine::Palette::ColorRole& role) const {
       // Create the texture using the engine. The dmensions are retrieved from the
       // internal area.
       utils::Boxf area = LayoutItem::getRenderingArea();
-      utils::Uuid uuid = getEngine().createTexture(area.toSize(), engine::Palette::ColorRole::Background);
+      utils::Uuid uuid = getEngine().createTexture(area.toSize(), role);
 
       // Return the texture.
       return uuid;
@@ -850,12 +850,23 @@ namespace sdl {
     }
 
     inline
-    void
+    engine::Palette::ColorRole
     SdlWidget::clearTexture() {
+      // Assume default color role.
+      engine::Palette::ColorRole role = engine::Palette::ColorRole::Background;
+
+      // Destroy the content if any.
       if (m_content.valid()) {
+        // Update the color role.
+        role = getEngine().getTextureRole(m_content);
+
+        // Destroy the texture.
         getEngine().destroyTexture(m_content);
         m_content.invalidate();
       }
+
+      // Return the color role.
+      return role;
     }
 
     inline

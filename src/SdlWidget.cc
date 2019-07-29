@@ -888,7 +888,9 @@ namespace sdl {
       bool contained = false;
       WidgetsMap::const_reverse_iterator child = m_children.crbegin();
       while (!contained && child != m_children.crend()) {
-        contained = child->widget->getRenderingArea().contains(lpos);
+        if (child->widget->isVisible()) {
+          contained = child->widget->getRenderingArea().contains(lpos);
+        }
 
         if (!contained) {
           ++child;

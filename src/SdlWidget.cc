@@ -294,10 +294,7 @@ namespace sdl {
       // If the focus event has a hover event as a cause, update the position of
       // the mouse. This should be done no matter if this widget will actually
       // handle the focus reason.
-      if (e.getReason() == engine::FocusEvent::Reason::HoverFocus) {
-        // The mouse is now outside this widget.
-        m_mouseInside = false;
-      }
+      m_mouseInside = false;
 
       // Determine whether we can handle this reason.
       if (!canHandleFocusReason(e.getReason())) {

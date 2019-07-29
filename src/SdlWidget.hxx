@@ -146,8 +146,10 @@ namespace sdl {
         return true;
       }
 
-      // Handle mouse events filtering.
-      if (filterMouseEvents(watched, e)) {
+      // Handle mouse events filtering if the event is actually
+      // a mouse event.
+      engine::MouseEventShPtr me = std::dynamic_pointer_cast<engine::MouseEvent>(e);
+      if (me != nullptr && filterMouseEvents(watched, me)) {
         return true;
       }
 
@@ -347,7 +349,7 @@ namespace sdl {
     template <typename WidgetType>
     inline
     WidgetType*
-    SdlWidget::getChildAs(const std::string& name) {
+    SdlWidget::getChildAs(const std::string& name) const {
       // Use dedicated handler and raise an error if it
       // returns null.
       WidgetType* wid = getChildOrNull<WidgetType>(name);
@@ -364,7 +366,7 @@ namespace sdl {
 
     template <typename WidgetType>
     WidgetType*
-    SdlWidget::getChildOrNull(const std::string& name) {
+    SdlWidget::getChildOrNull(const std::string& name) const {
       Guard guard(m_childrenLocker);
 
       ChildrenMap::const_iterator child = m_names.find(name);

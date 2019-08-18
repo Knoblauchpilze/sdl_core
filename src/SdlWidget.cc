@@ -840,6 +840,14 @@ namespace sdl {
       return (watched != child->widget);
     }
 
+    bool
+    SdlWidget::filterKeyboardEvents(const engine::EngineObject* /*watched*/,
+                                    const engine::KeyEventShPtr /*e*/) const noexcept
+    {
+      // TODO: Implement this.
+      return false;
+    }
+
     void
     SdlWidget::drawWidget(SdlWidget& widget,
                           const utils::Boxf& src,

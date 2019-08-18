@@ -153,6 +153,13 @@ namespace sdl {
         return true;
       }
 
+      // Handle keyboard events filtering if the event is actually
+      // a keyboard event.
+      engine::KeyEventShPtr ke = std::dynamic_pointer_cast<engine::KeyEvent>(e);
+      if (ke != nullptr && filterKeyboardEvents(watched, ke)) {
+        return true;
+      }
+
       // Check whether the parent filters it, in which case we
       // should filter it too.
       if (hasParent()) {

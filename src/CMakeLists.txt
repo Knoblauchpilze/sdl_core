@@ -1,4 +1,3 @@
-project (sdl_core)
 
 set (CMAKE_CXX_STANDARD 14)
 

@@ -98,6 +98,13 @@ namespace sdl {
         getZOrder() noexcept;
 
         /**
+         * @brief - Used to determine whether this widget has received the keyboard focus.
+         * @return - true if this widget has received keyboard focus, false otherwise.
+         */
+        bool
+        hasKeyboardFocus() const noexcept;
+
+        /**
          * @brief - Used to perform the rendering of this widget using the internal engine
          *          provided to it. This method mostly returns the cached texture to use
          *          for this widget.
@@ -631,13 +638,28 @@ namespace sdl {
                              const bool gainedFocus);
 
         /**
+         * @brief - Used to determine whether the input focus reason can trigger a keyboard
+         *          focus modification (either gain or lost of said focus).
+         *          This method can be specialized by inheriting classes in order to provide
+         *          different keyboard focus behavior.
+         *          It is called within the `updateStateFromFocus` method in order to determine
+         *          whether the keyboard focus can be changed when the state is updated.
+         * @param reason - the focus reason which should be checked for keyboard focus changes
+         *                 capabilities.
+         * @return - `true` if the input focus reason can trigger a keyboard focus change,
+         *           `false` otherwise.
+         */
+        virtual bool
+        canCauseKeyboardFocusChange(const engine::FocusEvent::Reason& reason) const noexcept;
+
+        /**
          * @brief - Used to filter the input event if it is an instance of a mouse event.
          *          Such events need to be filtered carefully so that only the right child
          *          gets triggered with the corresponding handler.
          *          It is much easier for the parent to determine if a child is covering
          *          another one or somehow obstruct the transmission of events as it has
          *          intuitive notion of the siblings of a widget rather than to delegate
-         *          this job to the child which would havea hard time gathering this info
+         *          this job to the child which would have a hard time gathering this info
          *          in the first place.
          *          The user needs to specify the child for which the event should be
          *          filtered. If the input `watched` cannot be casted into a valid widget
@@ -878,6 +900,14 @@ namespace sdl {
          *          attribute is updated upon receiving `EnterEvent` and `LeaveEvent`.
          */
         bool m_mouseInside;
+
+        /**
+         * @brief - Describes whether this widget has the keyboard focus or not. The keyboard focus is
+         *          received whenever the internal state of the widget allows it. Some widget are never
+         *          able to receive the keyboard focus if the policy does not allow it.
+         *          Usually a focus reason of `Tab` or `Click` is sufficient to gain the keyboard focus.
+         */
+        bool m_keyboardFocus;
 
         /**
          * @brief - The z order for this widget. The z order allows for specific widgets to be

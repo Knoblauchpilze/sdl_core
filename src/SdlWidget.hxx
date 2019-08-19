@@ -138,6 +138,12 @@ namespace sdl {
 
     inline
     bool
+    SdlWidget::hasKeyboardFocus() const noexcept {
+      return m_keyboardFocus;
+    }
+
+    inline
+    bool
     SdlWidget::filterEvent(engine::EngineObject* watched,
                            engine::EventShPtr e)
     {
@@ -856,6 +862,17 @@ namespace sdl {
 
       // Return the update status.
       return update;
+    }
+
+    inline
+    bool
+    SdlWidget::canCauseKeyboardFocusChange(const engine::FocusEvent::Reason& reason) const noexcept {
+      // As a base definition the `Tab` and `Click` focus reasons can trigger a keyboard focus change.
+      return
+        reason == engine::FocusEvent::Reason::MouseFocus ||
+        reason == engine::FocusEvent::Reason::TabFocus ||
+        reason == engine::FocusEvent::Reason::BacktabFocus
+      ;
     }
 
     inline

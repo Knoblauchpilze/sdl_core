@@ -25,6 +25,7 @@ namespace sdl {
 
       m_contentDirty(true),
       m_mouseInside(false),
+      m_keyboardFocus(false),
       m_zOrder(0),
 
       m_content(),
@@ -38,6 +39,8 @@ namespace sdl {
     {
       // Assign the service for this widget.
       setService(std::string("widget"));
+
+      setFocusPolicy(FocusPolicy::StrongFocus);
 
       // Assign the input `parent` to this widget: this will also share the engine
       // and events queue if any is defined in the parent widget.
@@ -270,6 +273,15 @@ namespace sdl {
         // widget's content to match the new focus state. Once again use the dedicated
         // handler.
         updateStateFromFocus(e.getReason(), true);
+
+        // In addition we need to update the keyboard focus based on whether the
+        // focus reason can cause a modification of the keyboard state.
+        if (canCauseKeyboardFocusChange(e.getReason())) {
+          // Update the keyboard focus: as we're handling a focus in event we need
+          // to set the keyboard focus to `true`.
+          m_keyboardFocus = true;
+          log("Widget now has keyboard focus", utils::Level::Notice);
+        }
       }
 
       // Post a gain focus first to this widget (so that potential children
@@ -305,6 +317,15 @@ namespace sdl {
       // Update the internal state.
       updateStateFromFocus(e.getReason(), false);
 
+      // Update the keyboard focus based on whether the focus reason can cause a
+      // modification of the keyboard state.
+      if (canCauseKeyboardFocusChange(e.getReason())) {
+        // Update the keyboard focus: as we're handling a focus out event we need
+        // to set the keyboard focus to `false`.
+        m_keyboardFocus = false;
+        log("Widget lost keyboard focus", utils::Level::Notice);
+      }
+
       // Post the `LostFocus` event.
       postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), false));
 
@@ -334,6 +355,16 @@ namespace sdl {
         // widget's content to match the new focus state. Once again use the dedicated
         // handler.
         updateStateFromFocus(e.getReason(), true);
+
+        // Update the keyboard focus based on whether the focus reason can cause a
+        // modification of the keyboard state.
+        if (canCauseKeyboardFocusChange(e.getReason())) {
+          // Update the keyboard focus: as we're handling a gain focus event which has
+          // not been produced by `this` widget we need to set the keyboard focus to
+          // `false`.
+          m_keyboardFocus = false;
+          log("Widget lost keyboard focus 2", utils::Level::Notice);
+        }
       }
 
       // Traverse the internal array of children and unfocus any widget
@@ -841,11 +872,29 @@ namespace sdl {
     }
 
     bool
-    SdlWidget::filterKeyboardEvents(const engine::EngineObject* /*watched*/,
+    SdlWidget::filterKeyboardEvents(const engine::EngineObject* watched,
                                     const engine::KeyEventShPtr /*e*/) const noexcept
     {
-      // TODO: Implement this.
-      return false;
+      // A keyboard event is filtered if the watched object does not have the keyboard focus.
+      // We cannot find whether the `watched` object is a child widget of `this` widget based
+      // on the input type: in order to find out we need to first try to retrieve the child
+      // widget as a `SdlWidget` object.
+      // If this succeeds, we can check whether it has the keyboard focus. If this is the
+      // case we can transmit the event, otherwise we filter it.
+
+      // Retrieve the child as a `SdlWidget` object is possible.
+      SdlWidget* child = getChildOrNull<SdlWidget>(watched->getName());
+
+      if (child == nullptr) {
+        // The `watched` object is not a child of `this` widget: we can't really use the
+        // standard logic so let's just not filter the event.
+        return false;
+      }
+
+      // As the `watched` object is a child of `this` widget, let's determine whether the
+      // child as the keyboard focus: this is what determines whether the input event should
+      // be filtered or not.
+      return !child->hasKeyboardFocus();
     }
 
     void

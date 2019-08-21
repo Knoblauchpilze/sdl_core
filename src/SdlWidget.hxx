@@ -169,6 +169,7 @@ namespace sdl {
       // Check whether the parent filters it, in which case we
       // should filter it too.
       if (hasParent()) {
+        // TODO: We're filtering keyboard events based on the parent as well.
         return m_parent->filterEvent(this, e);
       }
 

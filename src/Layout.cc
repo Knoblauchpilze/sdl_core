@@ -54,7 +54,7 @@ namespace sdl {
         // If the child is not the source of the event and is focused, unfocus it.
         if (e.getEmitter() != *item && (*item)->hasFocus()) {
           log("Posting leave event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
-          postEvent(std::make_shared<engine::Event>(engine::Event::Type::Leave, *item), false, true);
+          postEvent(std::make_shared<engine::FocusEvent>(false, e.getReason(), *item), false, true);
         }
       }
 

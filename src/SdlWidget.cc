@@ -830,6 +830,16 @@ namespace sdl {
       // frame.
       const utils::Vector2f lpos = mapFromGlobal(e->getMousePosition());
 
+      // Just to be sure that we are processing valid data, we need to
+      // convert the input `watched` object into a `SdlWidget`. If this
+      // fails we consider that we do not filter the event.
+      const SdlWidget* wig = dynamic_cast<const SdlWidget*>(watched);
+      if (wig == nullptr) {
+        // Do not filter as we don't know for which object the filter is
+        // currently applied.
+        return false;
+      }
+
       // We can now traverse the list of elements and determine whether
       // this position should be transmitted to any of the child and more
       // specifically to the `watched` object.
@@ -865,10 +875,19 @@ namespace sdl {
 
       // We found one of the children widget which intersected the mouse
       // position. If this widget corresponds to the input `watched`
-      // object it's okay, otherwise it means that another child widget
-      // should intercept the element before the `watched` object and
-      // thus it should not receive the event.
-      return (watched != child->widget);
+      // object it's okay. Also if the found child is an ancestor of the
+      // input `watched` object, it's still cool. Indeed if the mouse was
+      // contained in the child but not in the `watched` object, we would
+      // have detected it when the filter was applied by the ancestor.
+      // In any other case it means that another child widget should
+      // intercept the element before the `watched` object and thus it
+      // should not receive the event.
+      // We thus want to check whether the child widget we just found is
+      // either the searched `watched` object (in which case the event
+      // will not be filtered) or is an ancestor (in which case it won't
+      // be filtered neither).
+      const bool notFiltered = (child->widget == wig || child->widget->isAncestor(wig));
+      return !notFiltered;
     }
 
     bool

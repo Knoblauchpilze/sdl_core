@@ -327,6 +327,28 @@ namespace sdl {
         hasParent() const noexcept;
 
         /**
+         * @brief - Used to determine whether `this` widget is an ancestor of
+         *          the input `widget`. An ancestor is either the parent or the
+         *          parent of its parent and so on.
+         * @param widget - the potential descendant of `this` widget.
+         * @return - `true` if `this` widget is an ancestor of the input `widget`,
+         *           `false` otherwise.
+         */
+        bool
+        isAncestor(const SdlWidget* widget) const noexcept;
+
+        /**
+         * @brief - Used to determine whether `this` widget is a descendant of
+         *          the input `widget`. A descendant is either the child or the
+         *          child of one of its children and so on.
+         * @param widget - the potential ancestor of `this` widget.
+         * @return - `true` if `this` widget is a descendant of the input `widget`,
+         *           `false` otherwise.
+         */
+        bool
+        isDescendant(const SdlWidget* widget) const noexcept;
+
+        /**
          * @brief - Returns true if this widget has a child of any kind with a
          *          name matching the input string.
          *          Note that this method assumes that the `m_childrenLocker`

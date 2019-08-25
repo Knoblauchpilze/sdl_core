@@ -274,7 +274,7 @@ namespace sdl {
       // Similar reasoning holds for the keyboard focus. We only want to update
       // the keyboard status if the focus reason can cause a keyboard focus change
       // though.
-      if (canCauseKeyboardFocusChange(e.getReason())) {
+      if (!hasKeyboardFocus() && canCauseKeyboardFocusChange(e.getReason())) {
         // Update the keyboard focus: as we're handling a focus in event we need
         // to set the keyboard focus to `true`.
         m_keyboardFocus = true;
@@ -324,7 +324,7 @@ namespace sdl {
       // Just like in the focus in case, we also want to update the keyboard focus
       // if needed: this means determining whether the focus reason is able to change
       // the keyboard status. If this is the case we make this widget lose the focus.
-      if (canCauseKeyboardFocusChange(e.getReason())) {
+      if (hasKeyboardFocus() && canCauseKeyboardFocusChange(e.getReason())) {
         // Update the keyboard focus: as we're handling a focus out event we need
         // to set the keyboard focus to `false`.
         m_keyboardFocus = false;
@@ -371,7 +371,7 @@ namespace sdl {
 
         // Update the keyboard focus based on whether the focus reason can
         // cause a modification of the keyboard state.
-        if (canCauseKeyboardFocusChange(e.getReason())) {
+        if (hasKeyboardFocus() && canCauseKeyboardFocusChange(e.getReason())) {
           // Update the keyboard focus: as we're handling a gain focus event
           // which has not been produced by `this` widget we need to set the
           // keyboard focus to `false`.

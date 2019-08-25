@@ -250,7 +250,7 @@ namespace sdl {
       // in processing this event is to actually determine whether this widget is
       // sensitive to this kind of focus events: if this is not the case we do
       // not want to redraw the content or anything, just perform the notification
-      // of this event to the rest of the component to update the needed states.
+      // of this event to the rest of the components to update the needed states.
       // If the focus event is supported we need to trigger a redraw of the
       // widget's content if needed in order for it to match its current focus
       // status.
@@ -258,31 +258,36 @@ namespace sdl {
       // handle the propagation of this focus event to parent and children so
       // that they get notified of the new status for this widget.
 
-      // If the focus event has a hover event as a cause, update the position of
-      // the mouse. This should be done no matter if this widget will actually
-      // handle the focus reason.
-      if (e.getReason() == engine::FocusEvent::Reason::HoverFocus) {
+      // Update the `m_mouseInside` variable: it allows to easily determine whether
+      // the mouse is inside the widget or not. We want to update this value if the
+      // input focus reason has anything to do with the mouse. So basically just not
+      // using the tab focus. This should be done no matter if this widget will use
+      // the focus event in the end: it helps maintaining a consistentcy of the app
+      // state.
+      if (e.getReason() == engine::FocusEvent::Reason::HoverFocus ||
+          e.getReason() == engine::FocusEvent::Reason::MouseFocus)
+      {
         // The mouse is now inside this widget.
         m_mouseInside = true;
       }
 
-      // Determine whether the focus reason provided by the input event is
-      // supported by this widget.
-      if (canHandleFocusReason(e.getReason())) {
-        // Now that we know the focus reason can be handled, we need to update the
-        // widget's content to match the new focus state. Once again use the dedicated
-        // handler.
-        updateStateFromFocus(e.getReason(), true);
-
-        // In addition we need to update the keyboard focus based on whether the
-        // focus reason can cause a modification of the keyboard state.
-        if (canCauseKeyboardFocusChange(e.getReason())) {
-          // Update the keyboard focus: as we're handling a focus in event we need
-          // to set the keyboard focus to `true`.
-          m_keyboardFocus = true;
-          log("Widget now has keyboard focus", utils::Level::Notice);
-        }
+      // Similar reasoning holds for the keyboard focus. We only want to update
+      // the keyboard status if the focus reason can cause a keyboard focus change
+      // though.
+      if (canCauseKeyboardFocusChange(e.getReason())) {
+        // Update the keyboard focus: as we're handling a focus in event we need
+        // to set the keyboard focus to `true`.
+        m_keyboardFocus = true;
+        log("Widget now has keyboard focus", utils::Level::Notice);
       }
+
+      // Perform an update of the internal state of this widget. We can safely call
+      // the `updateStateFromFocus` method which will just update the internal state
+      // and trigger the needed repaints only if the focus policy allows for handling
+      // of the focus reason.
+      // As we're processing a focus in event the `gainedFocus` boolean should be
+      // set to `true` upon calling the method.
+      updateStateFromFocus(e.getReason(), true);
 
       // Post a gain focus first to this widget (so that potential children
       // which are currently focused get deactivated) which will then be
@@ -303,28 +308,36 @@ namespace sdl {
       // we will generate will be a `LostFocus` instead of a `GainFocus`.
       // See this function for more details.
 
-      // If the focus event has a hover event as a cause, update the position of
-      // the mouse. This should be done no matter if this widget will actually
-      // handle the focus reason.
-      m_mouseInside = false;
-
-      // Determine whether we can handle this reason.
-      if (!canHandleFocusReason(e.getReason())) {
-        // Use the base handler to provide a return value.
-        return LayoutItem::focusOutEvent(e);
+      // One of the role of the focus out event is to notify when the mouse exits
+      // this widget. This relies on the input focus reason being something related
+      // to the mouse. So discarding anything related to tab focus for example.
+      // This process should be triggered no matter if this widget will actually
+      // handle the focus reason, in order to allow a consistent state of where the
+      // mouse actually is in the application.
+      if (e.getReason() == engine::FocusEvent::Reason::HoverFocus ||
+          e.getReason() == engine::FocusEvent::Reason::MouseFocus)
+      {
+        // The mouse is now outside this widget.
+        m_mouseInside = false;
       }
 
-      // Update the internal state.
-      updateStateFromFocus(e.getReason(), false);
-
-      // Update the keyboard focus based on whether the focus reason can cause a
-      // modification of the keyboard state.
+      // Just like in the focus in case, we also want to update the keyboard focus
+      // if needed: this means determining whether the focus reason is able to change
+      // the keyboard status. If this is the case we make this widget lose the focus.
       if (canCauseKeyboardFocusChange(e.getReason())) {
         // Update the keyboard focus: as we're handling a focus out event we need
         // to set the keyboard focus to `false`.
         m_keyboardFocus = false;
         log("Widget lost keyboard focus", utils::Level::Notice);
       }
+
+      // Perform an update of the internal state of this widget. We can safely call
+      // the `updateStateFromFocus` method which will just update the internal state
+      // and trigger the needed repaints only if the focus policy allows for handling
+      // of the focus reason.
+      // As we're processing a focus out event the `gainedFocus` boolean should be
+      // set to `false` upon calling the method.
+      updateStateFromFocus(e.getReason(), false);
 
       // Post the `LostFocus` event.
       postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), false));
@@ -340,7 +353,7 @@ namespace sdl {
       // widget.
       // This method needs to unfocus any other child widget for `this`
       // widget which may have the focus and also notify the parent widget
-      // or the manager layout if any with the fact that this widget has
+      // or the manager layout (if any) with the fact that this widget has
       // now focus.
       // We also need to focus ourselves so that the chain of widgets
       // which lead to the deepest focused child can be built.
@@ -349,19 +362,19 @@ namespace sdl {
       // Apply the focus modification if needed: we also optimize a bit
       // by checking whether the event is produced by `this` widget: if
       // this is the case we don't need to update anything as it has most
-      // likely already been handled.
-      if (e.getEmitter() != this && canHandleFocusReason(e.getReason())) {
-        // Now that we know the focus reason can be handled, we need to update the
-        // widget's content to match the new focus state. Once again use the dedicated
-        // handler.
+      // likely already been handled during the `FocusIn` event.
+      if (e.getEmitter() != this) {
+        // Now that we know the focus reason can be handled, we need to
+        // update the widget's content to match the new focus state. Once
+        // again use the dedicated handler.
         updateStateFromFocus(e.getReason(), true);
 
-        // Update the keyboard focus based on whether the focus reason can cause a
-        // modification of the keyboard state.
+        // Update the keyboard focus based on whether the focus reason can
+        // cause a modification of the keyboard state.
         if (canCauseKeyboardFocusChange(e.getReason())) {
-          // Update the keyboard focus: as we're handling a gain focus event which has
-          // not been produced by `this` widget we need to set the keyboard focus to
-          // `false`.
+          // Update the keyboard focus: as we're handling a gain focus event
+          // which has not been produced by `this` widget we need to set the
+          // keyboard focus to `false`.
           m_keyboardFocus = false;
           log("Widget lost keyboard focus 2", utils::Level::Notice);
         }
@@ -406,6 +419,31 @@ namespace sdl {
 
       // Use the base handler to provide a return value.
       return LayoutItem::gainFocusEvent(e);
+    }
+
+    bool
+    SdlWidget::lostFocusEvent(const engine::FocusEvent& e) {
+      log("Handling lost focus from " + e.getEmitter()->getName());
+
+      // A lost focus event comes after a leave event and means that the
+      // focus has been removed from this widget. It also means that no
+      // children can keep the focus, so we should transmit the leave event
+      // to all the children of `this` widget.
+      {
+        Guard guard(m_childrenLocker);
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+
+          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
+          // If the child is not the source of the event and is focused, unfocus it.
+          if (child->widget->hasFocus()) {
+            log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus");
+            postEvent(std::make_shared<engine::FocusEvent>(false, e.getReason(), child->widget), false, true);
+          }
+        }
+      }
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::lostFocusEvent(e);
     }
 
     bool

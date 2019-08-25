@@ -881,7 +881,7 @@ namespace sdl {
     inline
     void
     SdlWidget::stateUpdatedFromFocus(const FocusState& state,
-                                     const bool /*gainedFocus*/,
+                                     const bool gainedFocus,
                                      const bool primaryFocus)
     {
       // The default implementation specifies that the content's texture role
@@ -894,15 +894,16 @@ namespace sdl {
       // triggered by `this` widget). Indeed we don't want to set the whole
       // hierarchy with special display: only the deepest child (i.e. the
       // primary source of the focus) will be repainted with a special visual
-      // representation.
-      if (m_content.valid() && primaryFocus) {
+      // representation. If the state is updated from a lost focus event though
+      // we handle it no matter whether we are the primary focus source.
+      if (m_content.valid() && (primaryFocus || !gainedFocus)) {
         getEngine().setTextureRole(m_content, state.getColorRole());
 
         // Post a repaint event.
         requestRepaint();
       }
       else {
-        if (primaryFocus) {
+        if (primaryFocus || !gainedFocus) {
           log("Trashing texture role update because content is not valid", utils::Level::Warning);
         }
       }

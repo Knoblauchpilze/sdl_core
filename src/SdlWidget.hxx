@@ -851,7 +851,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::updateStateFromFocus(const engine::FocusEvent::Reason& reason,
+    SdlWidget::updateStateFromFocus(const engine::FocusEvent& e,
                                     const bool gainedFocus)
     {
       // We need to update the widget's content to match the new focus state.
@@ -861,10 +861,10 @@ namespace sdl {
       bool update = false;
       switch (gainedFocus) {
         case true:
-          update = state.handleFocusIn(reason);
+          update = state.handleFocusIn(e.getReason());
           break;
         default:
-          update = state.handleFocusOut(reason);
+          update = state.handleFocusOut(e.getReason());
           break;
       }
 
@@ -873,30 +873,38 @@ namespace sdl {
       // guarantee of this function. This call is only triggered if `this` widget
       // can handle the focus reason: it is fully determined by the focus policy
       // regarding this matter.
-      if (update && canHandleFocusReason(reason)) {
-        stateUpdatedFromFocus(state, gainedFocus);
+      if (update && canHandleFocusReason(e.getReason())) {
+        stateUpdatedFromFocus(state, gainedFocus, e.isEmittedBy(this));
       }
     }
 
     inline
     void
     SdlWidget::stateUpdatedFromFocus(const FocusState& state,
-                                     const bool /*gainedFocus*/)
+                                     const bool /*gainedFocus*/,
+                                     const bool primaryFocus)
     {
       // The default implementation specifies that the content's texture role
       // should be updated to reflect the internal focus state of the widget.
       // We also need to trigger a repaint event in case the content's role is
-      // modified.
-      // This can only occur if the texture representing the content is valid,
-      // obviously.
-      if (m_content.valid()) {
+      // modified. This can only occur if the texture representing the content
+      // is valid, obviously.
+      // Finally we only want to trigger the modifications if the focus event
+      // which triggered the state update is a primary focus (i.e. has been
+      // triggered by `this` widget). Indeed we don't want to set the whole
+      // hierarchy with special display: only the deepest child (i.e. the
+      // primary source of the focus) will be repainted with a special visual
+      // representation.
+      if (m_content.valid() && primaryFocus) {
         getEngine().setTextureRole(m_content, state.getColorRole());
 
         // Post a repaint event.
         requestRepaint();
       }
       else {
-        log("Trashing texture role update because content is not valid", utils::Level::Warning);
+        if (primaryFocus) {
+          log("Trashing texture role update because content is not valid", utils::Level::Warning);
+        }
       }
     }
 

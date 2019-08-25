@@ -635,29 +635,50 @@ namespace sdl {
 
         /**
          * @brief - Used to update the internal focus state from the input focus reason.
-         *          This method also tries to update the widget's content with a suited
-         *          role (and more specifically the texture described by the `m_content`
-         *          attribute). Based on the value of `gainedFocus` the state will either
-         *          be updated due to a focus gain or a focus loss.
-         *          A repaint event might be triggered if the input reason requires it.
-         *          Note that no checks are performed to verify that the input focus
-         *          reason is supported by this widget, we assume that such tests have
-         *          been done before.
-         *          This method returns `true` or `false` based on whether the role of
-         *          the main texture for `this` widget has been updated or not. This
-         *          allows inheriting classes to react to a modification of the base
-         *          widget's content to update the additional layers of information
-         *          such as text, images, etc. If the return value is `false` no
-         *          modifications have been made to the base texture.
+         *          Depending on the focus reason and the internal widget's policy for
+         *          focus handling, we might or might not actually update anything in
+         *          `this` widget's content.
+         *          A typical action that is performed when the state of a widget is
+         *          changed is to update the content's texture role to set it to a more
+         *          appropriate value reflecting the change in focus of `this` widget.
+         *          This action can be de/activated according to the focus policy. Some
+         *          inheriting classes might also want to react to such changes by also
+         *          update local attributes to better suited values: usually they do not
+         *          want to specialize the update process but rather be notified about
+         *          it.
+         *          That's why this method is not directly set to virtual and rather
+         *          triggers a call to the `stateUpdatedFromFocus` method if the change
+         *          was meant to be changed. Inheriting classes are encouraged to overload
+         *          rather that method compared to this one.
          * @param reason - the focus reason which triggered the update of the state in
          *                 the first place.
          * @param gainedFocus - `true` if this widget just gained focus, `false` if it
          *                      just lost the focus.
-         * @return - `true` if the base texture role has been updated, `false` otherwise.
          */
-        virtual bool
+        void
         updateStateFromFocus(const engine::FocusEvent::Reason& reason,
                              const bool gainedFocus);
+
+        /**
+         * @brief - Called by the `updateStateFromFocus` whenever the internal state has
+         *          actually been updated. The input arguments provide more insight on the
+         *          focus event which triggered the call to this method along with the
+         *          current state of `this` widget.
+         *          Inheriting classes are encouraged to overload this method in case some
+         *          specific updates need to be performed upon changing the internal state
+         *          of the widget.
+         *          Note that this method is only called upon updating the state (i.e. we
+         *          are sure that the state actually changed when this function is called)
+         *          and when the focus reason which triggered the state update is handled
+         *          by this widget (i.e. the focus policy allow reactions on this type of
+         *          focus).
+         * @param reason - the focus reason which triggered the state update.
+         * @param gainedFocus - `true` if `this` widget just gained focus, `false` if it
+         *                      lost the focus.
+         */
+        virtual void
+        stateUpdatedFromFocus(const FocusState& state,
+                              const bool gainedFocus);
 
         /**
          * @brief - Used to determine whether the input focus reason can trigger a keyboard

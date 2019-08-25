@@ -669,32 +669,6 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::lostFocusEvent(const engine::FocusEvent& e) {
-      log("Handling lost focus from " + e.getEmitter()->getName());
-
-      // A lost focus event comes after a leave event and means that the
-      // focus has been removed from this widget. It also means that no
-      // children can keep the focus, so we should transmit the leave event
-      // to all the children of `this` widget.
-      {
-        Guard guard(m_childrenLocker);
-        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
-
-          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
-          // If the child is not the source of the event and is focused, unfocus it.
-          if (child->widget->hasFocus()) {
-            log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus");
-            postEvent(std::make_shared<engine::FocusEvent>(false, e.getReason(), child->widget), false, true);
-          }
-        }
-      }
-
-      // Use the base handler to provide a return value.
-      return LayoutItem::lostFocusEvent(e);
-    }
-
-    inline
-    bool
     SdlWidget::mouseButtonReleaseEvent(const engine::MouseEvent& e) {
       // Mouse events are only transmitted to this widget when the mouse is
       // inside the widget and if no other child block the view.
@@ -876,7 +850,7 @@ namespace sdl {
     }
 
     inline
-    bool
+    void
     SdlWidget::updateStateFromFocus(const engine::FocusEvent::Reason& reason,
                                     const bool gainedFocus)
     {
@@ -895,22 +869,35 @@ namespace sdl {
       }
 
       // Check whether the focus state has been updated: if this is the case we
-      // need to update the widget's content accordingly. This can only be done
-      // if the texture is valid of course.
-      if (update) {
-        if (!m_content.valid()) {
-          log("Trashing texture role update because content is not valid", utils::Level::Warning);
-        }
-        else {
-          getEngine().setTextureRole(m_content, state.getColorRole());
-        }
+      // need to trigger a call to the `stateUpdatedFromFocus` which is the basic
+      // guarantee of this function. This call is only triggered if `this` widget
+      // can handle the focus reason: it is fully determined by the focus policy
+      // regarding this matter.
+      if (update && canHandleFocusReason(reason)) {
+        stateUpdatedFromFocus(state, gainedFocus);
+      }
+    }
+
+    inline
+    void
+    SdlWidget::stateUpdatedFromFocus(const FocusState& state,
+                                     const bool /*gainedFocus*/)
+    {
+      // The default implementation specifies that the content's texture role
+      // should be updated to reflect the internal focus state of the widget.
+      // We also need to trigger a repaint event in case the content's role is
+      // modified.
+      // This can only occur if the texture representing the content is valid,
+      // obviously.
+      if (m_content.valid()) {
+        getEngine().setTextureRole(m_content, state.getColorRole());
 
         // Post a repaint event.
         requestRepaint();
       }
-
-      // Return the update status.
-      return update;
+      else {
+        log("Trashing texture role update because content is not valid", utils::Level::Warning);
+      }
     }
 
     inline

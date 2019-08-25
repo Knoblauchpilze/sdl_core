@@ -287,7 +287,7 @@ namespace sdl {
       // of the focus reason.
       // As we're processing a focus in event the `gainedFocus` boolean should be
       // set to `true` upon calling the method.
-      updateStateFromFocus(e.getReason(), true);
+      updateStateFromFocus(e, true);
 
       // Post a gain focus first to this widget (so that potential children
       // which are currently focused get deactivated) which will then be
@@ -337,7 +337,7 @@ namespace sdl {
       // of the focus reason.
       // As we're processing a focus out event the `gainedFocus` boolean should be
       // set to `false` upon calling the method.
-      updateStateFromFocus(e.getReason(), false);
+      updateStateFromFocus(e, false);
 
       // Post the `LostFocus` event.
       postEvent(std::make_shared<engine::FocusEvent>(e.getReason(), false));
@@ -363,11 +363,11 @@ namespace sdl {
       // by checking whether the event is produced by `this` widget: if
       // this is the case we don't need to update anything as it has most
       // likely already been handled during the `FocusIn` event.
-      if (e.getEmitter() != this) {
+      if (!e.isEmittedBy(this)) {
         // Now that we know the focus reason can be handled, we need to
         // update the widget's content to match the new focus state. Once
         // again use the dedicated handler.
-        updateStateFromFocus(e.getReason(), true);
+        updateStateFromFocus(e, true);
 
         // Update the keyboard focus based on whether the focus reason can
         // cause a modification of the keyboard state.
@@ -388,7 +388,7 @@ namespace sdl {
 
           log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
           // If the child is not the source of the event and is focused, unfocus it.
-          if (e.getEmitter() != child->widget && child->widget->hasFocus()) {
+          if (!e.isEmittedBy(child->widget) && child->widget->hasFocus()) {
             log("Posting focus out event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
             postEvent(std::make_shared<engine::FocusEvent>(false, e.getReason(), child->widget), false, true);
           }
@@ -496,7 +496,7 @@ namespace sdl {
         // If this is the case it means that the widget has been
         // repainted after the last time we drew it completely so
         // we can use this event to update things.
-        if (e.getEmitter() != nullptr) {
+        if (!e.isSpontaneous()) {
           const std::string name = e.getEmitter()->getName();
 
           // Retrieve the internal timestamp if any.
@@ -528,7 +528,7 @@ namespace sdl {
 
         // Also, assign this event's emitter to `this` if both sources are
         // not equal.
-        if (em != e.getEmitter()) {
+        if (!e.isEmittedBy(em)) {
           m_repaintOperation->setEmitter(this);
         }
       }
@@ -645,7 +645,7 @@ namespace sdl {
       // example we don't really need to notify the parent widget that a region
       // has been updated if it is the one which told us in the first place.
       // The copy is handled on the fly when building the output event.
-      if (e.getEmitter() != nullptr && (e.getEmitter() == this || hasChild(e.getEmitter()->getName()))) {
+      if (!e.isSpontaneous() && (e.isEmittedBy(this) || hasChild(e.getEmitter()->getName()))) {
         pe->copyUpdateRegions(e);
       }
 
@@ -804,7 +804,7 @@ namespace sdl {
       // Finally let's handle the repaint of the source of the repaint event
       // if it is not part of our children. This allows to actually display
       // elements on top of other widgets.
-      if (e.getEmitter() != nullptr && !hasChild(e.getEmitter()->getName()) && e.getEmitter() != this) {
+      if (!e.isSpontaneous() && !hasChild(e.getEmitter()->getName()) && !e.isEmittedBy(this)) {
         // Check whether the emitter can be displayed as a widget.
         SdlWidget* source = dynamic_cast<SdlWidget*>(e.getEmitter());
 

@@ -52,7 +52,7 @@ namespace sdl {
       for (Items::const_iterator item = m_items.cbegin() ; item != m_items.cend() ; ++item) {
         log("Item " + (*item)->getName() + ((*item)->hasFocus() ? " has " : " has not ") + "focus");
         // If the child is not the source of the event and is focused, unfocus it.
-        if (e.getEmitter() != *item && (*item)->hasFocus()) {
+        if (!e.isEmittedBy(*item) && (*item)->hasFocus()) {
           log("Posting leave event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
           postEvent(std::make_shared<engine::FocusEvent>(false, e.getReason(), *item), false, true);
         }
@@ -85,7 +85,7 @@ namespace sdl {
            ++child)
       {
         // Discard this child if the emitter belongs to its hierarchy.
-        if ((*child) == e.getEmitter()) {
+        if (e.isEmittedBy(*child)) {
           log("Ignoring child " + (*child)->getName() + " which is the source of the paint event");
           continue;
         }

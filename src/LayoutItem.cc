@@ -5,29 +5,26 @@ namespace sdl {
   namespace core {
 
     LayoutItem::LayoutItem(const std::string& name,
-                           const utils::Sizef& sizeHint,
-                           const bool needsConvert,
-                           const bool virtualItem):
+                           const utils::Sizef& sizeHint):
       engine::EngineObject(name),
+
       m_minSize(),
       m_sizeHint(sizeHint),
       m_maxSize(utils::Sizef::max()),
+
       m_sizePolicy(),
       m_focusPolicy(),
+
       m_geometryDirty(true),
       m_area(utils::Boxf::fromSize(sizeHint, true)),
-      m_nested(false),
-      m_needsConvert(needsConvert),
+
       m_visible(true),
       m_visibleLocker(),
-      m_virtual(false),
+
       m_state(),
       m_manager(nullptr)
     {
       setService(std::string("layout_item"));
-
-      // Assign virtual status.
-      setVirtual(virtualItem);
     }
 
     bool

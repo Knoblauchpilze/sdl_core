@@ -87,46 +87,6 @@ namespace sdl {
 
     inline
     bool
-    LayoutItem::isNested() const noexcept {
-      return m_nested;
-    }
-
-    inline
-    void
-    LayoutItem::setNested(const bool nested) {
-      m_nested = nested;
-    }
-
-    inline
-    bool
-    LayoutItem::needsConvert() const noexcept {
-      return m_needsConvert;
-    }
-
-    inline
-    void
-    LayoutItem::setNeedsConvert(const bool needsConvert) {
-      m_needsConvert = needsConvert;
-    }
-
-    inline
-    bool
-    LayoutItem::isVirtual() const noexcept {
-      return m_virtual;
-    }
-
-    inline
-    void
-    LayoutItem::setVirtual(const bool virtualItem) {
-      // Mark this layout item as virtual.
-      m_virtual = virtualItem;
-
-      // De/activate event handling if needed.
-      setActive(!isVirtual());
-    }
-
-    inline
-    bool
     LayoutItem::hasFocus() const noexcept {
       return m_state.hasFocus();
     }
@@ -162,18 +122,7 @@ namespace sdl {
       // Post a show/hide event based on the status of the input `visible` status.
       engine::EventShPtr e;
 
-      std::lock_guard<std::mutex> guard(m_visibleLocker);
-
-      // Note: we assign the visible status here and do not wait for the hide, show
-      // event in order to directly benefit from the updated status. Indeed if we
-      // don't do that when building up the ui before starting the application we
-      // only get one shot at updating the visibility status of any widget. This
-      // might not be enough to build complex ui and thus we prefer to use this
-      // mechanism. The event is still issued though, which will prevent events from
-      // being pushed if needed.
-      m_visible = visible;
-
-      // Issue an event nonetheless.
+      // Issue an event based on the current status.
       if (visible) {
         e = std::make_shared<engine::Event>(engine::Event::Type::Show, this);
       }
@@ -219,11 +168,8 @@ namespace sdl {
       // Mark the geometry as dirty.
       m_geometryDirty = true;
 
-      // Trigger a geometry update event if this item is not part of a
-      // virtual hierarchy.
-      if (!isVirtual()) {
-        postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
-      }
+      // Trigger a geometry update event.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::GeometryUpdate));
     }
 
     inline
@@ -249,8 +195,14 @@ namespace sdl {
     inline
     bool
     LayoutItem::hideEvent(const engine::Event& e) {
+      // Assign the corresponding visible status.
+      {
+        std::lock_guard<std::mutex> guard(m_visibleLocker);
+        m_visible = false;
+      }
+
       // Deactivate the events for this item.
-      setActive(false);
+      disableEventsProcessing();
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::hideEvent(e);
@@ -259,8 +211,14 @@ namespace sdl {
     inline
     bool
     LayoutItem::showEvent(const engine::Event& e) {
+      // Assign the corresponding visible status.
+      {
+        std::lock_guard<std::mutex> guard(m_visibleLocker);
+        m_visible = true;
+      }
+
       // Reactivate event handling.
-      setActive(true);
+      activateEventsProcessing();
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::showEvent(e);

@@ -102,6 +102,18 @@ namespace sdl {
     }
 
     inline
+    bool
+    Layout::isNested() const noexcept {
+      return m_nesting == Nesting::Deep;
+    }
+
+    inline
+    void
+    Layout::setNesting(const Nesting& nesting) {
+      m_nesting = nesting;
+    }
+
+    inline
     const utils::Sizef&
     Layout::getMargin() const noexcept {
       return m_margin;
@@ -110,11 +122,11 @@ namespace sdl {
     inline
     void
     Layout::update(const utils::Boxf& window) {
-      // Check if this item is a virtual layout, in which case we can proceed
-      // to calling the `updatePrivate` method.
-      if (isVirtual()) {
-        updatePrivate(window);
-      }
+      // Note that calling this method should be handled with care:
+      // indeed it triggers an update of the layout and bypass the
+      // security put in place in the `LayoutItem` to detect redundant
+      // calls to update function.
+      updatePrivate(window);
     }
 
     inline
@@ -127,6 +139,18 @@ namespace sdl {
       for (unsigned id = 0u ; id < m_items.size() ; ++id) {
         registerToSameQueue(m_items[id]);
       }
+    }
+
+    inline
+    bool
+    Layout::needsConvert() const noexcept {
+      return m_boxesFormat == BoxesFormat::Engine;
+    }
+
+    inline
+    void
+    Layout::setBoxesFormat(const BoxesFormat& format) {
+      m_boxesFormat = format;
     }
 
     inline

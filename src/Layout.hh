@@ -14,14 +14,43 @@ namespace sdl {
 
     class SdlWidget;
 
-    // Slave class of SdlWidget.
     class Layout: public LayoutItem {
       public:
 
-        enum class Direction {
-          Horizontal,
-          Vertical
+        /**
+         * @brief - Describes the kind of nesting associated to a
+         *          layout item. Nesting allows to compose several
+         *          layers of layout which in turn allows layouts
+         *          managed by other layouts.
+         *          Basically a layout item can be a `Root` item
+         *          (which means that it is at the top level of
+         *          its layout hierarchy) or `Nested` (which tells
+         *          that some other layout controls the size and
+         *          aspect of this item).
+         */
+        enum class Nesting {
+          Root,  //<!- Indicates that this item is at the top of
+                 //<!  its layout hierarchy.
+          Deep   //<!- Indicates that this item is nested under
+                 //<!  another layer of layout.
         };
+
+        /**
+         * @brief - Describes the format of the bounding box expected
+         *          by this layout and more precisely by the method
+         *          `assignRenderingAreas`.
+         *          Depending on whether the boxes are produced in a
+         *          window or a widget, their format can vary a bit and
+         *          in order to keep the interface of the layout kinda
+         *          consistent we allow upon defining a layout to tell
+         *          which format is used.
+         */
+         enum class BoxesFormat {
+           Window,  //<!- Boxes are provided to the `assignRenderingAreas`
+                    //<!  method in window format.
+           Engine   //<!- Boxes are provided to the `assignRenderingAreas`
+                    //<!  method in engine format.
+         };
 
       public:
 
@@ -112,6 +141,24 @@ namespace sdl {
         getMargin() const noexcept;
 
         /**
+         * @brief - Used to determine whether this layout is nested under another layout
+         *          or if it is at the top of its layout hierarchy.
+         * @return - `true` if this layout is NOT at the top of its hierarchy, `false`
+         *           otherwise.
+         */
+        bool
+        isNested() const noexcept;
+
+        /**
+         * @brief - Sets this layout's nesting status to be equal to the value in argument
+         *          Allows to define whether a layout is at the top level of its layout
+         *          hierarchy.
+         * @param nesting - a textual description of the nesting status of this layout.
+         */
+        void
+        setNesting(const Nesting& nesting);
+
+        /**
          * @brief - Used in case this layout is a virtual layout to trigger a
          *          recomputation of this object. Note that most users should
          *          never use this function and rather use the standard way
@@ -138,10 +185,40 @@ namespace sdl {
 
       protected:
 
+        /**
+         * @brief - Builds a layout object with the specified name, parent widget
+         *          and margin.
+         *          In addition the user can also specify the format into which the
+         *          bounding boxes will be provided to the `assignRenderingAreas`
+         *          for this widget. Indeed as the computation of the bounding boxes
+         *          to assign to managed items is done in the pure virtual method
+         *          `computeGeometry` we have no way of determining it beforehand.
+         *          This feature is useful for layouts attached to a window and not
+         *          a widget to keep a consistent interface.
+         * @param name - the name to assign to this layout.
+         * @param widget - a pointer to the widget which is managed by this layout.
+         *                 This widget can still be set later using the `SdlWidget`
+         *                 method `setLayout`.
+         * @param margin - a float value indicating how much margin should be set
+         *                 around the managed item. Note that a single value is
+         *                 needed which means that both horizontal and vertical
+         *                 margins will always be the same.
+         * @param type - the type of this layout: this value is transmitted to the
+         *               base `LayoutItem` class and indicates whether 
+         */
         Layout(const std::string& name,
                SdlWidget* widget = nullptr,
-               const float& margin = 0.0f);
+               const float& margin = 0.0f,
+               const BoxesFormat& format = BoxesFormat::Engine);
 
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` method in order to
+         *          provide a rebuild of the layout upon receiving a geometry update
+         *          event. This will trigger a computation of the size of all the
+         *          managed events. Usually the input `window` corresponds to the size
+         *          of the widget managed by this layout.
+         * @param window - a box representing the available size for this layout.
+         */
         void
         updatePrivate(const utils::Boxf& window) override;
 
@@ -156,6 +233,35 @@ namespace sdl {
          */
         virtual void
         computeGeometry(const utils::Boxf& window) = 0;
+
+        /**
+         * @brief - Used to determine whether the bounding boxes to assign to the
+         *          items managed by this layout need to be converted into an
+         *          engine format before being assigned.
+         *          This is particularly useful in order to allow top level layout
+         *          (such as ones which are associated directly to a window) to
+         *          easily indicate to their children that the bounding boxes that
+         *          is computed by the layout do not need to be converted.
+         *          In order to make the interface to the `LayoutItem` consistent,
+         *          the conversion is handled upon calling the `assignRenderingAreas`
+         *          method in this object. This is were the status returned by this
+         *          method will probably be most useful.
+         * @return - `true` if the bounding boxes to assign to children items need
+         *           to be converted into engine format first and `false` otherwise.
+         *           Note that the `true` return value actually also indicates that
+         *           the internal boxes format is set to `Engine`.
+         */
+        bool
+        needsConvert() const noexcept;
+
+        /**
+         * @brief - Used to assign a new boxes format to this layout. The new format
+         *          overrides the old one and is applied right away.
+         * @param format - the new bounding boxes format sent to the internal method
+         *                 `assignRenderingAreas`.
+         */
+        void
+        setBoxesFormat(const BoxesFormat& format);
 
         /**
          * @brief - Redefintion of the base `EngineObject` method which allows to
@@ -332,19 +438,50 @@ namespace sdl {
                               const WidgetInfo& info) const;
 
         std::pair<bool, bool>
-        canBeUsedTo(const std::string& name,
-                    const WidgetInfo& info,
+        canBeUsedTo(const WidgetInfo& info,
                     const utils::Boxf& box,
                     const SizePolicy& action) const;
 
       private:
 
+        /// Used to give access to `SdlWidget` to protected method on this class.
         friend class SdlWidget;
 
+        /**
+         * @brief - Convenience define which represents a list of pointer to some
+         *          `LayoutItem` object: useful to refer to the internal array of
+         *          managed objects by a layout.
+         */
         using Items = std::vector<LayoutItem*>;
 
-        Items m_items;
+        /**
+         * @brief - Contains the list of all the managed items by this layout. Items
+         *          are inserted in a chronological order into this array.
+         */
+        Items        m_items;
+
+        /**
+         * @brief - Margin to use when computing the size available for children widgets. Basically
+         *          when given an available space to allocate between widgets, we subtract first the
+         *          value provided by the margin in order to allow some nice outline.
+         *          This value can be set to `0` if no margin is desirable.
+         */
         utils::Sizef m_margin;
+
+        /**
+         * @brief - Used to determine whether the boxes provided by this item using the method called
+         *          `assignRenderingAreas` should be converted before assigning them to the various
+         *          items or not. This is controlled by the enumeration value defined for convenience.
+         */
+        BoxesFormat  m_boxesFormat;
+
+        /**
+         * @brief - Used to determine whether this layout is nested into another layout, meaning that
+         *          the bounding boxes provided to the `assignRenderingAreas` need to be offseted with
+         *          the available space position. This typically indicates that the item is NOT at the
+         *          top of its layout hiearchy and is strongly tied to the `m_boxesFormat` attribute.
+         */
+        Nesting      m_nesting;
     };
 
     using LayoutShPtr = std::shared_ptr<Layout>;

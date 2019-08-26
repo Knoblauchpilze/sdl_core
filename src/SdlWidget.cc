@@ -9,7 +9,7 @@ namespace sdl {
                          const utils::Sizef& sizeHint,
                          SdlWidget* parent,
                          const engine::Color& color):
-      LayoutItem(name, sizeHint, false, false),
+      LayoutItem(name, sizeHint),
 
       m_names(),
       m_children(),
@@ -363,7 +363,7 @@ namespace sdl {
       // by checking whether the event is produced by `this` widget: if
       // this is the case we don't need to update anything as it has most
       // likely already been handled during the `FocusIn` event.
-      if (!e.isEmittedBy(this)) {
+      if (!isEmitter(e)) {
         // Now that we know the focus reason can be handled, we need to
         // update the widget's content to match the new focus state. Once
         // again use the dedicated handler.
@@ -645,7 +645,7 @@ namespace sdl {
       // example we don't really need to notify the parent widget that a region
       // has been updated if it is the one which told us in the first place.
       // The copy is handled on the fly when building the output event.
-      if (!e.isSpontaneous() && (e.isEmittedBy(this) || hasChild(e.getEmitter()->getName()))) {
+      if (!e.isSpontaneous() && (isEmitter(e) || hasChild(e.getEmitter()->getName()))) {
         pe->copyUpdateRegions(e);
       }
 
@@ -804,7 +804,7 @@ namespace sdl {
       // Finally let's handle the repaint of the source of the repaint event
       // if it is not part of our children. This allows to actually display
       // elements on top of other widgets.
-      if (!e.isSpontaneous() && !hasChild(e.getEmitter()->getName()) && !e.isEmittedBy(this)) {
+      if (!e.isSpontaneous() && !hasChild(e.getEmitter()->getName()) && !isEmitter(e)) {
         // Check whether the emitter can be displayed as a widget.
         SdlWidget* source = dynamic_cast<SdlWidget*>(e.getEmitter());
 

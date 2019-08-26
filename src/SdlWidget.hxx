@@ -874,7 +874,7 @@ namespace sdl {
       // can handle the focus reason: it is fully determined by the focus policy
       // regarding this matter.
       if (update && canHandleFocusReason(e.getReason())) {
-        stateUpdatedFromFocus(state, gainedFocus, e.isEmittedBy(this));
+        stateUpdatedFromFocus(state, gainedFocus, isEmitter(e));
       }
     }
 

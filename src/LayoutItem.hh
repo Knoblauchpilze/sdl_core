@@ -133,9 +133,28 @@ namespace sdl {
         void
         setManager(LayoutItem* item) noexcept;
 
+        /**
+         * @brief - Used to return the visiblity status for this layout item. Note that
+         *          this value might not reflect the most accurate representation of the
+         *          status of this item. Indeed if some Hide/Show events are registered
+         *          in the internal queue they might change the visibility status during
+         *          the next processing step.
+         * @return - the current visibility status for this layout item.
+         */
         bool
         isVisible() const noexcept;
 
+        /**
+         * @brief - Used to assign a new visibility status to this layout item. Note that
+         *          in order to play well with the events system this method does not actually
+         *          set the visible internal status to `visible`. That is immediately calling
+         *          the `isVisible` method afterwards will usually not return `visible`. THe
+         *          next events processing pass should occur for that to be true.
+         *          This method actually internally triggers a Hide/Show event based on the
+         *          value of `visible`.
+         * @param visible - the new visibility status. Will trigger the creation of the suited
+         *                  visibility event.
+         */
         virtual void
         setVisible(bool visible) noexcept;
 

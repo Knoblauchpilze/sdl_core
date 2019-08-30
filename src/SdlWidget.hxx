@@ -148,7 +148,7 @@ namespace sdl {
                            engine::EventShPtr e)
     {
       // Check whether the widget is not visible or not active.
-      if(!isVisible() || !isActive()) {
+      if(!isVisible() || !isActive(e->getType())) {
         return true;
       }
 

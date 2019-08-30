@@ -67,9 +67,6 @@ namespace sdl {
         getRenderingArea() const noexcept override;
 
         void
-        setVisible(bool visible) noexcept override;
-
-        void
         setLayout(std::shared_ptr<Layout> layout) noexcept;
 
         const engine::Palette&
@@ -292,6 +289,17 @@ namespace sdl {
 
         bool
         resizeEvent(engine::ResizeEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` to provide an additional
+         *          call to the `makeContentDirty` whenever a show event is received.
+         *          This allows to always get a fresh repaint of the widget when it is
+         *          shown again.
+         * @param e - the show event to process.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        showEvent(const engine::Event& e) override;
 
         bool
         zOrderChanged(const engine::Event& e) override;

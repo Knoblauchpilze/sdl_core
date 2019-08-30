@@ -53,18 +53,6 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::setVisible(bool visible) noexcept {
-      // Use the base handler to perform needed internal updates.
-      LayoutItem::setVisible(visible);
-
-      // Trigger a repaint event if the widget is set to visible.
-      if (isVisible()) {
-        makeContentDirty();
-      }
-    }
-
-    inline
-    void
     SdlWidget::setLayout(std::shared_ptr<Layout> layout) noexcept {
       // Save this layout into the internal attribute.
       m_layout = layout;
@@ -319,6 +307,21 @@ namespace sdl {
     SdlWidget::handleEvent(engine::EventShPtr e) {
       Guard guard(m_contentLocker);
       return LayoutItem::handleEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::showEvent(const engine::Event& e) {
+      // Use the base handler to perform needed internal updates.
+      const bool toReturn = LayoutItem::showEvent(e);
+
+      // Trigger a repaint event if the widget is set to visible.
+      if (isVisible()) {
+        makeContentDirty();
+      }
+
+      // Return the value provided by the base handler.
+      return toReturn;
     }
 
     inline

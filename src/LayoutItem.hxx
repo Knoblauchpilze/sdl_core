@@ -201,8 +201,17 @@ namespace sdl {
         m_visible = false;
       }
 
-      // Deactivate the events for this item.
-      disableEventsProcessing();
+      // Deactivate the events for this item: the layout
+      // items only handle focus and show events when
+      // hidden.
+      std::unordered_set<engine::Event::Type> all = engine::Event::getAllEvents();
+      all.erase(engine::Event::Type::Show);
+      all.erase(engine::Event::Type::FocusIn);
+      all.erase(engine::Event::Type::FocusOut);
+      all.erase(engine::Event::Type::GainFocus);
+      all.erase(engine::Event::Type::LostFocus);
+
+      disableEventsProcessing(all);
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::hideEvent(e);

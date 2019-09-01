@@ -216,20 +216,6 @@ namespace sdl {
         makeGeometryDirty() override;
 
         /**
-         * @brief - Reimplementation of the base `EngineObject` method to allow filtering
-         *          of events based on the semantic provided by the widget class. Basically
-         *          we know that some events will be ignored according to their position in
-         *          the queue.
-         *          For example whenever a Show event is registered, most events should be
-         *          cancelled. In the same way whenever a `Resize` event is queued the other
-         *          `GeometryUpdate` or `Repaint` should be cancelled as some will be re-
-         *          created by the process.
-         *          So no need to recompute them.
-         */
-        void
-        trimEvents(std::vector<engine::EventShPtr>& events) override;
-
-        /**
          * @brief - Reimplementation of the base class method to provide update
          *          of the layout for this widget if any.
          * @param window - the available size to perform the update.
@@ -257,6 +243,18 @@ namespace sdl {
 
         bool
         gainFocusEvent(const engine::FocusEvent& e) override;
+
+        /**
+         * @brief - Specialization of the base `LayoutItem` method in order to trigger a hide event
+         *          on the parent widget. This allows to notify that a child is now hideen and allows
+         *          to perform a repaint operation on the place left empty by the widget.
+         *          This method will call the base class only in the case the event has been generated
+         *          by `this` widget.
+         * @param e - the hide event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        hideEvent(const engine::Event& e) override;
 
         bool
         leaveEvent(const engine::Event& e) override;

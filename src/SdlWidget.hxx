@@ -135,11 +135,6 @@ namespace sdl {
     SdlWidget::filterEvent(engine::EngineObject* watched,
                            engine::EventShPtr e)
     {
-      // Check whether the widget is not visible or not active.
-      if(!isVisible() || !isActive(e->getType())) {
-        return true;
-      }
-
       // Handle mouse events filtering if the event is actually
       // a mouse event. For the mouse event, we actually need to
       // rely on the ancestors to perform some filtering: let's
@@ -650,6 +645,73 @@ namespace sdl {
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::hideEvent(const engine::Event& e) {
+      // Handling a hide event as a widget comes with a double responability.
+      // Indeed the hide event can either originate from `this` widget or be
+      // sent by a child of ours. In the first case we of course need to handle
+      // the necessary operations to hide ourselves, but also notify our parent
+      // if any so that it can repaint itself and erase all traces of our data.
+      // If the event comes from one of our children, we need to trigger said
+      // repaint operations.
+
+      // Assume the event is recognized.
+      bool toReturn = true;
+
+      // Check whether the hide event concerns `this` widget.
+      if (isEmitter(e)) {
+        // Trigger the process to hide `this` widget.
+        toReturn = LayoutItem::hideEvent(e);
+
+        // Also notify the parent from this hide operation.
+        engine::EventShPtr he = std::make_shared<engine::Event>(engine::Event::Type::Hide);
+        engine::EngineObject* o = nullptr;
+
+        if (hasParent()) {
+          he->setReceiver(m_parent);
+          o = m_parent;
+        }
+        else if (isManaged()) {
+          he->setReceiver(getManager());
+          o = getManager();
+        }
+
+        if (o == nullptr) {
+          log("Do not post hide event to parent, no need to do so", utils::Level::Info);
+        }
+
+        if (o != nullptr) {
+          postEvent(he, false, true);
+        }
+      }
+
+      // In case the event comes from one of the child of this
+      // widget we need to schedule a repaint event for the area
+      // occupied by the widget. Otherwise we would get remains
+      // of the widget which has just been hidden displayed which
+      // would not be cool.
+
+      // Determine whether the event comes from on of the child
+      // of `this` widget.
+      if (e.isSpontaneous() || !hasChild(e.getEmitter()->getName())) {
+        // The hide event should probably not have been sent to
+        // `this` widget. Do nothing more.
+        return toReturn;
+      }
+
+      // Query the rendering area for this widget and request a
+      // repaint operation on it to erase remains of the widget
+      // that has just been hidden.
+      SdlWidget* child = getChildAs<SdlWidget>(e.getEmitter()->getName());
+
+      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(child->getRenderingArea());
+      postEvent(pe, true, true);
+
+      // Transmit the return value.
+      return toReturn;
     }
 
     inline

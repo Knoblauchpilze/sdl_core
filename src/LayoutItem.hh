@@ -210,6 +210,18 @@ namespace sdl {
         bool
         geometryUpdateEvent(const engine::Event& e) override;
 
+        /**
+         * @brief - Reimplementation of the base `EngineObject` method. WIll performt he deactivation
+         *          of this widget for almost all kind of events. This allows efficient management of
+         *          items which are hidden as they hardly weigh on the events management system.
+         *          The `Show` event still needs to be activated of course (otherwise we would not be
+         *          able to reactivate the item when needed) along with some specific events (like
+         *          focus handling).
+         *          Inheriting classes should reimplement this method if custom operations should be
+         *          performed upon hiding the object.
+         * @param e - the hide event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
         bool
         hideEvent(const engine::Event& e) override;
 

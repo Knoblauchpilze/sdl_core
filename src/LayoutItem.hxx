@@ -235,7 +235,6 @@ namespace sdl {
         std::lock_guard<std::mutex> guard(m_visibleLocker);
         m_visible = true;
       }
-      // TODO: Handle the modification of the way the Show/Hide events work.
 
       // Reactivate event handling.
       activateEventsProcessing();

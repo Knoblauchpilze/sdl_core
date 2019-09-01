@@ -195,7 +195,12 @@ namespace sdl {
     inline
     bool
     LayoutItem::hideEvent(const engine::Event& e) {
-      // Assign the corresponding visible status.
+      // We only want to do that in case the event originates from this item.
+      if (!isEmitter(e)) {
+        return engine::EngineObject::hideEvent(e);
+      }
+
+      // Assign the corresponding visible status. 
       {
         std::lock_guard<std::mutex> guard(m_visibleLocker);
         m_visible = false;
@@ -220,6 +225,11 @@ namespace sdl {
     inline
     bool
     LayoutItem::showEvent(const engine::Event& e) {
+      // We only want to do that in case the event originates from this item.
+      if (!isEmitter(e)) {
+        return engine::EngineObject::showEvent(e);
+      }
+
       // Assign the corresponding visible status.
       {
         std::lock_guard<std::mutex> guard(m_visibleLocker);

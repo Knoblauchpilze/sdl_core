@@ -707,7 +707,7 @@ namespace sdl {
       // that has just been hidden.
       SdlWidget* child = getChildAs<SdlWidget>(e.getEmitter()->getName());
 
-      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(child->getRenderingArea());
+      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(mapToGlobal(child->getRenderingArea(), true));
       postEvent(pe, true, true);
 
       // Transmit the return value.

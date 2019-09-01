@@ -124,10 +124,10 @@ namespace sdl {
 
       // Issue an event based on the current status.
       if (visible) {
-        e = std::make_shared<engine::Event>(engine::Event::Type::Show, this);
+        e = std::make_shared<engine::Event>(engine::Event::Type::Show);
       }
       else {
-        e = std::make_shared<engine::Event>(engine::Event::Type::Hide, this);
+        e = std::make_shared<engine::Event>(engine::Event::Type::Hide);
       }
 
       // Post this event.

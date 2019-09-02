@@ -25,6 +25,11 @@ namespace sdl {
       m_manager(nullptr)
     {
       setService(std::string("layout_item"));
+
+      // Filter window events: we do that by activating the events
+      // processing and has we handle the window events using the
+      // provided method we should be filtering them.
+      activateEventsProcessing();
     }
 
     bool

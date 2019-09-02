@@ -168,6 +168,30 @@ namespace sdl {
       protected:
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method. A layout item is
+         *          not meant to process window events which will be reflected in the
+         *          return value of this method.
+         *          We also keep the focus events active when the item is disabled in
+         *          order to still allow propagation of events through the item hierarchy.
+         * @param type - the event type which should be checked for filtering.
+         * @return - `true` if the event type should be kept active when the object becomes
+         *           inactive and `false` otherwise.
+         */
+        bool
+        staysActiveWhileDisabled(const engine::Event::Type& type) const noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `EngineObject` method. A layout item is
+         *          not meant to process window events which will be reflected in the
+         *          return value of this method.
+         * @param type - the event type which should be checked for activation.
+         * @return - `true` if the event type should be kept inactive when the object becomes
+         *           active and `false` otherwise.
+         */
+        bool
+        staysInactiveWhileEnabled(const engine::Event::Type& type) const noexcept override;
+
+        /**
          * @brief - Retrieves the manager for this item. The manager is usually responsible for
          *          providing a size and position for a layout item.
          *          Note that the return value may be nil if the size and position for this item

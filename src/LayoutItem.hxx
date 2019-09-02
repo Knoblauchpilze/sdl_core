@@ -148,6 +148,34 @@ namespace sdl {
 
     inline
     bool
+    LayoutItem::staysActiveWhileDisabled(const engine::Event::Type& type) const noexcept {
+      // Focus events stays active while disabled, along with any event allowed in the base
+      // class method.
+      return
+        EngineObject::staysActiveWhileDisabled(type) ||
+        type == engine::Event::Type::FocusIn ||
+        type == engine::Event::Type::FocusOut ||
+        type == engine::Event::Type::GainFocus ||
+        type == engine::Event::Type::LostFocus
+      ;
+    }
+
+    inline
+    bool
+    LayoutItem::staysInactiveWhileEnabled(const engine::Event::Type& type) const noexcept {
+      // Window event stays disabled while the item is active, along with any event disabled
+      // by the base class method.
+      return
+        EngineObject::staysInactiveWhileEnabled(type) ||
+        type == engine::Event::Type::WindowEnter ||
+        type == engine::Event::Type::WindowLeave ||
+        type == engine::Event::Type::WindowResize ||
+        type == engine::Event::Type::Quit
+      ;
+    }
+
+    inline
+    bool
     LayoutItem::canHandleFocusReason(const engine::FocusEvent::Reason& reason) const noexcept {
       switch (reason) {
         case engine::FocusEvent::Reason::HoverFocus:
@@ -201,22 +229,18 @@ namespace sdl {
       }
 
       // Assign the corresponding visible status. 
+      bool changed = false;
       {
         std::lock_guard<std::mutex> guard(m_visibleLocker);
+        changed = (m_visible != false);
         m_visible = false;
       }
 
-      // Deactivate the events for this item: the layout
-      // items only handle focus and show events when
-      // hidden.
-      std::unordered_set<engine::Event::Type> all = engine::Event::getAllEvents();
-      all.erase(engine::Event::Type::Show);
-      all.erase(engine::Event::Type::FocusIn);
-      all.erase(engine::Event::Type::FocusOut);
-      all.erase(engine::Event::Type::GainFocus);
-      all.erase(engine::Event::Type::LostFocus);
-
-      disableEventsProcessing(all);
+      // Deactivate the events for this item only if we actually changed the
+      // internal status of the item.
+      if (changed) {
+        disableEventsProcessing();
+      }
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::hideEvent(e);
@@ -231,13 +255,18 @@ namespace sdl {
       }
 
       // Assign the corresponding visible status.
+      bool changed = false;
       {
         std::lock_guard<std::mutex> guard(m_visibleLocker);
+        changed = (m_visible != true);
         m_visible = true;
       }
 
-      // Reactivate event handling.
-      activateEventsProcessing();
+      // Activate the events for this item only if we actually changed the
+      // internal status of the item.
+      if (changed) {
+        activateEventsProcessing();
+      }
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::showEvent(e);

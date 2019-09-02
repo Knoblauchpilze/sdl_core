@@ -938,8 +938,9 @@ namespace sdl {
       // guarantee of this function. This call is only triggered if `this` widget
       // can handle the focus reason: it is fully determined by the focus policy
       // regarding this matter.
-      if (update && canHandleFocusReason(e.getReason())) {
-        stateUpdatedFromFocus(state, gainedFocus, isEmitter(e));
+      const bool primaryFocus = isEmitter(e);
+      if ((update || primaryFocus) && canHandleFocusReason(e.getReason())) {
+        stateUpdatedFromFocus(state, gainedFocus, primaryFocus);
       }
     }
 

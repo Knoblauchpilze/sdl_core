@@ -938,6 +938,13 @@ namespace sdl {
       // guarantee of this function. This call is only triggered if `this` widget
       // can handle the focus reason: it is fully determined by the focus policy
       // regarding this matter.
+      // TODO: Imagine a `deep1` child which gets clicked: its parent `img3` also
+      // updates its state to clicked, along with its grandpa `sub_middle_widget`.
+      // Then the mouse hovers over the `img3` child, which triggers a repaint
+      // event with over focus but the texture role is set to `Dark` (i.e clicked)
+      // because the internal state is effectively `Clicked` from the gain focus
+      // event triggered by the `deep1` child. We should maybe manage an internal
+      // state and a external state ?
       const bool primaryFocus = isEmitter(e);
       if ((update || primaryFocus) && canHandleFocusReason(e.getReason())) {
         stateUpdatedFromFocus(state, gainedFocus, primaryFocus);

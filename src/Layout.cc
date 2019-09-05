@@ -57,7 +57,7 @@ namespace sdl {
         // If the child is not the source of the event and is focused, unfocus it.
         if (!e.isEmittedBy(*item) && (*item)->hasFocus()) {
           log("Posting focus out event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
-          postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), *item), false);
+          postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), false, *item), false);
         }
       }
 

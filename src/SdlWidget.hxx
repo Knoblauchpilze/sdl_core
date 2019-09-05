@@ -641,7 +641,7 @@ namespace sdl {
 
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.
-      postEvent(std::make_shared<engine::FocusEvent>(true, engine::FocusEvent::Reason::HoverFocus));
+      postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::HoverFocus));
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::enterEvent(e);
@@ -726,7 +726,7 @@ namespace sdl {
 
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.
-      postEvent(std::make_shared<engine::FocusEvent>(false, engine::FocusEvent::Reason::HoverFocus));
+      postEvent(engine::FocusEvent::createFocusOutEvent(engine::FocusEvent::Reason::HoverFocus));
 
       // Use base handler to determine whether the event was recognized.
       return engine::EngineObject::leaveEvent(e);
@@ -749,7 +749,7 @@ namespace sdl {
       }
 
       // The mouse is not blocked by any child: produce a focus event.
-      postEvent(std::make_shared<engine::FocusEvent>(true, engine::FocusEvent::Reason::MouseFocus));
+      postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::MouseFocus));
 
       // Fire a signal indicating that a click on this widget has been detected.
       log("Emitting on click for " + getName(), utils::Level::Notice);

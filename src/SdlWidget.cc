@@ -224,7 +224,7 @@ namespace sdl {
       // which are currently focused get deactivated) which will then be
       // transmitted to the parent so that it can do the necessary updates
       // regarding siblings of `this` widget which may be focused.
-      postEvent(engine::FocusEvent::createGainFocusEvent(e.getReason()));
+      postEvent(engine::FocusEvent::createGainFocusEvent(e.getReason(), true));
 
       // Use the base handler to provide a return value.
       return LayoutItem::focusInEvent(e);
@@ -271,7 +271,7 @@ namespace sdl {
       updateStateFromFocus(e, false);
 
       // Post the `LostFocus` event.
-      postEvent(engine::FocusEvent::createLostFocusEvent(e.getReason()));
+      postEvent(engine::FocusEvent::createLostFocusEvent(e.getReason(), true));
 
       // Use the base handler to provide a return value.
       return LayoutItem::focusOutEvent(e);
@@ -321,14 +321,14 @@ namespace sdl {
           // If the child is not the source of the event and is focused, unfocus it.
           if (!e.isEmittedBy(child->widget) && child->widget->hasFocus()) {
             log("Posting focus out event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
-            postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), child->widget), false);
+            postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), isEmitter(e), child->widget), false);
           }
         }
       }
 
       // Transmit the gain focus event to the parent widget if any or the
       // manager layout.
-      engine::FocusEventShPtr gfe = engine::FocusEvent::createGainFocusEvent(e.getReason());
+      engine::FocusEventShPtr gfe = engine::FocusEvent::createGainFocusEvent(e.getReason(), isEmitter(e));
       engine::EngineObject* o = nullptr;
 
       if (hasParent()) {
@@ -368,7 +368,7 @@ namespace sdl {
           // If the child is not the source of the event and is focused, unfocus it.
           if (child->widget->hasFocus()) {
             log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus");
-            postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), child->widget), false);
+            postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), isEmitter(e), child->widget), false);
           }
         }
       }

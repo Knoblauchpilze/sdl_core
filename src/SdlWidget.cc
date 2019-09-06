@@ -25,6 +25,7 @@ namespace sdl {
 
       m_contentDirty(true),
       m_mouseInside(false),
+      m_internalFocusState(),
       m_keyboardFocus(false),
       m_zOrder(0),
 

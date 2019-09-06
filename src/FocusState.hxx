@@ -41,7 +41,16 @@ namespace sdl {
       State resultingState = getStateFromFocusReason(reason);
 
       // If the resulting state is the same as the current state or greater,
-      // reset the focus.
+      // reset the focus. This strategy has a little downside: it allows
+      // triggering of changes when the internal state is already `None`.
+      // In order to prevent this we handle this special case beforehand.
+      // Indeed there's not much a focus out event can do if the state is
+      // already empty.
+      if (m_state == State::None) {
+        return false;
+      }
+
+      // Handle focus out.
       if (isLessThan(m_state, resultingState, false)) {
         // As the action is enough to completely override the current state
         // we can reset it to no focus.

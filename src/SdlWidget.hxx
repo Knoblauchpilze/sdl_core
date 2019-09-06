@@ -922,6 +922,14 @@ namespace sdl {
       // We need to update the widget's content to match the new focus state.
       // We will use the dedicated focus state and determine whether we need
       // to update `this` widget's content afterwards.
+      // Depending on the source of the event we need to update the internal
+      // focus state as well: the external focus state (provided by the base
+      // `getFocusState` method) is always updated because it reflects the
+      // state of the tree defined by `this` widget to the outside world but
+      // the internal state is only modified when a focus is specifically
+      // directed towards `this` widget.
+
+      // Always update the external focus state.
       FocusState& state = getFocusState();
       bool update = false;
       switch (gainedFocus) {
@@ -932,6 +940,35 @@ namespace sdl {
           update = state.handleFocusOut(e.getReason());
           break;
       }
+
+      // The external focus state has been updated. Now we want to trigger the
+      // internal `stateUpdatedFromFocus` method as prescribed by the interface
+      // of the method so that inheriting classes can perform some additional
+      // modifications to the representation of this widget.
+      // This can either happen if the focus reason is effecitvely directed to
+      // `this` widget OR if the update describes a focus lost. Indeed a focus
+      // lost event is always by definition produced by another item in the tree.
+      // Finally we also only trigger the `stateUpdatedFromFocus` in case the
+      // focus reason can be handled.
+      if (!canHandleFocusReason(e.getReason())) {
+        return;
+      }
+
+      // If we are the source of the focus event or if the event indicates a
+      // focus loss we need to update the internal state.
+      if (isEmitter(e) || !gainedFocus) {
+        // Perform the update of the internal state.
+        bool update = false;
+        switch (gainedFocus) {
+          case true:
+            update = state.handleFocusIn(e.getReason());
+            break;
+          default:
+            update = state.handleFocusOut(e.getReason());
+            break;
+        }
+      }
+
 
       // Check whether the focus state has been updated: if this is the case we
       // need to trigger a call to the `stateUpdatedFromFocus` which is the basic
@@ -970,6 +1007,12 @@ namespace sdl {
       // representation. If the state is updated from a lost focus event though
       // we handle it no matter whether we are the primary focus source.
       if (m_content.valid() && (primaryFocus || !gainedFocus)) {
+        if (primaryFocus) {
+          log("Setting texture role to " + std::to_string(static_cast<int>(state.getColorRole())) + " and color " + getPalette().getColorForRole(state.getColorRole()).toString() + " because it's primary focus");
+        }
+        if (!gainedFocus) {
+          log("Setting texture role to " + std::to_string(static_cast<int>(state.getColorRole())) + " and color " + getPalette().getColorForRole(state.getColorRole()).toString() + " because we lost focus");
+        }
         getEngine().setTextureRole(m_content, state.getColorRole());
 
         // Post a repaint event.

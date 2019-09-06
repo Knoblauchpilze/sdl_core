@@ -957,6 +957,22 @@ namespace sdl {
          */
         bool m_mouseInside;
 
+        /***
+         * @brief - The `LayoutItem` class already provide a general focus state which can be used by the
+         *          parent of `this` widget to determine whether either `this` widget or one of its child
+         *          has any sort of focus.
+         *          This is sufficient for most purposes but does not help a lot when trying to determine
+         *          the correct role to assign to the textures used to render `this` widget. Indeed if a
+         *          child has a click focus for example, the focus state described by the `LayoutItem`
+         *          class will also be set to click focused. This is not good because when the mouse hovers
+         *          over `this` widget for example, as we're already focused using a click reason, the
+         *          repaint will incorrectly set the role to clicked instead of just hovering over. Thus
+         *          we need to handle a separate internal focus state which is updated only when the focus
+         *          is received directly by `this` widget.
+         *          This is the purpose of this attribute.
+         */
+        FocusState  m_internalFocusState;
+
         /**
          * @brief - Describes whether this widget has the keyboard focus or not. The keyboard focus is
          *          received whenever the internal state of the widget allows it. Some widget are never

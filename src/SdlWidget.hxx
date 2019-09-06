@@ -916,9 +916,7 @@ namespace sdl {
 
     inline
     void
-    SdlWidget::updateStateFromFocus(const engine::FocusEvent& e,
-                                    const bool gainedFocus)
-    {
+    SdlWidget::updateStateFromFocus(const engine::FocusEvent& e) {
       // We need to update the widget's content to match the new focus state.
       // We will use the dedicated focus state and determine whether we need
       // to update `this` widget's content afterwards.
@@ -928,17 +926,18 @@ namespace sdl {
       // state of the tree defined by `this` widget to the outside world but
       // the internal state is only modified when a focus is specifically
       // directed towards `this` widget.
+      const bool gainedFocus =
+        e.getType() == engine::Event::Type::FocusIn ||
+        e.getType() == engine::Event::Type::GainFocus
+      ;
 
       // Always update the external focus state.
       FocusState& state = getFocusState();
-      bool update = false;
-      switch (gainedFocus) {
-        case true:
-          update = state.handleFocusIn(e.getReason());
-          break;
-        default:
-          update = state.handleFocusOut(e.getReason());
-          break;
+      if (gainedFocus) {
+        state.handleFocusIn(e.getReason());
+      }
+      else {
+        state.handleFocusOut(e.getReason());
       }
 
       // The external focus state has been updated. Now we want to trigger the
@@ -954,75 +953,86 @@ namespace sdl {
         return;
       }
 
-      // If we are the source of the focus event or if the event indicates a
-      // focus loss we need to update the internal state.
-      if (isEmitter(e) || !gainedFocus) {
-        // Perform the update of the internal state.
-        bool update = false;
-        switch (gainedFocus) {
-          case true:
-            update = state.handleFocusIn(e.getReason());
-            break;
-          default:
-            update = state.handleFocusOut(e.getReason());
-            break;
+      // We now want to handle the modification of the internal state as we are
+      // certain that the focus reason can be handled. We have actually several
+      // cases which can happen here.
+      // Basically what is important is to determine whether the focus event can
+      // have some influence on the visual representation of `this` widget. The
+      // simple part is when the focus event actually comes from `this` widget.
+      // In this case we are pretty sure that the visual representation will be
+      // updated.
+      // Problem comes in when the source is not `this` widget. One important
+      // thing to note is that the actual type of input events can only be one
+      // of the following:
+      // - `FocusIn`
+      // - `FocusOut`
+      // - `GainFocus`
+      // The `GainFocus` along with the `FocusOut` should be transformed before
+      // being processed. While the `FocusOut` event is only received when it
+      // is produced by `this` widget, the `GainFocus` event on the other hand
+      // only comes from other widgets (and mostly child on top of that). In
+      // both cases it means that we should lose the focus, otherwise we would
+      // not be transmitted the event in the first place. In addition, we can
+      // consider that the internal state will handle the redundancy in case
+      // the widget is not focused.
+      // Basically imagine the situation where one of our child is actually in
+      // focus and gets deactivated: we will (as its parent) receive a focus out
+      // event, but if everything went smoothy we should not have our internal
+      // state in a value which allows for deactivation: indeed we never received
+      // a `FocusIn` event, only a `GainFocus` one.
+      bool updated = false;
+
+      // Handle only `FocusIn` and `FocusOut` events.
+      std::string save = m_internalFocusState.toString();
+      if (e.getType() == engine::Event::Type::FocusIn) {
+        // A `FocusIn` events transformed into a `FocusOut` event if `this` widget
+        // is not the emitter.
+        if (isEmitter(e)) {
+          updated = m_internalFocusState.handleFocusIn(e.getReason());
+        }
+        else {
+          updated = m_internalFocusState.handleFocusOut(e.getReason());
         }
       }
+      else if (e.getType() == engine::Event::Type::FocusOut ||
+               e.getType() == engine::Event::Type::GainFocus)
+      {
+        updated = m_internalFocusState.handleFocusOut(e.getReason());
+      }
 
-
-      // Check whether the focus state has been updated: if this is the case we
-      // need to trigger a call to the `stateUpdatedFromFocus` which is the basic
-      // guarantee of this function. This call is only triggered if `this` widget
-      // can handle the focus reason: it is fully determined by the focus policy
-      // regarding this matter.
-      // TODO: Imagine a `deep1` child which gets clicked: its parent `img3` also
-      // updates its state to clicked, along with its grandpa `sub_middle_widget`.
-      // Then the mouse hovers over the `img3` child, which triggers a repaint
-      // event with over focus but the texture role is set to `Dark` (i.e clicked)
-      // because the internal state is effectively `Clicked` from the gain focus
-      // event triggered by the `deep1` child. We should maybe manage an internal
-      // state and a external state ?
-      const bool primaryFocus = isEmitter(e);
-      if ((update || primaryFocus) && canHandleFocusReason(e.getReason())) {
-        stateUpdatedFromFocus(state, gainedFocus, primaryFocus);
+      // If the internal state has been updated, trigger a calls to the interface
+      // method which is the basic guarantee of this method.
+      if (updated) {
+        stateUpdatedFromFocus(m_internalFocusState, gainedFocus);
       }
     }
 
     inline
     void
     SdlWidget::stateUpdatedFromFocus(const FocusState& state,
-                                     const bool gainedFocus,
-                                     const bool primaryFocus)
+                                     const bool /*gainedFocus*/)
     {
       // The default implementation specifies that the content's texture role
       // should be updated to reflect the internal focus state of the widget.
       // We also need to trigger a repaint event in case the content's role is
       // modified. This can only occur if the texture representing the content
       // is valid, obviously.
-      // Finally we only want to trigger the modifications if the focus event
-      // which triggered the state update is a primary focus (i.e. has been
-      // triggered by `this` widget). Indeed we don't want to set the whole
-      // hierarchy with special display: only the deepest child (i.e. the
-      // primary source of the focus) will be repainted with a special visual
-      // representation. If the state is updated from a lost focus event though
-      // we handle it no matter whether we are the primary focus source.
-      if (m_content.valid() && (primaryFocus || !gainedFocus)) {
-        if (primaryFocus) {
-          log("Setting texture role to " + std::to_string(static_cast<int>(state.getColorRole())) + " and color " + getPalette().getColorForRole(state.getColorRole()).toString() + " because it's primary focus");
-        }
-        if (!gainedFocus) {
-          log("Setting texture role to " + std::to_string(static_cast<int>(state.getColorRole())) + " and color " + getPalette().getColorForRole(state.getColorRole()).toString() + " because we lost focus");
-        }
-        getEngine().setTextureRole(m_content, state.getColorRole());
 
-        // Post a repaint event.
-        requestRepaint();
+      // If the content is not valid, nothing can be done.
+      if (!m_content.valid()) {
+        log("Trashing texture role update because content is not valid", utils::Level::Warning);
+        return;
       }
-      else {
-        if (primaryFocus || !gainedFocus) {
-          log("Trashing texture role update because content is not valid", utils::Level::Warning);
-        }
-      }
+
+      log("Texture role is now " + std::to_string(static_cast<int>(state.getColorRole())) + " " + getPalette().getColorForRole(state.getColorRole()).toString());
+
+      // Assign the texture role based on the color associated to the input
+      // state: there's a handler which conveniently provide the color role
+      // associated to its current value.
+      getEngine().setTextureRole(m_content, state.getColorRole());
+
+      // Post a repaint event.
+      requestRepaint();
     }
 
     inline

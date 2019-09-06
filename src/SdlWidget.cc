@@ -214,12 +214,12 @@ namespace sdl {
       }
 
       // Perform an update of the internal state of this widget. We can safely call
-      // the `updateStateFromFocus` method which will just update the internal state
-      // and trigger the needed repaints only if the focus policy allows for handling
-      // of the focus reason.
+      // the dedicated method which will just update the internal state and trigger
+      // the needed repaints only if the focus policy allows for handling of the
+      // focus reason.
       // As we're processing a focus in event the `gainedFocus` boolean should be
       // set to `true` upon calling the method.
-      updateStateFromFocus(e, true);
+      updateStateFromFocus(e);
 
       // Post a gain focus first to this widget (so that potential children
       // which are currently focused get deactivated) which will then be
@@ -264,12 +264,12 @@ namespace sdl {
       }
 
       // Perform an update of the internal state of this widget. We can safely call
-      // the `updateStateFromFocus` method which will just update the internal state
-      // and trigger the needed repaints only if the focus policy allows for handling
-      // of the focus reason.
+      // the dedicated method which will just update the internal state and trigger
+      // the needed repaints only if the focus policy allows for handling of the
+      // focus reason.
       // As we're processing a focus out event the `gainedFocus` boolean should be
       // set to `false` upon calling the method.
-      updateStateFromFocus(e, false);
+      updateStateFromFocus(e);
 
       // Post the `LostFocus` event.
       postEvent(engine::FocusEvent::createLostFocusEvent(e.getReason(), true));
@@ -299,7 +299,7 @@ namespace sdl {
         // Now that we know the focus reason can be handled, we need to
         // update the widget's content to match the new focus state. Once
         // again use the dedicated handler.
-        updateStateFromFocus(e, true);
+        updateStateFromFocus(e);
 
         // Update the keyboard focus based on whether the focus reason can
         // cause a modification of the keyboard state.

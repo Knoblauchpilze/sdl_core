@@ -344,7 +344,7 @@ namespace sdl {
          *          inside the item's boundaries or when it gets focused by repeatingly
          *          pressing the `Tab` key until the tab chain reach this item.
          */
-        FocusState  m_state;
+        FocusState  m_focusState;
 
         /**
          * @brief - A pointer to the layout into which this item might be inserted. Most of

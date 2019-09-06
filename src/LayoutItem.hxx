@@ -88,13 +88,13 @@ namespace sdl {
     inline
     bool
     LayoutItem::hasFocus() const noexcept {
-      return m_state.hasFocus();
+      return m_focusState.hasFocus();
     }
 
     inline
     FocusState&
     LayoutItem::getFocusState() noexcept {
-      return m_state;
+      return m_focusState;
     }
 
     inline

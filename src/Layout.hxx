@@ -143,6 +143,17 @@ namespace sdl {
 
     inline
     bool
+    Layout::staysInactiveWhileEnabled(const engine::Event::Type& type) const noexcept {
+      // Filter everything that is filtered by the base class and keyboard events.
+      return
+        LayoutItem::staysInactiveWhileEnabled(type) ||
+        type == engine::Event::Type::KeyPress ||
+        type == engine::Event::Type::KeyRelease
+      ;
+    }
+
+    inline
+    bool
     Layout::needsConvert() const noexcept {
       return m_boxesFormat == BoxesFormat::Engine;
     }

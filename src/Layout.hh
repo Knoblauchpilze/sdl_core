@@ -235,6 +235,17 @@ namespace sdl {
         computeGeometry(const utils::Boxf& window) = 0;
 
         /**
+         * @brief - Reimplementation of the base `LayoutItem` method. A layout item is
+         *          not meant to process keyboard events which will be reflected in the
+         *          return value of this method.
+         * @param type - the event type which should be checked for activation.
+         * @return - `true` if the event type should be kept inactive when the object becomes
+         *           active and `false` otherwise.
+         */
+        bool
+        staysInactiveWhileEnabled(const engine::Event::Type& type) const noexcept override;
+
+        /**
          * @brief - Used to determine whether the bounding boxes to assign to the
          *          items managed by this layout need to be converted into an
          *          engine format before being assigned.

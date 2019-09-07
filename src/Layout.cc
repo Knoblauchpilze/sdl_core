@@ -21,6 +21,12 @@ namespace sdl {
       }
 
       setService(std::string("layout"));
+
+      // We need to activate again the events processing: indeed even if this method
+      // has already been called in the `LayoutItem` constructor at this point the
+      // `Layout` itself was not constructed so we could not call the right overload
+      // of the `staysInactiveWhileEnabled`.
+      activateEventsProcessing();
     }
 
     Layout::~Layout() {

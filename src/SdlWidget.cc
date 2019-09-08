@@ -207,10 +207,8 @@ namespace sdl {
       // the keyboard status if the focus reason can cause a keyboard focus change
       // though.
       if (!hasKeyboardFocus() && canCauseKeyboardFocusChange(e.getReason())) {
-        // Update the keyboard focus: as we're handling a focus in event we need
-        // to set the keyboard focus to `true`.
-        m_keyboardFocus = true;
-        log("Widget now has keyboard focus", utils::Level::Notice);
+        // Notify that we should receive the keyboard focus.
+        postEvent(std::make_shared<engine::Event>(engine::Event::Type::KeyboardGrabbed));
       }
 
       // Perform an update of the internal state of this widget. We can safely call
@@ -257,10 +255,8 @@ namespace sdl {
       // if needed: this means determining whether the focus reason is able to change
       // the keyboard status. If this is the case we make this widget lose the focus.
       if (hasKeyboardFocus() && canCauseKeyboardFocusChange(e.getReason())) {
-        // Update the keyboard focus: as we're handling a focus out event we need
-        // to set the keyboard focus to `false`.
-        m_keyboardFocus = false;
-        log("Widget lost keyboard focus", utils::Level::Notice);
+        // Post an event indicating that we just lost keyboard focus.
+        postEvent(std::make_shared<engine::Event>(engine::Event::Type::KeyboardReleased));
       }
 
       // Perform an update of the internal state of this widget. We can safely call
@@ -307,8 +303,7 @@ namespace sdl {
           // Update the keyboard focus: as we're handling a gain focus event
           // which has not been produced by `this` widget we need to set the
           // keyboard focus to `false`.
-          m_keyboardFocus = false;
-          log("Widget lost keyboard focus 2", utils::Level::Notice);
+          postEvent(std::make_shared<engine::Event>(engine::Event::Type::KeyboardReleased));
         }
       }
 

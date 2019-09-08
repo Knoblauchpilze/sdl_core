@@ -256,6 +256,26 @@ namespace sdl {
         bool
         hideEvent(const engine::Event& e) override;
 
+        /**
+         * @brief - Specialization of the base `EngineObject` method in order to handle keyboard focus
+         *          update. This kind of event is triggered when a widget should receive the keyboard
+         *          focus and thus be sent all the keyboard events.
+         * @param e - the keyboard focus event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyboardGrabbedEvent(const engine::Event& e) override;
+
+        /**
+         * @brief - Specialization of the base `EngineObject` method in order to handle keyboard focus
+         *          update. This kind of event is triggered when a widget should lose the keyboard
+         *          focus and thus not receive the keyboard events anymore.
+         * @param e - the keyboard focus event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyboardReleasedEvent(const engine::Event& e) override;
+
         bool
         leaveEvent(const engine::Event& e) override;
 

@@ -716,6 +716,30 @@ namespace sdl {
 
     inline
     bool
+    SdlWidget::keyboardGrabbedEvent(const engine::Event& e) {
+      log("Widget now has keyboard focus", utils::Level::Notice);
+
+      // Update the keyboard focus status.
+      m_keyboardFocus = true;
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::keyboardGrabbedEvent(e);
+    }
+
+    inline
+    bool
+    SdlWidget::keyboardReleasedEvent(const engine::Event& e) {
+      log("Widget has lost keyboard focus", utils::Level::Notice);
+
+      // Update the keyboard focus status.
+      m_keyboardFocus = false;
+
+      // Use the base handler to provide a return value.
+      return LayoutItem::keyboardReleasedEvent(e);
+    }
+
+    inline
+    bool
     SdlWidget::leaveEvent(const engine::Event& e) {
       // This kind of event is generated whenever the mouse just exited the
       // current widget. The main goal of this method is to update the mouse

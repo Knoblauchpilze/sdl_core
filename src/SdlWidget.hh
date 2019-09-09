@@ -625,6 +625,8 @@ namespace sdl {
          *          arguments represents an identifier to retrieve the base canvas
          *          where we can draw and an area representing the portion of the base
          *          canvas to update.
+         *          Note that the area is expressed in LOCAL coordinate so no conversion
+         *          is required to use it.
          * @param uuid - an identifier provided by the internal enigne representing the
          *               canvas to drawn onto.
          * @param area - a box representing the area which should be redrawn. Note that

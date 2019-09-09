@@ -778,7 +778,7 @@ namespace sdl {
       // Fire a signal indicating that a click on this widget has been detected.
       log("Emitting on click for " + getName(), utils::Level::Notice);
       onClick.emit(getName());
-    
+
       // Use the base handler to provide a return value.
       return LayoutItem::mouseButtonReleaseEvent(e);
     }

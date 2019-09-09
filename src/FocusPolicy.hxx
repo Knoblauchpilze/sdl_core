@@ -83,7 +83,7 @@ namespace sdl {
         }
         name += "Wheel";
       }
-      
+
       if (name.empty()) {
         name = "No focus";
       }

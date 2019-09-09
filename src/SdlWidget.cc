@@ -555,7 +555,7 @@ namespace sdl {
       // Not only that but we also need to get the largest area among all the
       // available ones which are both the old and current size of the widget but
       // also the available paint areas registered in the input paint event.
-    
+
       // Create the maximum area between the old and current size.
       const float w = old.w() > cur.w() ? old.w() : cur.w();
       const float h = old.h() > cur.h() ? old.h() : cur.h();

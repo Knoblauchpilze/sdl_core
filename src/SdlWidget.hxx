@@ -33,12 +33,7 @@ namespace sdl {
       utils::Vector2f globalOffset = mapToGlobal(utils::Vector2f());
 
       // Compute final position from both boxes.
-      return utils::Boxf(
-        globalOffset.x(),
-        globalOffset.y(),
-        thisBox.w(),
-        thisBox.h()
-      );
+      return utils::Boxf(globalOffset, thisBox.w(), thisBox.h());
     }
 
     inline

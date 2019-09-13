@@ -235,7 +235,7 @@ namespace sdl {
         geometryUpdateEvent(const engine::Event& e) override;
 
         /**
-         * @brief - Reimplementation of the base `EngineObject` method. WIll performt he deactivation
+         * @brief - Reimplementation of the base `EngineObject` method. Will perform the deactivation
          *          of this widget for almost all kind of events. This allows efficient management of
          *          items which are hidden as they hardly weigh on the events management system.
          *          The `Show` event still needs to be activated of course (otherwise we would not be

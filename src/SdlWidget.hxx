@@ -633,6 +633,14 @@ namespace sdl {
       // and thus overlaps the content of the sibling of its parent, the
       // event system is not able to correctly prevent the transmission of
       // events to the sibling. How should we correct that ?
+      // TODO: We could add some method named `getWidgetAt` which would be
+      // called by the filter of this widget (so probably its parent, or its
+      // manager layout if any) upon receiving a mouse move event. The parent
+      // can determine whether this widget is the best suited to receive the
+      // event or if another one should be called instead. To be more precise
+      // we will actually only determine whether several widgets can fight
+      // to get the event. We could use some kind of z-ordering to narrow the
+      // possibility to the forward one. This has no obvious show stopper.
 
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.

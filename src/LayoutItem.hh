@@ -165,6 +165,21 @@ namespace sdl {
         virtual void
         invalidate();
 
+        /**
+         * @brief - Used to retrieve the most relevant item registered in this layout item at
+         *          the specified position. If no such item can be found a null value is returned.
+         *          The more specialized item is returned which means that it actually returns
+         *          the deepest child in the hierarchy which matches the specified position.
+         *          Inheriting classes are supposed to implement this in order to match their
+         *          internal definition.
+         * @param pos - the position expressed in local window frame for which the best item should
+         *              be returned.
+         * @return - a pointer to the most relevant child spanning the input position or null if no
+         *           such child can be found.
+         */
+        virtual const LayoutItem*
+        getItemAt(const utils::Vector2f& pos) const noexcept = 0;
+
       protected:
 
         /**

@@ -178,8 +178,15 @@ namespace sdl {
 
       // Check whether the parent filters it, in which case we
       // should filter it too.
-      if (hasParent()) {
-        return m_parent->filterEvent(watched, e);
+      if (hasParent() && m_parent->filterEvent(watched, e)) {
+        return true;
+      }
+
+      // Finally if the widget is managed, we should ask the layout if
+      // the event is filtered. This allow some sort of communication
+      // between siblings widget.
+      if (isManaged() && getManager()->filterEvent(watched, e)) {
+        return true;
       }
 
       // The event is not filtered.

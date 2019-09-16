@@ -169,6 +169,21 @@ namespace sdl {
         void
         setParent(SdlWidget* parent);
 
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` method which allows to provide
+         *          the deepest widget spanning the input position. The item is returned
+         *          as a valid pointer if an item spans the position and null otherwise.
+         *          Similar in behavior to the `Layout` method as it takes advantage of the
+         *          hierarchical structure of the widgets' chain.
+         *          Note that the position is supposed to be expressed in window's coordinate
+         *          frame.
+         * @param pos - a vector describing the position which should be spanned by the items.
+         * @return - a valid pointer if any of the children items spans the input position and
+         *           `null` otherwise.
+         */
+        const SdlWidget*
+        getItemAt(const utils::Vector2f& pos) const noexcept override;
+
       protected:
 
         /**

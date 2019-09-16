@@ -175,6 +175,21 @@ namespace sdl {
         update(const utils::Boxf& window);
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method which allows to
+         *          filter out events for children widgets in case the layout has some
+         *          knowlegde of the hierarchy which prevent events from being sent.
+         *          It is mostly used in order to make elements not process events if
+         *          some part of a widget impinge on siblings.
+         * @param watched - the object for which the filter should be applied.
+         * @param e - the event to filter.
+         * @return - true if the event should be filtered (i.e. not transmitted to the
+         *           `watched` object) and false otherwise.
+         */
+        bool
+        filterEvent(engine::EngineObject* watched,
+                    engine::EventShPtr e) override;
+
+        /**
          * @brief - Reimplementation of the `EngineObject` class method so
          *          that we also assign the events queue to the children
          *          item if any.
@@ -182,6 +197,19 @@ namespace sdl {
          */
         void
         setEventsQueue(engine::EventsQueue* queue) noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` method which allows to provide
+         *          the deepest layout item spanning the input position. The item is returned
+         *          as a valid pointer if an item spans the position and null otherwise.
+         *          Note that the position is supposed to be expressed in window's coordinate
+         *          frame.
+         * @param pos - a vector describing the position which should be spanned by the items.
+         * @return - a valid pointer if any of the children items spans the input position and
+         *           `null` otherwise.
+         */
+        const LayoutItem*
+        getItemAt(const utils::Vector2f& pos) const noexcept override;
 
       protected:
 
@@ -273,6 +301,21 @@ namespace sdl {
          */
         void
         setBoxesFormat(const BoxesFormat& format);
+
+        /**
+         * @brief - Used to perform the filtering of the input mouse event relatively
+         *          to the `watched` object. The return value indicates whether this
+         *          event should be transmitted to the object.
+         *          Allows to filter some hovering over events in case a sibling of
+         *          a widget does block the path.
+         * @param watched - the object for which the event should be filtered.
+         * @param e - the event which should be filtered.
+         * @return - `true` if the event should be filtered (i.e. not transmitted to
+         *           the `watched` object) and `false` otherwise.
+         */
+        bool
+        filterMouseEvents(const engine::EngineObject* watched,
+                          const engine::MouseEventShPtr e) const noexcept;
 
         /**
          * @brief - Redefintion of the base `EngineObject` method which allows to

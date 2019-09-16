@@ -174,6 +174,62 @@ namespace sdl {
       return drawn;
     }
 
+    const SdlWidget*
+    SdlWidget::getItemAt(const utils::Vector2f& pos) const noexcept {
+      // We need to retrieve the deepest children of this widget's hierarchy which spans
+      // the input position.
+      // We choose to first ask the children if any of them spans the position: we collect
+      // the result in an internal array which we will then sort based on the z order of
+      // each of the children.
+      // If no children is found for the position we will then check against this widget's
+      // area: if it matches we return a pointer to this widget and `null` otherwise which
+      // indicates that no element spans the input position in this widget's hierarchy.
+
+      // Collect valid children which spans the position.
+      std::vector<std::pair<int, const SdlWidget*>> elements;
+      {
+        Guard guard(m_childrenLocker);
+
+        for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
+          const SdlWidget* wig = child->widget->getItemAt(pos);
+
+          if (wig != nullptr) {
+            // TODO: We should probably get a more complex way to handle z ordering, building it
+            // along the chain of children.
+            elements.push_back(std::make_pair(child->zOrder, wig));
+          }
+        }
+      }
+
+      // Select the best candidate so far by using the z order.
+      std::sort(
+        elements.begin(),
+        elements.end(),
+        [](const std::pair<int, const SdlWidget*>& lhs, const std::pair<int, const SdlWidget*>& rhs) {
+          return lhs.first < rhs.first;
+        }
+      );
+
+      // Check whether at least one element can be found.
+      if (!elements.empty()) {
+        return elements.front().second;
+      }
+
+      // No element among the children was found to span the input position. We can safely deduce
+      // that the best candidate we have is `this` object. We can return it in case the input
+      // position spans the `pos`.
+
+      // Map to local coordinate frame.
+      const utils::Vector2f local = mapFromGlobal(pos);
+
+      if (LayoutItem::getRenderingArea().contains(local)) {
+        return this;
+      }
+
+      // Even `this` does not span the input position, we're doomed.
+      return nullptr;
+    }
+
     bool
     SdlWidget::focusInEvent(const engine::FocusEvent& e) {
       log("Handling focus in from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())) + " (policy: " + getFocusPolicy().toString() + ")");

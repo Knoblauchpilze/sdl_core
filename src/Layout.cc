@@ -37,6 +37,30 @@ namespace sdl {
       // getting replaced.
     }
 
+    const LayoutItem*
+    Layout::getItemAt(const utils::Vector2f& pos) const noexcept {
+      // In order to find the best suited widget we need to traverse the list of all
+      // the registered items and try for each one to determine whether it is more
+      // relevant than the others.
+      std::vector<const LayoutItem*> items;
+
+      for (Items::const_iterator it = m_items.cbegin() ; it != m_items.cend() ; ++it) {
+        LayoutItem* item = *it;
+
+        const LayoutItem* best = item->getItemAt(pos);
+        if (best != nullptr) {
+          items.push_back(best);
+        }
+      }
+
+      // TODO: Handle some sort of ordering.
+      for (std::vector<const LayoutItem*>::const_iterator i = items.cbegin() ; i != items.cend() ; ++i) {
+        log("Item " + (*i)->getName() + " spans " + pos.toString());
+      }
+
+      return nullptr;
+    }
+
     void
     Layout::updatePrivate(const utils::Boxf& window) {
       // Use base handler to perform needed modifications.
@@ -49,6 +73,53 @@ namespace sdl {
 
       // Proceed by activating the internal handler.
       computeGeometry(window);
+    }
+
+    bool
+    Layout::filterMouseEvents(const engine::EngineObject* watched,
+                              const engine::MouseEventShPtr e) const noexcept
+    {
+      // First thing is to find the corresponding children from the input `watched`
+      // object. If we can't find it into the list of elements managed by this layout
+      // it probably means that we can't have any relevant insight about the status
+      // of this event.
+      int id = getIndexOf(watched->getName());
+      if (id < 0) {
+        // Do not filter the event, it's not clear how we ended up here.
+        return false;
+      }
+
+      const LayoutItem* watchedAsItem = getItemAt(id);
+
+      // Now that we have a valid item to work with we can start asking the real
+      // questions. Basically what is important here is to detect mouse events which
+      // should be send to another object than `watched`. This can happen if one of
+      // the other widgets managed by this layout block the path.
+      // We have two steps here:
+      // - check whether any of the first-level children managed by this layout can
+      //   block the way.
+      // - check whether any of the deeper child of each item can blcok the path.
+      // Of course depending on the hierarchy of the `UI` we might have several items
+      // on the way of the mouse. Ordering them in a correct way so that only the
+      // most relevant one gets the focus is as important as determining the complete
+      // list in the first place.
+
+      // In order to get the list of items spanning the input position referenced by
+      // the event we need to retrieve a position for the input mouse event. This can
+      // happen for all but the mouse wheel event where there's no real maning of
+      // position.
+      // Let's handle this first and move on to building the list.
+      if (e->getType() == engine::Event::Type::MouseWheel) {
+        // No filtering performed at this step.
+        return false;
+      }
+
+      // Retrieve the item at this position: either it corresponds to the input object
+      // in which case it means that given all the registered item the provided one is
+      // the most relevant one to pass the event to so we don't filter it. Otherwise
+      // we have to filter the event so that probably the item returned by `getItemAt`
+      // method gets it.
+      return getItemAt(e->getMousePosition()) == watchedAsItem;
     }
 
     bool

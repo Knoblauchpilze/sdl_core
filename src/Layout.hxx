@@ -130,6 +130,25 @@ namespace sdl {
     }
 
     inline
+    bool
+    Layout::filterEvent(engine::EngineObject* watched,
+                        engine::EventShPtr e)
+    {
+      // For now only mouse events have a special processing in the
+      // layout: indeed we mostly want to prevent hover over events
+      // from being issued when a sibling widget impinge on another.
+      engine::MouseEventShPtr me = std::dynamic_pointer_cast<engine::MouseEvent>(e);
+      if (me != nullptr && filterMouseEvents(watched, me)) {
+        return true;
+      }
+
+      // The event has not been filtered so it's either not a mouse
+      // event or a mouse event but effectively directed to the input
+      // `watched` object: in both cases, don't filter it.
+      return false;
+    }
+
+    inline
     void
     Layout::setEventsQueue(engine::EventsQueue* queue) noexcept {
       // Assign the events queue to this object using the base handler.

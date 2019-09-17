@@ -83,6 +83,7 @@ namespace sdl {
       // object. If we can't find it into the list of elements managed by this layout
       // it probably means that we can't have any relevant insight about the status
       // of this event.
+      log("Trying to filter " + engine::Event::getNameFromEvent(e) + " for " + watched->getName());
       int id = getIndexOf(watched->getName());
       if (id < 0) {
         // Do not filter the event, it's not clear how we ended up here.
@@ -119,7 +120,40 @@ namespace sdl {
       // the most relevant one to pass the event to so we don't filter it. Otherwise
       // we have to filter the event so that probably the item returned by `getItemAt`
       // method gets it.
-      return getItemAt(e->getMousePosition()) == watchedAsItem;
+      const LayoutItem* wawa = getItemAt(e->getMousePosition());
+      if (wawa == nullptr) {
+        log("Found no item spanning " + e->getMousePosition().toString());
+      }
+      else {
+        log("Found item " + wawa->getName() + " spanning " + e->getMousePosition().toString() + ", checking for " + watchedAsItem->getName());
+      }
+
+      return wawa != watchedAsItem;
+    }
+
+    bool
+    Layout::filterKeyboardEvents(const engine::EngineObject* watched,
+                                 const engine::MouseEventShPtr e) const noexcept
+    {
+      // We need to check whether the item corresponding to the input `watched` item
+      // has the keyboard focus. If this is the case we can transmit the key event to
+      // it otherwise we need to filter it.
+      // If the watched object cannot be found in the internal array, we consider that
+      // the event is not filtered.
+
+      // Traverse the internal list of items and stop as soon as we find the input
+      // `watched` object.
+      Items::const_iterator item = m_items.cbegin();
+      while (item != m_items.cend()) {
+        if (item->second.widget == watched) {
+          return !item->second.widget->hasKeyboardFocus();
+        }
+
+        ++item;
+      }
+
+      // No child matches the input `watched` object: consider the event as not filtered.
+      return false;
     }
 
     bool

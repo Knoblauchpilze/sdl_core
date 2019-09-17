@@ -12,7 +12,6 @@ set (SOURCES
   Layout.cc
   LayoutItem.cc
   SdlWidget.cc
-  UserInputFilter.cc
   )
 
 add_library (sdl_core SHARED

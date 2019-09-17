@@ -175,21 +175,6 @@ namespace sdl {
         update(const utils::Boxf& window);
 
         /**
-         * @brief - Reimplementation of the base `EngineObject` method which allows to
-         *          filter out events for children widgets in case the layout has some
-         *          knowlegde of the hierarchy which prevent events from being sent.
-         *          It is mostly used in order to make elements not process events if
-         *          some part of a widget impinge on siblings.
-         * @param watched - the object for which the filter should be applied.
-         * @param e - the event to filter.
-         * @return - true if the event should be filtered (i.e. not transmitted to the
-         *           `watched` object) and false otherwise.
-         */
-        bool
-        filterEvent(engine::EngineObject* watched,
-                    engine::EventShPtr e) override;
-
-        /**
          * @brief - Reimplementation of the `EngineObject` class method so
          *          that we also assign the events queue to the children
          *          item if any.
@@ -303,11 +288,13 @@ namespace sdl {
         setBoxesFormat(const BoxesFormat& format);
 
         /**
-         * @brief - Used to perform the filtering of the input mouse event relatively
-         *          to the `watched` object. The return value indicates whether this
-         *          event should be transmitted to the object.
-         *          Allows to filter some hovering over events in case a sibling of
-         *          a widget does block the path.
+         * @brief - Reimplementation of the base `LayoutItem` method. This method is
+         *          meant to provide custom behavior so that mouse events are only
+         *          transmitted to the item which both spans the area where the mouse
+         *          event occurred but also has the highest priority (usually in
+         *          terms of `z order`).
+         *          This allows to filter some hovering over events in case some more
+         *          relevant item should receive the event first.
          * @param watched - the object for which the event should be filtered.
          * @param e - the event which should be filtered.
          * @return - `true` if the event should be filtered (i.e. not transmitted to
@@ -315,7 +302,21 @@ namespace sdl {
          */
         bool
         filterMouseEvents(const engine::EngineObject* watched,
-                          const engine::MouseEventShPtr e) const noexcept;
+                          const engine::MouseEventShPtr e) const noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` method. This method is
+         *          meant to provide custom behavior when upon transmitting keyboard
+         *          events to elements only if they have the keyboard focus. This
+         *          allows for efficient filtering of widgets which do not care about
+         *          keyboard events.
+         * @param watched - the object for which the keyboard event should be filtered.
+         * @param e - the event which should be filtered.
+         * @return - `true` if the event is filtered, `false` otherwise.
+         */
+        bool
+        filterKeyboardEvents(const engine::EngineObject* watched,
+                             const engine::MouseEventShPtr e) const noexcept override;
 
         /**
          * @brief - Redefintion of the base `EngineObject` method which allows to

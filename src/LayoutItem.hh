@@ -166,6 +166,22 @@ namespace sdl {
         invalidate();
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method. This allows to first
+         *          separate filtering on mouse event, keyboard event, and some other kind of
+         *          events.
+         *          Inheriting classes are expected to overload the specialized methods rather
+         *          than this one in order to provide consistent behavior across all the items
+         *          hierarchy.
+         * @param watched - the object for which the filter should be applied.
+         * @param e - the event to filter.
+         * @return - true if the event should be filtered (i.e. not transmitted to the
+         *           `watched` object) and false otherwise.
+         */
+        bool
+        filterEvent(engine::EngineObject* watched,
+                    engine::EventShPtr e) override;
+
+        /**
          * @brief - Used to retrieve the most relevant item registered in this layout item at
          *          the specified position. If no such item can be found a null value is returned.
          *          The more specialized item is returned which means that it actually returns
@@ -232,8 +248,7 @@ namespace sdl {
         virtual bool
         hasGeometryChanged() const noexcept;
 
-        virtual
-        void
+        virtual void
         geometryRecomputed() noexcept;
 
         /**
@@ -245,6 +260,42 @@ namespace sdl {
          */
         virtual void
         updatePrivate(const utils::Boxf& window);
+
+        /**
+         * @brief - Provide a base interface for inheriting classes to be able to filter mouse
+         *          events without need to cast anything. This method is called by the base
+         *          `filterEvent` method when a mouse event is detected.
+         *          Inheriting classes are encouraged to specialize this method to provide
+         *          custom filtering on mouse events on various conditions. This method does
+         *          not provide any filtering so that we do not specify too many things here.
+         * @param watched - the element for which the mouse event should be filtered. If
+         *                  this method returns  `false` the event `e` will be transmitted
+         *                  to the `watched` object.
+         * @param e - the mouse event which should be filtered. If it is not the case this
+         *            method returns false.
+         * @return - `true` if this event should be filtered and `false` otherwise.
+         */
+        virtual bool
+        filterMouseEvents(const engine::EngineObject* watched,
+                          const engine::MouseEventShPtr e) const noexcept;
+
+        /**
+         * @brief - Provide a base interface for inheriting classes to be able to filter
+         *          keyboard events without need to cast anything. This method is called by
+         *          the base `filterEvent` method when a keyboard event is detected.
+         *          Inheriting classes are encouraged to specialize this method to provide
+         *          custom filtering on keyboard events on various conditions. This method does
+         *          not provide any filtering so that we do not specify too many things here.
+         * @param watched - the element for which the keyboard event should be filtered. If
+         *                  this method returns  `false` the event `e` will be transmitted
+         *                  to the `watched` object.
+         * @param e - the keyboard event which should be filtered. If it is not the case this
+         *            method returns false.
+         * @return - `true` if this event should be filtered and `false` otherwise.
+         */
+        virtual bool
+        filterKeyboardEvents(const engine::EngineObject* watched,
+                             const engine::KeyEventShPtr e) const noexcept;
 
         bool
         geometryUpdateEvent(const engine::Event& e) override;

@@ -141,6 +141,29 @@ namespace sdl {
     }
 
     inline
+    bool
+    LayoutItem::filterEvent(engine::EngineObject* watched,
+                            engine::EventShPtr e)
+    {
+      // Handle mouse events: if the mouse event should be filtered we don't apply
+      // other filters. Otherwise it continues to cascade through the filters.
+      engine::MouseEventShPtr me = std::dynamic_pointer_cast<engine::MouseEvent>(e);
+      if (me != nullptr && filterMouseEvents(watched, me)) {
+        return true;
+      }
+
+      // Handle keyboard events: same principle as for mouse events.
+      engine::KeyEventShPtr ke = std::dynamic_pointer_cast<engine::KeyEvent>(e);
+      if (ke != nullptr && filterKeyboardEvents(watched, ke)) {
+        return true;
+      }
+
+      // Both the mouse and keyboard filtering failed to filter the event: use the
+      // base class method to provide a return value.
+      return engine::EngineObject::filterEvent(watched, e);
+    }
+
+    inline
     LayoutItem*
     LayoutItem::getManager() const noexcept {
       return m_manager;
@@ -218,6 +241,22 @@ namespace sdl {
       if (m_area != window) {
         m_area = window;
       }
+    }
+
+    bool
+    LayoutItem::filterMouseEvents(const engine::EngineObject* /*watched*/,
+                                  const engine::MouseEventShPtr /*e*/) const noexcept
+    {
+      // Empty implementation.
+      return false;
+    }
+
+    bool
+    LayoutItem::filterKeyboardEvents(const engine::EngineObject* /*watched*/,
+                                     const engine::KeyEventShPtr /*e*/) const noexcept
+    {
+      // Empty implementation.
+      return false;
     }
 
     inline

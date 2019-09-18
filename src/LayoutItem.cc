@@ -37,6 +37,52 @@ namespace sdl {
     }
 
     bool
+    LayoutItem::filterMouseEvents(const engine::EngineObject* watched,
+                                  const engine::MouseEventShPtr e) const noexcept
+    {
+      // What is important here is to detect mouse events which should be send to
+      // another object than `watched`. This can happen if one of the other items
+      // managed by this layout item block the path.
+      // We have two steps here:
+      // - check whether any of the first-level child managed by this layout can
+      //   block the way.
+      // - check whether any of the deeper child of each item can block the path.
+      // Of course depending on the hierarchy of the `UI` we might have several items
+      // on the way of the mouse. Ordering them in a correct way so that only the
+      // most relevant one gets the focus is as important as determining the complete
+      // list in the first place.
+
+      // In order to get the list of items spanning the input position referenced by
+      // the event we need to retrieve a position for the input mouse event. This can
+      // happen for all but the mouse wheel event where there's no real maning of
+      // position.
+      // Let's handle this first and move on to building the list.
+      if (e->getType() == engine::Event::Type::MouseWheel) {
+        // No filtering performed at this step.
+        return false;
+      }
+
+      // Retrieve the item at this position: either it corresponds to the input object
+      // in which case it means that given all the registered item the provided one is
+      // the most relevant one to pass the event to so we don't filter it. Otherwise
+      // we have to filter the event so that probably the item returned by `getItemAt`
+      // method gets it.
+      const LayoutItem* bestFit = getItemAt(e->getMousePosition());
+      if (bestFit == nullptr) {
+        return true;
+      }
+
+      if (bestFit == watched) {
+        log("Authorizing mouse event for " + watched->getName() + ", no better fit", utils::Level::Notice);
+      }
+      else {
+        log("Filtering mouse event for " + watched->getName() + ", best fit is " + bestFit->getName(), utils::Level::Error);
+      }
+
+      return bestFit != watched;
+    }
+
+    bool
     LayoutItem::geometryUpdateEvent(const engine::Event& e) {
       // Perform the rebuild if the geometry has changed.
       // This check should not be really useful because
@@ -56,8 +102,7 @@ namespace sdl {
     LayoutItem::resizeEvent(engine::ResizeEvent& e) {
       // We need to assign the area for this layout item based on the size
       // provided in the event The required size is the `new` size and
-      // the `old` size should correspond to the current size of the
-      // widget.
+      // the `old` size should correspond to the current size of the item.
 
       // Assign the area.
       m_area = e.getNewSize();

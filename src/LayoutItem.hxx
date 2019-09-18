@@ -267,15 +267,6 @@ namespace sdl {
 
     inline
     bool
-    LayoutItem::filterMouseEvents(const engine::EngineObject* /*watched*/,
-                                  const engine::MouseEventShPtr /*e*/) const noexcept
-    {
-      // Empty implementation.
-      return false;
-    }
-
-    inline
-    bool
     LayoutItem::filterKeyboardEvents(const engine::EngineObject* /*watched*/,
                                      const engine::KeyEventShPtr /*e*/) const noexcept
     {

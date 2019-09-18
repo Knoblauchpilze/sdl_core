@@ -289,26 +289,9 @@ namespace sdl {
 
         /**
          * @brief - Reimplementation of the base `LayoutItem` method. This method is
-         *          meant to provide custom behavior so that mouse events are only
-         *          transmitted to the item which both spans the area where the mouse
-         *          event occurred but also has the highest priority (usually in
-         *          terms of `z order`).
-         *          This allows to filter some hovering over events in case some more
-         *          relevant item should receive the event first.
-         * @param watched - the object for which the event should be filtered.
-         * @param e - the event which should be filtered.
-         * @return - `true` if the event should be filtered (i.e. not transmitted to
-         *           the `watched` object) and `false` otherwise.
-         */
-        bool
-        filterMouseEvents(const engine::EngineObject* watched,
-                          const engine::MouseEventShPtr e) const noexcept override;
-
-        /**
-         * @brief - Reimplementation of the base `LayoutItem` method. This method is
          *          meant to provide custom behavior when upon transmitting keyboard
          *          events to elements only if they have the keyboard focus. This
-         *          allows for efficient filtering of widgets which do not care about
+         *          allows for efficient filtering of items which do not care about
          *          keyboard events.
          * @param watched - the object for which the keyboard event should be filtered.
          * @param e - the event which should be filtered.
@@ -320,9 +303,9 @@ namespace sdl {
 
         /**
          * @brief - Redefintion of the base `EngineObject` method which allows to
-         *          react to children widgets gaining focus by propagating the
-         *          information to siblings widget for top level items.
-         * @param e - the gain focus event to propagate to siblings widget. We
+         *          react to children items gaining focus by propagating the
+         *          information to siblings item for top level items.
+         * @param e - the gain focus event to propagate to siblings item. We
          *            assume that the emitter is one of the children of this layout.
          * @return - true if the event was recognized, false otherwise.
          */
@@ -363,7 +346,7 @@ namespace sdl {
          *          layout, a negative value is returned (usually `-1`).
          *          Also note that the first item with a name matching the input
          *          string is returned, which does not mean it is the only one
-         *          inserted in this widget.
+         *          inserted in this layout.
          * @param item - the item for which the index should be returned.
          * @return - the index of the item in this layout or a negative value if
          *           no such item exists in the layout.

@@ -63,7 +63,6 @@ namespace sdl {
         }
       );
       
-      // TODO: Handle some sort of ordering.
       for (std::vector<const LayoutItem*>::const_iterator i = items.cbegin() ; i != items.cend() ; ++i) {
         log("Item " + (*i)->getName() + " spans " + pos.toString() + " (z order: " + std::to_string((*i)->getZOrder()) + ")");
       }
@@ -74,30 +73,6 @@ namespace sdl {
       }
 
       return items.back();
-
-      // TODO: Verify that this code is transmitted to the `getItemAt` method of the `SdlWidget`
-      // core::SdlWidget* best = nullptr;
-      // int zOrder = -1;
-
-      // bool contained = false;
-      // InfosMap::const_iterator child = m_infos.cbegin();
-      // while (child != m_infos.cend()) {
-      //   // Check whether the widget contains the mouse position.
-      //   contained = child->second.widget->getRenderingArea().contains(e->getMousePosition());
-
-      //   // If this is the case check the z order compared to the
-      //   // best one found so far.
-      //   if (contained && child->second.widget->getZOrder() > zOrder) {
-      //     best = child->second.widget;
-      //     zOrder = child->second.widget->getZOrder();
-      //   }
-
-      //   ++child;
-      // }
-
-      // // The event is filtered if the best candidate is not the input `watched`
-      // // object.
-      // return best != watched;
     }
 
     void

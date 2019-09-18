@@ -133,7 +133,7 @@ namespace sdl {
 
     bool
     Layout::filterKeyboardEvents(const engine::EngineObject* watched,
-                                 const engine::MouseEventShPtr e) const noexcept
+                                 const engine::KeyEventShPtr /*e*/) const noexcept
     {
       // We need to check whether the item corresponding to the input `watched` item
       // has the keyboard focus. If this is the case we can transmit the key event to
@@ -145,8 +145,9 @@ namespace sdl {
       // `watched` object.
       Items::const_iterator item = m_items.cbegin();
       while (item != m_items.cend()) {
-        if (item->second.widget == watched) {
-          return !item->second.widget->hasKeyboardFocus();
+        if (*item == watched) {
+          // TODO: Properly handle the keyboard focus, probably by bubbling up the property to `LayoutItem`.
+          return !dynamic_cast<const SdlWidget*>(*item)->hasKeyboardFocus();
         }
 
         ++item;

@@ -182,6 +182,12 @@ namespace sdl {
       // If no children is found for the position we will then check against this widget's
       // area: if it matches we return a pointer to this widget and `null` otherwise which
       // indicates that no element spans the input position in this widget's hierarchy.
+      // We also handle the special case of this widget being hidden first because it's
+      // kind of trivial: when we're hidden we're not supposed to be considered a valid
+      // widget at the specified `pos`.
+      if (!isVisible()) {
+        return nullptr;
+      }
 
       // Collect valid children which spans the position.
       std::vector<std::pair<int, const SdlWidget*>> elements;
@@ -194,7 +200,7 @@ namespace sdl {
           if (wig != nullptr) {
             // TODO: We should probably get a more complex way to handle z ordering, building it
             // along the chain of children.
-            elements.push_back(std::make_pair(child->zOrder, wig));
+            elements.push_back(std::make_pair(wig->getZOrder(), wig));
           }
         }
       }
@@ -210,7 +216,7 @@ namespace sdl {
 
       // Check whether at least one element can be found.
       if (!elements.empty()) {
-        return elements.front().second;
+        return elements.back().second;
       }
 
       // No element among the children was found to span the input position. We can safely deduce
@@ -223,6 +229,10 @@ namespace sdl {
       if (LayoutItem::getRenderingArea().contains(local)) {
         return this;
       }
+
+      // TODO: Note that this was the formula employed in the old `filterMouseEvents`
+      // method in `SdlWidget`.
+      // const bool notFiltered = (child->widget == wig || child->widget->isAncestor(wig));
 
       // Even `this` does not span the input position, we're doomed.
       return nullptr;
@@ -854,113 +864,6 @@ namespace sdl {
 
       // Now perform the refresh operation.
       refreshPrivate(e);
-    }
-
-    bool
-    SdlWidget::filterMouseEvents(const engine::EngineObject* watched,
-                                 const engine::MouseEventShPtr e) const noexcept
-    {
-      // Based on the type of mouse event the filtering conditions vary a
-      // little.
-      // In the case a mouse move we just want to activate the widget that
-      // is more specific. This means that we will try to determine whether
-      // the `watched` object should receive the event or if another more
-      // relevant children widget can receive it.
-      // A more relevant widget is found if it spans the area of the mouse
-      // move and has a higher z order.
-      //
-      // In the case of a mouse click the the process is similar except we
-      // are considering the position of the click instead of the mouse
-      // motion.
-
-      // Retrieve the mouse position and convert it to local coordinate
-      // frame.
-      const utils::Vector2f lpos = mapFromGlobal(e->getMousePosition());
-
-      // Just to be sure that we are processing valid data, we need to
-      // convert the input `watched` object into a `SdlWidget`. If this
-      // fails we consider that we do not filter the event.
-      const SdlWidget* wig = dynamic_cast<const SdlWidget*>(watched);
-      if (wig == nullptr) {
-        // Do not filter as we don't know for which object the filter is
-        // currently applied.
-        return false;
-      }
-
-      // We can now traverse the list of elements and determine whether
-      // this position should be transmitted to any of the child and more
-      // specifically to the `watched` object.
-      // When traversing the children we will see whether the first child
-      // available for intersection corresponds to the input `watched`
-      // object in which case we do not filter the event, otherwise we
-      // filter it.
-      Guard guard(m_childrenLocker);
-
-      // Traverse the children list and updtae the z order for each one.
-      // Note that we actually traverse the `m_chidlren` array in reverse
-      // order as the z ordering is sorted so that low order comes first
-      // in the vector.
-      bool contained = false;
-      WidgetsMap::const_reverse_iterator child = m_children.crbegin();
-      while (!contained && child != m_children.crend()) {
-        if (child->widget->isVisible()) {
-          contained = child->widget->getRenderingArea().contains(lpos);
-        }
-
-        if (!contained) {
-          ++child;
-        }
-      }
-
-      // Check whether we reached a child containing the current mouse
-      // position.
-      if (!contained) {
-        // No child intersected the mouse position which means that the
-        // `watched` object certainly doesn't. We can filter the event.
-        return true;
-      }
-
-      // We found one of the children widget which intersected the mouse
-      // position. If this widget corresponds to the input `watched`
-      // object it's okay. Also if the found child is an ancestor of the
-      // input `watched` object, it's still cool. Indeed if the mouse was
-      // contained in the child but not in the `watched` object, we would
-      // have detected it when the filter was applied by the ancestor.
-      // In any other case it means that another child widget should
-      // intercept the element before the `watched` object and thus it
-      // should not receive the event.
-      // We thus want to check whether the child widget we just found is
-      // either the searched `watched` object (in which case the event
-      // will not be filtered) or is an ancestor (in which case it won't
-      // be filtered neither).
-      const bool notFiltered = (child->widget == wig || child->widget->isAncestor(wig));
-      return !notFiltered;
-    }
-
-    bool
-    SdlWidget::filterKeyboardEvents(const engine::EngineObject* watched,
-                                    const engine::KeyEventShPtr /*e*/) const noexcept
-    {
-      // A keyboard event is filtered if the watched object does not have the keyboard focus.
-      // We cannot find whether the `watched` object is a child widget of `this` widget based
-      // on the input type: in order to find out we need to first try to retrieve the child
-      // widget as a `SdlWidget` object.
-      // If this succeeds, we can check whether it has the keyboard focus. If this is the
-      // case we can transmit the event, otherwise we filter it.
-
-      // Retrieve the child as a `SdlWidget` object is possible.
-      SdlWidget* child = getChildOrNull<SdlWidget>(watched->getName());
-
-      if (child == nullptr) {
-        // The `watched` object is not a child of `this` widget: we can't really use the
-        // standard logic so let's just not filter the event.
-        return false;
-      }
-
-      // As the `watched` object is a child of `this` widget, let's determine whether the
-      // child as the keyboard focus: this is what determines whether the input event should
-      // be filtered or not.
-      return !child->hasKeyboardFocus();
     }
 
     void

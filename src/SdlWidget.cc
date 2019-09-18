@@ -26,8 +26,6 @@ namespace sdl {
       m_contentDirty(true),
       m_mouseInside(false),
       m_internalFocusState(),
-      m_keyboardFocus(false),
-      m_zOrder(0),
 
       m_content(),
       m_repaintOperation(nullptr),
@@ -548,13 +546,41 @@ namespace sdl {
     SdlWidget::zOrderChanged(const engine::Event& e) {
       Guard guard(m_childrenLocker);
 
-      // Traverse the children list and updtae the z order for each one.
-      for (WidgetsMap::iterator child = m_children.begin() ; child != m_children.end() ; ++child) {
-        child->zOrder = child->widget->getZOrder();
+      // We first need to check whether this event was emitter by us:
+      // in this case we need to transmit it to our parent if any.
+      if (isEmitter(e)) {
+        // Transmit to the parent if any.
+        if (hasParent()) {
+          postEvent(
+            std::make_shared<engine::Event>(engine::Event::Type::ZOrderChanged, m_parent),
+            false
+          );
+        }
+
+        return LayoutItem::zOrderChanged(e);
       }
 
-      // Proceed to rebuild the z ordering.
-      rebuildZOrdering();
+      // We will assume that the event comes from one of our children. Note
+      // that we will not preventively check that it is the case: the most
+      // important part is to prevent the rebuild of the z ordering if nothing
+      // changed which will be handled afterwards.
+
+      // Let us be pessimistic.
+      bool changed = false;
+
+      // Traverse the children list and updtae the z order for each one.
+      for (WidgetsMap::iterator child = m_children.begin() ; child != m_children.end() ; ++child) {
+        const int newZOrder = child->widget->getZOrder();
+        if (newZOrder != child->zOrder) {
+          changed = true;
+        }
+        child->zOrder = newZOrder;
+      }
+
+      // Proceed to rebuild the z ordering if needed.
+      if (changed) {
+        rebuildZOrdering();
+      }
 
       // Use the base handler method to provide a return value.
       return LayoutItem::zOrderChanged(e);

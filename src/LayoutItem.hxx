@@ -98,6 +98,18 @@ namespace sdl {
     }
 
     inline
+    int
+    LayoutItem::getZOrder() const noexcept {
+      return m_zOrder;
+    }
+
+    inline
+    bool
+    LayoutItem::hasKeyboardFocus() const noexcept {
+      return m_keyboardFocus;
+    }
+
+    inline
     bool
     LayoutItem::isManaged() const noexcept {
       return m_manager != nullptr;
@@ -161,6 +173,16 @@ namespace sdl {
       // Both the mouse and keyboard filtering failed to filter the event: use the
       // base class method to provide a return value.
       return engine::EngineObject::filterEvent(watched, e);
+    }
+
+    inline
+    void
+    LayoutItem::setZOrder(const int order) {
+      // Assign the new z order value.
+      m_zOrder = order;
+
+      // Create a new event of the corresponding type.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::ZOrderChanged));
     }
 
     inline
@@ -285,6 +307,30 @@ namespace sdl {
 
       // Use the base handler to determine the return value.
       return engine::EngineObject::hideEvent(e);
+    }
+
+    inline
+    bool
+    LayoutItem::keyboardGrabbedEvent(const engine::Event& e) {
+      log("Item now has keyboard focus", utils::Level::Notice);
+
+      // Update the keyboard focus status.
+      m_keyboardFocus = true;
+
+      // Use the base handler to provide a return value.
+      return engine::EngineObject::keyboardGrabbedEvent(e);
+    }
+
+    inline
+    bool
+    LayoutItem::keyboardReleasedEvent(const engine::Event& e) {
+      log("Item has lost keyboard focus", utils::Level::Notice);
+
+      // Update the keyboard focus status.
+      m_keyboardFocus = false;
+
+      // Use the base handler to provide a return value.
+      return engine::EngineObject::keyboardReleasedEvent(e);
     }
 
     inline

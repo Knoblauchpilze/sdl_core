@@ -114,18 +114,6 @@ namespace sdl {
     }
 
     inline
-    int
-    SdlWidget::getZOrder() noexcept {
-      return m_zOrder;
-    }
-
-    inline
-    bool
-    SdlWidget::hasKeyboardFocus() const noexcept {
-      return m_keyboardFocus;
-    }
-
-    inline
     bool
     SdlWidget::filterEvent(engine::EngineObject* watched,
                            engine::EventShPtr e)
@@ -726,30 +714,6 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::keyboardGrabbedEvent(const engine::Event& e) {
-      log("Widget now has keyboard focus", utils::Level::Notice);
-
-      // Update the keyboard focus status.
-      m_keyboardFocus = true;
-
-      // Use the base handler to provide a return value.
-      return LayoutItem::keyboardGrabbedEvent(e);
-    }
-
-    inline
-    bool
-    SdlWidget::keyboardReleasedEvent(const engine::Event& e) {
-      log("Widget has lost keyboard focus", utils::Level::Notice);
-
-      // Update the keyboard focus status.
-      m_keyboardFocus = false;
-
-      // Use the base handler to provide a return value.
-      return LayoutItem::keyboardReleasedEvent(e);
-    }
-
-    inline
-    bool
     SdlWidget::leaveEvent(const engine::Event& e) {
       // This kind of event is generated whenever the mouse just exited the
       // current widget. The main goal of this method is to update the mouse
@@ -933,18 +897,6 @@ namespace sdl {
         // And now rebuilt the `m_names` array after sorting items in ascending
         // z order.
         rebuildZOrdering();
-      }
-    }
-
-    inline
-    void
-    SdlWidget::setZOrder(const int order) {
-      // Assign the new z order value.
-      m_zOrder = order;
-
-      // Notify the parent widget of this modification if any.
-      if (hasParent()) {
-        postEvent(std::make_shared<core::engine::Event>(core::engine::Event::Type::ZOrderChanged, m_parent));
       }
     }
 

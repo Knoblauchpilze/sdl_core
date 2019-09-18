@@ -57,16 +57,15 @@ namespace sdl {
       // perform a sort of the list and select the one with higher order. If we use
       // an ordering where the smallest z order are in front of the sorted array,
       // we need to retrieve the last one first.
-      // TODO: Probably bubble up the `z order` property to `LayoutItem` class.
       std::sort(items.begin(), items.end(),
         [](const LayoutItem* lhs, const LayoutItem* rhs) {
-          return lhs->zOrder < rhs->zOrder;
+          return lhs->getZOrder() < rhs->getZOrder();
         }
       );
       
       // TODO: Handle some sort of ordering.
       for (std::vector<const LayoutItem*>::const_iterator i = items.cbegin() ; i != items.cend() ; ++i) {
-        log("Item " + (*i)->getName() + " spans " + pos.toString() + " (z order: " + (*i)->getZOrder() + ")");
+        log("Item " + (*i)->getName() + " spans " + pos.toString() + " (z order: " + std::to_string((*i)->getZOrder()) + ")");
       }
 
       // Return the last element of the sorted array if any.
@@ -186,8 +185,7 @@ namespace sdl {
       Items::const_iterator item = m_items.cbegin();
       while (item != m_items.cend()) {
         if (*item == watched) {
-          // TODO: Properly handle the keyboard focus, probably by bubbling up the property to `LayoutItem`.
-          return !dynamic_cast<const SdlWidget*>(*item)->hasKeyboardFocus();
+          return !(*item)->hasKeyboardFocus();
         }
 
         ++item;

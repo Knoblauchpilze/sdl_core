@@ -118,49 +118,10 @@ namespace sdl {
     SdlWidget::filterEvent(engine::EngineObject* watched,
                            engine::EventShPtr e)
     {
-      // Handle mouse events filtering if the event is actually
-      // a mouse event. For the mouse event, we actually need to
-      // rely on the ancestors to perform some filtering: let's
-      // consider the situation where the mouse is outside the
-      // `watched` widget and outside of its parent but inside
-      // a sibling of its parent.
-      // The parent has been installed as an event filter for the
-      // `watched` widget. The problem is that given the code in
-      // the `filterMouseEvent` we will only check whether sibling
-      // widgets contains the current mouse position.
-      // If this is not the case the event will not be filtered.
-      // In our situation it does not fit our needs because the
-      // uncle of the `watched` widget actually should receive
-      // the event.
-      // We thus need to transmit the request to the grand-parent
-      // widget which will correctly determine that the uncle of
-      // the initial `watched` widget should receive the focus
-      // and thus filter the event for the `watched` widget.
-      engine::MouseEventShPtr me = std::dynamic_pointer_cast<engine::MouseEvent>(e);
-      if (me != nullptr && filterMouseEvents(watched, me)) {
-        return true;
-      }
-
-      // Handle keyboard events filtering if the event is actually
-      // a keyboard event. For the keyboard event we do not really
-      // want to transmit the filtering request to the ancestors
-      // of the `watched` widget beyond its parent. Indeed only
-      // the parent can check the keyboard focus for the initial
-      // `watched` widget: the grand-parent would check the keyboard
-      // focus of the parent of the initial `watched` widet which
-      // would fail for obvious reasons: the parent cannot have the
-      // focus if the child has it.
-      // On the other hand we still want to check for visible status
-      // of all the ancestors widget before performing the processing
-      // of the keyboard event. This is thus done by checking inside
-      // the `filterKeyboardEvents` method if the `watched` object
-      // is one of the children of `this` widget: this condition
-      // only holds for the parent widget and otherwise we consider
-      // that the event is not filtered (i.e. ancestors apart from
-      // the parent do not have the rights to forbid the execution
-      // of a keyboard event to their descendants).
-      engine::KeyEventShPtr ke = std::dynamic_pointer_cast<engine::KeyEvent>(e);
-      if (ke != nullptr && filterKeyboardEvents(watched, ke)) {
+      // Use the base method to filter the events as usual: this will provide a
+      // first basis to detect whether event can be filtered at this level.
+      if (LayoutItem::filterEvent(watched, e)) {
+        // The event is filtered
         return true;
       }
 

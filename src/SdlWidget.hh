@@ -225,6 +225,20 @@ namespace sdl {
         updatePrivate(const utils::Boxf& window) override;
 
         /**
+         * @brief - Reimplementation of the base `LayoutItem` method. This method is
+         *          meant to provide custom behavior when upon transmitting keyboard
+         *          events to elements only if they have the keyboard focus. This
+         *          allows for efficient filtering of widgets which do not care about
+         *          keyboard events.
+         * @param watched - the object for which the keyboard event should be filtered.
+         * @param e - the event which should be filtered.
+         * @return - `true` if the event is filtered, `false` otherwise.
+         */
+        bool
+        filterKeyboardEvents(const engine::EngineObject* watched,
+                             const engine::KeyEventShPtr e) const noexcept override;
+
+        /**
          * @brief - Specialization of the base `EngineObject` method to allow a lock operation
          *          on this widget so that we protect concurrent access from drawing routine.
          * @param e - the event to handle.

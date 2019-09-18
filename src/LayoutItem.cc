@@ -22,6 +22,10 @@ namespace sdl {
       m_visibleLocker(),
 
       m_focusState(),
+
+      m_zOrder(0),
+      m_keyboardFocus(false),
+
       m_manager(nullptr)
     {
       setService(std::string("layout_item"));

@@ -88,20 +88,6 @@ namespace sdl {
         getContentUuid();
 
         /**
-         * @brief - Retrievs the z order for this widget.
-         * @return - the z order for this widget.
-         */
-        int
-        getZOrder() noexcept;
-
-        /**
-         * @brief - Used to determine whether this widget has received the keyboard focus.
-         * @return - true if this widget has received keyboard focus, false otherwise.
-         */
-        bool
-        hasKeyboardFocus() const noexcept;
-
-        /**
          * @brief - Used to perform the rendering of this widget using the internal engine
          *          provided to it. This method mostly returns the cached texture to use
          *          for this widget.
@@ -271,26 +257,6 @@ namespace sdl {
         bool
         hideEvent(const engine::Event& e) override;
 
-        /**
-         * @brief - Specialization of the base `EngineObject` method in order to handle keyboard focus
-         *          update. This kind of event is triggered when a widget should receive the keyboard
-         *          focus and thus be sent all the keyboard events.
-         * @param e - the keyboard focus event to process.
-         * @return - `true` if the event was recognized, `false` otherwise.
-         */
-        bool
-        keyboardGrabbedEvent(const engine::Event& e) override;
-
-        /**
-         * @brief - Specialization of the base `EngineObject` method in order to handle keyboard focus
-         *          update. This kind of event is triggered when a widget should lose the keyboard
-         *          focus and thus not receive the keyboard events anymore.
-         * @param e - the keyboard focus event to process.
-         * @return - `true` if the event was recognized, `false` otherwise.
-         */
-        bool
-        keyboardReleasedEvent(const engine::Event& e) override;
-
         bool
         leaveEvent(const engine::Event& e) override;
 
@@ -334,6 +300,18 @@ namespace sdl {
         bool
         showEvent(const engine::Event& e) override;
 
+        /**
+         * @brief - Specialization of the base `EngineObject` method which allows to
+         *          interpret the modification of the z order for this widget. These
+         *          events can either originate from `this` widget or from one of its
+         *          children. 
+         *          In the case of a self emitted event we merely serve as a relay to
+         *          notify the parent about the z order changed, and in case a child
+         *          sent us the event we need to rebuild the z ordering to produce an
+         *          accurate display.
+         * @param e - the z order event to process.
+         * @return - `true` if the event has been recognized, `đalse` otherwise.
+         */
         bool
         zOrderChanged(const engine::Event& e) override;
 
@@ -668,15 +646,6 @@ namespace sdl {
         addWidget(SdlWidget* widget);
 
         /**
-         * @brief - Assigns a new z order for this widget. This method also notifies
-         *          the parent widget to indicate that the z order for this widget
-         *          has been modified.
-         * @param order - the new z order for this widget.
-         */
-        void
-        setZOrder(const int order);
-
-        /**
          * @brief - Used to update the internal focus state from the input focus event.
          *          Depending on the focus reason and the internal widget's policy for
          *          focus handling, we might or might not actually update anything in
@@ -999,28 +968,6 @@ namespace sdl {
          *          This is the purpose of this attribute.
          */
         FocusState  m_internalFocusState;
-
-        /**
-         * @brief - Describes whether this widget has the keyboard focus or not. The keyboard focus is
-         *          received whenever the internal state of the widget allows it. Some widget are never
-         *          able to receive the keyboard focus if the policy does not allow it.
-         *          Usually a focus reason of `Tab` or `Click` is sufficient to gain the keyboard focus.
-         */
-        bool m_keyboardFocus;
-
-        /**
-         * @brief - The z order for this widget. The z order allows for specific widgets to be
-         *          drawn after some other widgets so that we get some sort of overlapping
-         *          behavior. basically in the case of a combobox for example, the widget might
-         *          extend beyond its assigned range, thus overlapping with other children
-         *          widgets.
-         *          In order to guarantee that such widgets get drawn after all the other children
-         *          and thus get full advantage of their extended representation, one can use
-         *          the z order.
-         *          The z order is only relevant for siblings widgets and there's no such thing
-         *          as a global z ordering of widgets.
-         */
-        int m_zOrder;
 
         /**
          * @brief - Contains an identifier representing the current visual content associated to

@@ -101,9 +101,9 @@ namespace sdl {
         getDrawingArea() const noexcept;
 
         /**
-         * @brief - Retrieves the current focus status for this widget. Returns `true`
-         *          of this widget has gained the focus and `false` otherwise.
-         * @return - `true` if this widget gained focus, `false` otherwise.
+         * @brief - Retrieves the current focus status for this item. Returns `true`
+         *          of this item has gained the focus and `false` otherwise.
+         * @return - `true` if this item gained focus, `false` otherwise.
          */
         bool
         hasFocus() const noexcept;
@@ -114,6 +114,20 @@ namespace sdl {
          */
         FocusState&
         getFocusState() noexcept;
+
+        /**
+         * @brief - Retrievs the z order for this item.
+         * @return - the z order for this item.
+         */
+        int
+        getZOrder() const noexcept;
+
+        /**
+         * @brief - Used to determine whether this item has received the keyboard focus.
+         * @return - `true` if this item has received keyboard focus, `false` otherwise.
+         */
+        bool
+        hasKeyboardFocus() const noexcept;
 
         /**
          * @brief - Returns true if this item's size and position is managed by a
@@ -223,6 +237,20 @@ namespace sdl {
         staysInactiveWhileEnabled(const engine::Event::Type& type) const noexcept override;
 
         /**
+         * @brief - Assigns a new z order for this item. A new `ZOrderChanged` event will
+         *          be issued and directed towards this item.
+         *          Note that the value of the z order (i.e. the `m_zOrder` value) gets
+         *          modified right away in this method, unlike the visible status upon
+         *          `Hide` and `Show` event for example.
+         *          The event is merely here to notify listeners that this widget has
+         *          changed but it is not in the hand of this item to do anything after
+         *          being updated.
+         * @param order - the new z order for this item.
+         */
+        void
+        setZOrder(const int order);
+
+        /**
          * @brief - Retrieves the manager for this item. The manager is usually responsible for
          *          providing a size and position for a layout item.
          *          Note that the return value may be nil if the size and position for this item
@@ -302,7 +330,7 @@ namespace sdl {
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method. Will perform the deactivation
-         *          of this widget for almost all kind of events. This allows efficient management of
+         *          of this item for almost all kind of events. This allows efficient management of
          *          items which are hidden as they hardly weigh on the events management system.
          *          The `Show` event still needs to be activated of course (otherwise we would not be
          *          able to reactivate the item when needed) along with some specific events (like
@@ -315,6 +343,26 @@ namespace sdl {
         bool
         hideEvent(const engine::Event& e) override;
 
+        /**
+         * @brief - Specialization of the base `EngineObject` method in order to handle keyboard focus
+         *          update. This kind of event is triggered when a item should receive the keyboard focus
+         *          and thus be sent all the keyboard events.
+         * @param e - the keyboard focus event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyboardGrabbedEvent(const engine::Event& e) override;
+
+        /**
+         * @brief - Specialization of the base `EngineObject` method in order to handle keyboard focus
+         *          update. This kind of event is triggered when a item should lose the keyboard focus
+         *          and thus not receive the keyboard events anymore.
+         * @param e - the keyboard focus event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyboardReleasedEvent(const engine::Event& e) override;
+
         bool
         resizeEvent(engine::ResizeEvent& e) override;
 
@@ -324,45 +372,45 @@ namespace sdl {
       private:
 
         /**
-         * @brief - Describes the size policy for this widget. The policy is described using
+         * @brief - Describes the size policy for this item. The policy is described using
          *          several sizes which roles are described below. In addition to that, the
-         *          `m_sizePolicy` allows to determine the behavior of the widget when some
+         *          `m_sizePolicy` allows to determine the behavior of the item when some
          *          extra space is allocated to it or if it should be srhunk for some reason.
          */
         /**
-         * @brief - Holds the minimum size which can be assigned to a widget while still making
-         *          the widget usable. Any area smaller than this would make the widget useless
+         * @brief - Holds the minimum size which can be assigned to a item while still making
+         *          the item usable. Any area smaller than this would make the item useless
          *          as the user would not be able to properly use it.
          */
         utils::Sizef m_minSize;
 
         /**
-         * @brief - Holds a sensible size for the widget which should allow for best ergonomy.
+         * @brief - Holds a sensible size for the item which should allow for best ergonomy.
          *          According to the policy one can determine whether some extra space can be
          *          used (or conversely if some missing space is a problem) but it should be
-         *          the target size of the widget.
+         *          the target size of the item.
          */
         utils::Sizef m_sizeHint;
 
         /**
-         * @brief - Holds a maximum size over which the widget starts being unusable. Up until
-         *          this value the widget can make use of some extra space but not beyond. Such
-         *          an area is the theoretical maximum bound for usability of this widget.
+         * @brief - Holds a maximum size over which the item starts being unusable. Up until
+         *          this value the item can make use of some extra space but not beyond. Such
+         *          an area is the theoretical maximum bound for usability of this item.
          */
         utils::Sizef m_maxSize;
 
         /**
-         * @brief - Defines the strategy of the widget regarding space allocation. This allows
-         *          for precise determination of the capability of the widget to use some extra
-         *          space or to determine whether it's a problem if the widget has to be shrunk.
+         * @brief - Defines the strategy of the item regarding space allocation. This allows
+         *          for precise determination of the capability of the item to use some extra
+         *          space or to determine whether it's a problem if the item has to be shrunk.
          *          This policy is best used in conjunction with the layout system, and is taken
-         *          into consideration when computing the space to assign to the widget.
+         *          into consideration when computing the space to assign to the item.
          */
         SizePolicy m_sizePolicy;
 
         /**
-         * @brief - Defines the strategy of the widget to handle focus. The focus action allows
-         *          the widget to intercept specific user's actions if it is activated and prevent
+         * @brief - Defines the strategy of the item to handle focus. The focus action allows
+         *          the item to intercept specific user's actions if it is activated and prevent
          *          other elements from getting these actions.
          *          This is useful both for performing specific operations on such actions and also
          *          improve performance by filtering these actions from being sent to other elements
@@ -373,21 +421,21 @@ namespace sdl {
         FocusPolicy m_focusPolicy;
 
         /**
-         * @brief - Used to determine whether the geometry information held by this widget is
+         * @brief - Used to determine whether the geometry information held by this item is
          *          up to date. This is particularly useful to delay geometry computations to
          *          a later date, for example when an event of type `geometry update` is received.
-         *          Ideally whenever a request to retrieve size information for this widget is
+         *          Ideally whenever a request to retrieve size information for this item is
          *          received, it should be checked against this status to trigger a recomputation
          *          if it appears that the information is not up to date.
          */
         bool m_geometryDirty;
 
         /**
-         * @brief - Describes the current rendering area assigned to this widget. Should always
+         * @brief - Describes the current rendering area assigned to this item. Should always
          *          be greater than the `m_minSize`, smaller than the `m_maxSize` and as close
          *          to the `m_sizeHint` (if any is provided).
          *          This is used in computation to allocate and fill the internal visual textures
-         *          used to represent the widget.
+         *          used to represent the item.
          */
         utils::Boxf m_area;
 
@@ -411,6 +459,28 @@ namespace sdl {
          *          pressing the `Tab` key until the tab chain reach this item.
          */
         FocusState  m_focusState;
+
+        /**
+         * @brief - The z order for this layout item. The z order allows for specific items to be
+         *          drawn after some other items so that we get some sort of overlapping behavior.
+         *          Basically in the case of a combobox for example, the item might extend beyond
+         *          its assigned area, thus overlapping with other children items.
+         *          In order to guarantee that such items get drawn after all the other children
+         *          and thus get full advantage of their extended representation, one can use
+         *          the z order.
+         *          The z order's default value is 0. Any value higher than that will give priority
+         *          to the item that has it (e.g. a component with a z order of `1` will be displayed
+         *          in front of a component with a z order of `0`).
+         */
+        int m_zOrder;
+
+        /**
+         * @brief - Describes whether this item has the keyboard focus or not. The keyboard focus is
+         *          received whenever the internal state of the item allows it. Some items are never
+         *          able to receive the keyboard focus if the policy does not allow it.
+         *          Usually a focus reason of `Tab` or `Click` is sufficient to gain the keyboard focus.
+         */
+        bool m_keyboardFocus;
 
         /**
          * @brief - A pointer to the layout into which this item might be inserted. Most of

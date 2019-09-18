@@ -598,6 +598,8 @@ namespace sdl {
       // to get the event. We could use some kind of z-ordering to narrow the
       // possibility to the forward one. This has no obvious show stopper.
 
+      log("Processing enter event", utils::Level::Error);
+
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.
       postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::HoverFocus, true));
@@ -682,6 +684,16 @@ namespace sdl {
       // a focus event with the corresponding reason.
       // The actual update of the widget's content based on the focus is left
       // to be handled in the focus event.
+
+      // TODO: This is not triggered anymore because when the mouse move over to
+      // a child widget for example the event is only transmitted to this child
+      // (unlike what was done before) which prevents this widget from processing
+      // the mouse move event where the mouse is blocked by the child and thus to
+      // perform the leave event. What we could do is modify the way the `gainFocus`
+      // event work to also handle the leave event if needed.
+      // Or modify the leave event altogether as it will probably not be produced
+      // in the same way as before.
+      log("Processing leave event", utils::Level::Error);
 
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.

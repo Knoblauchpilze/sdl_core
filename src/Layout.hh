@@ -316,7 +316,7 @@ namespace sdl {
          */
         bool
         filterKeyboardEvents(const engine::EngineObject* watched,
-                             const engine::MouseEventShPtr e) const noexcept override;
+                             const engine::KeyEventShPtr e) const noexcept override;
 
         /**
          * @brief - Redefintion of the base `EngineObject` method which allows to

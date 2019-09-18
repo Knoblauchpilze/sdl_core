@@ -62,10 +62,6 @@ namespace sdl {
           return lhs->getZOrder() < rhs->getZOrder();
         }
       );
-      
-      for (std::vector<const LayoutItem*>::const_iterator i = items.cbegin() ; i != items.cend() ; ++i) {
-        log("Item " + (*i)->getName() + " spans " + pos.toString() + " (z order: " + std::to_string((*i)->getZOrder()) + ")");
-      }
 
       // Return the last element of the sorted array if any.
       if (items.empty()) {

@@ -53,12 +53,52 @@ namespace sdl {
         }
       }
 
+      // Now that we have the list of elements spanning the input position, we can
+      // perform a sort of the list and select the one with higher order. If we use
+      // an ordering where the smallest z order are in front of the sorted array,
+      // we need to retrieve the last one first.
+      // TODO: Probably bubble up the `z order` property to `LayoutItem` class.
+      std::sort(items.begin(), items.end(),
+        [](const LayoutItem* lhs, const LayoutItem* rhs) {
+          return lhs->zOrder < rhs->zOrder;
+        }
+      );
+      
       // TODO: Handle some sort of ordering.
       for (std::vector<const LayoutItem*>::const_iterator i = items.cbegin() ; i != items.cend() ; ++i) {
-        log("Item " + (*i)->getName() + " spans " + pos.toString());
+        log("Item " + (*i)->getName() + " spans " + pos.toString() + " (z order: " + (*i)->getZOrder() + ")");
       }
 
-      return nullptr;
+      // Return the last element of the sorted array if any.
+      if (items.empty()) {
+        return nullptr;
+      }
+
+      return items.back();
+
+      // TODO: Verify that this code is transmitted to the `getItemAt` method of the `SdlWidget`
+      // core::SdlWidget* best = nullptr;
+      // int zOrder = -1;
+
+      // bool contained = false;
+      // InfosMap::const_iterator child = m_infos.cbegin();
+      // while (child != m_infos.cend()) {
+      //   // Check whether the widget contains the mouse position.
+      //   contained = child->second.widget->getRenderingArea().contains(e->getMousePosition());
+
+      //   // If this is the case check the z order compared to the
+      //   // best one found so far.
+      //   if (contained && child->second.widget->getZOrder() > zOrder) {
+      //     best = child->second.widget;
+      //     zOrder = child->second.widget->getZOrder();
+      //   }
+
+      //   ++child;
+      // }
+
+      // // The event is filtered if the best candidate is not the input `watched`
+      // // object.
+      // return best != watched;
     }
 
     void

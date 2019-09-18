@@ -223,10 +223,13 @@ namespace sdl {
       // that the best candidate we have is `this` object. We can return it in case the input
       // position spans the `pos`.
 
-      // Map to local coordinate frame.
+      // Map to local coordinate frame. We will also have to map the `getRenderingArea` method to
+      // local coordinate frame as it returns a box in the parent's coordinate frame which is thus
+      // incompatible with the converted local position.
       const utils::Vector2f local = mapFromGlobal(pos);
+      const utils::Boxf thisSize = LayoutItem::getRenderingArea().toOrigin();
 
-      if (LayoutItem::getRenderingArea().contains(local)) {
+      if (thisSize.contains(local)) {
         return this;
       }
 
@@ -236,6 +239,32 @@ namespace sdl {
 
       // Even `this` does not span the input position, we're doomed.
       return nullptr;
+    }
+
+    bool
+    SdlWidget::filterKeyboardEvents(const engine::EngineObject* watched,
+                                    const engine::KeyEventShPtr /*e*/) const noexcept
+    {
+      // We need to check whether the item corresponding to the input `watched` item
+      // has the keyboard focus. If this is the case we can transmit the key event to
+      // it otherwise we need to filter it.
+      // If the watched object cannot be found in the internal array, we consider that
+      // the event is not filtered.
+      Guard guard(m_childrenLocker);
+
+      // Traverse the internal list of items and stop as soon as we find the input
+      // `watched` object.
+      WidgetsMap::const_iterator child = m_children.cbegin();
+      while (child != m_children.cend()) {
+        if (child->widget == watched) {
+          return !child->widget->hasKeyboardFocus();
+        }
+
+        ++child;
+      }
+
+      // No child matches the input `watched` object: consider the event as not filtered.
+      return false;
     }
 
     bool

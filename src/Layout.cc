@@ -90,62 +90,6 @@ namespace sdl {
     }
 
     bool
-    Layout::filterMouseEvents(const engine::EngineObject* watched,
-                              const engine::MouseEventShPtr e) const noexcept
-    {
-      // First thing is to find the corresponding children from the input `watched`
-      // object. If we can't find it into the list of elements managed by this layout
-      // it probably means that we can't have any relevant insight about the status
-      // of this event.
-      log("Trying to filter " + engine::Event::getNameFromEvent(e) + " for " + watched->getName());
-      int id = getIndexOf(watched->getName());
-      if (id < 0) {
-        // Do not filter the event, it's not clear how we ended up here.
-        return false;
-      }
-
-      const LayoutItem* watchedAsItem = getItemAt(id);
-
-      // Now that we have a valid item to work with we can start asking the real
-      // questions. Basically what is important here is to detect mouse events which
-      // should be send to another object than `watched`. This can happen if one of
-      // the other widgets managed by this layout block the path.
-      // We have two steps here:
-      // - check whether any of the first-level children managed by this layout can
-      //   block the way.
-      // - check whether any of the deeper child of each item can blcok the path.
-      // Of course depending on the hierarchy of the `UI` we might have several items
-      // on the way of the mouse. Ordering them in a correct way so that only the
-      // most relevant one gets the focus is as important as determining the complete
-      // list in the first place.
-
-      // In order to get the list of items spanning the input position referenced by
-      // the event we need to retrieve a position for the input mouse event. This can
-      // happen for all but the mouse wheel event where there's no real maning of
-      // position.
-      // Let's handle this first and move on to building the list.
-      if (e->getType() == engine::Event::Type::MouseWheel) {
-        // No filtering performed at this step.
-        return false;
-      }
-
-      // Retrieve the item at this position: either it corresponds to the input object
-      // in which case it means that given all the registered item the provided one is
-      // the most relevant one to pass the event to so we don't filter it. Otherwise
-      // we have to filter the event so that probably the item returned by `getItemAt`
-      // method gets it.
-      const LayoutItem* wawa = getItemAt(e->getMousePosition());
-      if (wawa == nullptr) {
-        log("Found no item spanning " + e->getMousePosition().toString());
-      }
-      else {
-        log("Found item " + wawa->getName() + " spanning " + e->getMousePosition().toString() + ", checking for " + watchedAsItem->getName());
-      }
-
-      return wawa != watchedAsItem;
-    }
-
-    bool
     Layout::filterKeyboardEvents(const engine::EngineObject* watched,
                                  const engine::KeyEventShPtr /*e*/) const noexcept
     {

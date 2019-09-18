@@ -294,8 +294,7 @@ namespace sdl {
          *          events without need to cast anything. This method is called by the base
          *          `filterEvent` method when a mouse event is detected.
          *          Inheriting classes are encouraged to specialize this method to provide
-         *          custom filtering on mouse events on various conditions. This method does
-         *          not provide any filtering so that we do not specify too many things here.
+         *          custom filtering on mouse events on various conditions.
          * @param watched - the element for which the mouse event should be filtered. If
          *                  this method returns  `false` the event `e` will be transmitted
          *                  to the `watched` object.
@@ -312,8 +311,7 @@ namespace sdl {
          *          keyboard events without need to cast anything. This method is called by
          *          the base `filterEvent` method when a keyboard event is detected.
          *          Inheriting classes are encouraged to specialize this method to provide
-         *          custom filtering on keyboard events on various conditions. This method does
-         *          not provide any filtering so that we do not specify too many things here.
+         *          custom filtering on keyboard events on various conditions.
          * @param watched - the element for which the keyboard event should be filtered. If
          *                  this method returns  `false` the event `e` will be transmitted
          *                  to the `watched` object.

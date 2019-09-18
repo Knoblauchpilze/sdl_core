@@ -704,54 +704,6 @@ namespace sdl {
         virtual bool
         canCauseKeyboardFocusChange(const engine::FocusEvent::Reason& reason) const noexcept;
 
-        /**
-         * @brief - Used to filter the input event if it is an instance of a mouse event.
-         *          Such events need to be filtered carefully so that only the right child
-         *          gets triggered with the corresponding handler.
-         *          It is much easier for the parent to determine if a child is covering
-         *          another one or somehow obstruct the transmission of events as it has
-         *          intuitive notion of the siblings of a widget rather than to delegate
-         *          this job to the child which would have a hard time gathering this info
-         *          in the first place.
-         *          The user needs to specify the child for which the event should be
-         *          filtered. If the input `watched` cannot be casted into a valid widget
-         *          this method returns false.
-         * @param watched - the element for which the mouse event should be filtered. If
-         *                  this method returns  `false` the event `e` will be transmitted
-         *                  to the `watched` object.
-         * @param e - the mouse event which should be filtered. If it is not the case this
-         *            method returns false.
-         * @return - `true` if this event should be filtered and `false` otherwise.
-         */
-        virtual bool
-        filterMouseEvents(const engine::EngineObject* watched,
-                          const engine::MouseEventShPtr e) const noexcept;
-
-        /**
-         * @brief - Used to filter the input event if it is an instance of a keyboard
-         *          event. Such events need to be filtered carefully so that only the
-         *          right child receives the event: we want to avoid unnecessary response
-         *          of child when possible and only activates children which can actually
-         *          process the event.
-         *          Just like the `filterMouseEvents` method it is easier for the parent
-         *          (which is installed as an event filter of any of its child) to filter
-         *          the keyboard events rather than letting the child decide whether it
-         *          should filter it. In addition to being more robust (because inheriting
-         *          classes cannot change this behavior) it also provides more intuitive
-         *          behavior as the parent knows about the children positions and is able
-         *          to determine whether a child obstructs another.
-         * @param watched - the element for which the keyboard event should be filtered.
-         *                  If this method returns `false` the event `e` is not filtered
-         *                  by this method and can be transmitted to the `watched` object
-         *                  if all other checks passes.
-         * @param e - the keyboard event which should be filtered. If the event is filtered
-         *            by this method the return value is `true`.
-         * @return - `true` if this event should be filtered and `false` otherwise.
-         */
-        virtual bool
-        filterKeyboardEvents(const engine::EngineObject* watched,
-                             const engine::KeyEventShPtr e) const noexcept;
-
       private:
 
         /**

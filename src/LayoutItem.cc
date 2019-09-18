@@ -72,13 +72,6 @@ namespace sdl {
         return true;
       }
 
-      if (bestFit == watched) {
-        log("Authorizing mouse event for " + watched->getName() + ", no better fit", utils::Level::Notice);
-      }
-      else {
-        log("Filtering mouse event for " + watched->getName() + ", best fit is " + bestFit->getName(), utils::Level::Error);
-      }
-
       return bestFit != watched;
     }
 

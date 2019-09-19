@@ -233,10 +233,6 @@ namespace sdl {
         return this;
       }
 
-      // TODO: Note that this was the formula employed in the old `filterMouseEvents`
-      // method in `SdlWidget`.
-      // const bool notFiltered = (child->widget == wig || child->widget->isAncestor(wig));
-
       // Even `this` does not span the input position, we're doomed.
       return nullptr;
     }
@@ -385,6 +381,17 @@ namespace sdl {
       // this is the case we don't need to update anything as it has most
       // likely already been handled during the `FocusIn` event.
       if (!isEmitter(e)) {
+        // If the focus reason concerns the mouse, we need to update the
+        // status of the mouse for this widget: indeed if the cursor is
+        // inside one of the child, it obviously cannot be also inside
+        // this one.
+        if (e.getReason() == engine::FocusEvent::Reason::HoverFocus ||
+            e.getReason() == engine::FocusEvent::Reason::MouseFocus)
+        {
+          // The mouse is now outside this widget.
+          m_mouseInside = false;
+        }
+
         // Now that we know the focus reason can be handled, we need to
         // update the widget's content to match the new focus state. Once
         // again use the dedicated handler.

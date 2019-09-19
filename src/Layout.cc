@@ -63,6 +63,22 @@ namespace sdl {
         }
       );
 
+      // Check whether several items have the same z order: in this case it means
+      // that we are probably discarding elements which could have all the rights
+      // to be displayed as well.
+      if (items.size() >= 2) {
+        const LayoutItem* last = *items.rbegin();
+        const LayoutItem* secondToLast = *std::next(items.rbegin());
+
+        if (last->getZOrder() == secondToLast->getZOrder()) {
+          log(
+            "Several items have the same z order and spans the same position, discarding \"" + secondToLast->getName() + "\"" +
+            " and possibly more in favor of \"" + last->getName() + "\"",
+            utils::Level::Warning
+          );
+        }
+      }
+
       // Return the last element of the sorted array if any.
       if (items.empty()) {
         return nullptr;

@@ -597,6 +597,9 @@ namespace sdl {
       // we will actually only determine whether several widgets can fight
       // to get the event. We could use some kind of z-ordering to narrow the
       // possibility to the forward one. This has no obvious show stopper.
+      // TODO: This seems to be working so far, we just have to solve the
+      // issue of the z order computation as a chain rather than a single
+      // property of widgets.
 
       // Post a focus event with the specified reason: redraw of the widget's
       // content is left to be processed there.

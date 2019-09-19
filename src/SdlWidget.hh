@@ -272,9 +272,6 @@ namespace sdl {
         hideEvent(const engine::Event& e) override;
 
         bool
-        leaveEvent(const engine::Event& e) override;
-
-        bool
         lostFocusEvent(const engine::FocusEvent& e) override;
 
         bool

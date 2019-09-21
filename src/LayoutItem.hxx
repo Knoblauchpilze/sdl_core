@@ -104,6 +104,16 @@ namespace sdl {
     }
 
     inline
+    void
+    LayoutItem::setZOrder(const int order) {
+      // Assign the new z order value.
+      m_zOrder = order;
+
+      // Create a new event of the corresponding type.
+      postEvent(std::make_shared<engine::Event>(engine::Event::Type::ZOrderChanged));
+    }
+
+    inline
     bool
     LayoutItem::hasKeyboardFocus() const noexcept {
       return m_keyboardFocus;
@@ -173,16 +183,6 @@ namespace sdl {
       // Both the mouse and keyboard filtering failed to filter the event: use the
       // base class method to provide a return value.
       return engine::EngineObject::filterEvent(watched, e);
-    }
-
-    inline
-    void
-    LayoutItem::setZOrder(const int order) {
-      // Assign the new z order value.
-      m_zOrder = order;
-
-      // Create a new event of the corresponding type.
-      postEvent(std::make_shared<engine::Event>(engine::Event::Type::ZOrderChanged));
     }
 
     inline

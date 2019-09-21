@@ -941,7 +941,12 @@ namespace sdl {
       );
 
       if (!span) {
-        // TODO: Investigate why this occur when clicking on the combobox.
+        // Note that we can end up here in several situations. One of them being that
+        // the widget to repaint used to span the `dst` area but doesn't anymore. In
+        // this case the job is already done because what was really needed was to
+        // repaint the content of `this` widget at the specified `dst` area so that
+        // it erases the old and now irrelevant content of the `widget` which used to
+        // span the area. In this case the warning message is not really important.
         log("Widget " + widget.getName() + " does not seem to span area " + src.toString(), utils::Level::Warning);
       }
     }

@@ -123,6 +123,20 @@ namespace sdl {
         getZOrder() const noexcept;
 
         /**
+         * @brief - Assigns a new z order for this item. A new `ZOrderChanged` event will
+         *          be issued and directed towards this item.
+         *          Note that the value of the z order (i.e. the `m_zOrder` value) gets
+         *          modified right away in this method, unlike the visible status upon
+         *          `Hide` and `Show` event for example.
+         *          The event is merely here to notify listeners that this widget has
+         *          changed but it is not in the hand of this item to do anything after
+         *          being updated.
+         * @param order - the new z order for this item.
+         */
+        void
+        setZOrder(const int order);
+
+        /**
          * @brief - Used to determine whether this item has received the keyboard focus.
          * @return - `true` if this item has received keyboard focus, `false` otherwise.
          */
@@ -235,20 +249,6 @@ namespace sdl {
          */
         bool
         staysInactiveWhileEnabled(const engine::Event::Type& type) const noexcept override;
-
-        /**
-         * @brief - Assigns a new z order for this item. A new `ZOrderChanged` event will
-         *          be issued and directed towards this item.
-         *          Note that the value of the z order (i.e. the `m_zOrder` value) gets
-         *          modified right away in this method, unlike the visible status upon
-         *          `Hide` and `Show` event for example.
-         *          The event is merely here to notify listeners that this widget has
-         *          changed but it is not in the hand of this item to do anything after
-         *          being updated.
-         * @param order - the new z order for this item.
-         */
-        void
-        setZOrder(const int order);
 
         /**
          * @brief - Retrieves the manager for this item. The manager is usually responsible for

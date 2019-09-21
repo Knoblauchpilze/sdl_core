@@ -941,6 +941,7 @@ namespace sdl {
       );
 
       if (!span) {
+        // TODO: Investigate why this occur when clicking on the combobox.
         log("Widget " + widget.getName() + " does not seem to span area " + src.toString(), utils::Level::Warning);
       }
     }

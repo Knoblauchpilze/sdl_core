@@ -148,15 +148,15 @@ namespace sdl {
 
 inline
 std::ostream&
-operator<<(const sdl::core::FocusState& state, std::ostream& out) noexcept {
-  return operator<<(out, state);
+operator<<(std::ostream& out, const sdl::core::FocusState& state) noexcept {
+  out << state.toString();
+  return out;
 }
 
 inline
 std::ostream&
-operator<<(std::ostream& out, const sdl::core::FocusState& state) noexcept {
-  out << state.toString();
-  return out;
+operator<<(const sdl::core::FocusState& state, std::ostream& out) noexcept {
+  return operator<<(out, state);
 }
 
 #endif    /* FOCUS_STATE_HXX */

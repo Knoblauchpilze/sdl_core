@@ -6,6 +6,7 @@
 namespace sdl {
   namespace core {
 
+    // TODO: Should probably be implemented in terms of `utils::CoreFlag`.
     class SizePolicy {
       public:
 
@@ -107,10 +108,10 @@ namespace sdl {
 }
 
 std::ostream&
-operator<<(const sdl::core::SizePolicy& policy, std::ostream& out) noexcept;
+operator<<(std::ostream& out, const sdl::core::SizePolicy& policy) noexcept;
 
 std::ostream&
-operator<<(std::ostream& out, const sdl::core::SizePolicy& policy) noexcept;
+operator<<(const sdl::core::SizePolicy& policy, std::ostream& out) noexcept;
 
 # include "SizePolicy.hxx"
 

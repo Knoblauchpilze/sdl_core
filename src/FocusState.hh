@@ -146,10 +146,10 @@ namespace sdl {
 }
 
 std::ostream&
-operator<<(const sdl::core::FocusState& state, std::ostream& out) noexcept;
+operator<<(std::ostream& out, const sdl::core::FocusState& state) noexcept;
 
 std::ostream&
-operator<<(std::ostream& out, const sdl::core::FocusState& state) noexcept;
+operator<<(const sdl::core::FocusState& state, std::ostream& out) noexcept;
 
 # include "FocusState.hxx"
 

@@ -6,6 +6,7 @@
 namespace sdl {
   namespace core {
 
+    // TODO: Should probably be implemented in terms of `utils::CoreFlag`.
     class FocusPolicy {
       public:
 
@@ -72,10 +73,10 @@ namespace sdl {
 }
 
 std::ostream&
-operator<<(const sdl::core::FocusPolicy& policy, std::ostream& out) noexcept;
+operator<<(std::ostream& out, const sdl::core::FocusPolicy& policy) noexcept;
 
 std::ostream&
-operator<<(std::ostream& out, const sdl::core::FocusPolicy& policy) noexcept;
+operator<<(const sdl::core::FocusPolicy& policy, std::ostream& out) noexcept;
 
 # include "FocusPolicy.hxx"
 

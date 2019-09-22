@@ -96,15 +96,15 @@ namespace sdl {
 
 inline
 std::ostream&
-operator<<(const sdl::core::FocusPolicy& policy, std::ostream& out) noexcept {
-  return operator<<(out, policy);
+operator<<(std::ostream& out, const sdl::core::FocusPolicy& policy) noexcept {
+  out << policy.toString();
+  return out;
 }
 
 inline
 std::ostream&
-operator<<(std::ostream& out, const sdl::core::FocusPolicy& policy) noexcept {
-  out << policy.toString();
-  return out;
+operator<<(const sdl::core::FocusPolicy& policy, std::ostream& out) noexcept {
+  return operator<<(out, policy);
 }
 
 #endif    /* FOCUS_POLICY_HXX */

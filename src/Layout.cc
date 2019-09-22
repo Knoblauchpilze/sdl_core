@@ -157,6 +157,20 @@ namespace sdl {
       // each one which contains only the relevant areas.
       const std::vector<utils::Boxf>& regions = e.getUpdateRegions();
 
+      // TODO: This actually works quite well by repainting elements on siblings widgets if needed
+      // but there's still a little flickering of the repaint in the following situation.
+      // Let's imagine a widget `A` repainted on another one `B`. Then the following situation is
+      // not handled correctly:
+      // - `A` gets repainted on `B`.
+      // - as long as the mouse moves onto the widget `A` everything is fine
+      // - when the mouse exits the widget `A` and goes to `B`, a repaint event is triggered which
+      //   repaint the whole content of `B`, erasing the content of `A`.
+      // - the event propagates here where it gets transmitted from `B` to `A`.
+      // - `A` repaints itself
+      // - the repaint event propagates here again where it gets transmitted to `B`
+      // - `B` updates its representation to include the content of `A` which is on top of it.
+      // During this operation we get a flickering of the representation which could be improved.
+
       log(
         "Handling repaint for event containing " + std::to_string(regions.size()) + " region(s) to update (source: " +
         (e.getEmitter() == nullptr ? "null" : e.getEmitter()->getName()) + ")",

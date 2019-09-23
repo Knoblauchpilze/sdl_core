@@ -1,26 +1,59 @@
 
 # include "SizePolicy.hh"
-
-namespace {
-
-  inline
-  sdl::core::SizePolicy::Policy
-  operator|(const sdl::core::SizePolicy::Policy& lhs, const sdl::core::SizePolicy::Policy& rhs) {
-    return static_cast<sdl::core::SizePolicy::Policy>(static_cast<int>(lhs) | static_cast<int>(rhs));
-  }
-
-}
+# include <core_utils/CoreException.hh>
 
 namespace sdl {
   namespace core {
 
-    const SizePolicy::Policy SizePolicy::Fixed(SizePolicy::Policy::None);
-    const SizePolicy::Policy SizePolicy::Minimum(SizePolicy::Policy::Grow);
-    const SizePolicy::Policy SizePolicy::Maximum(SizePolicy::Policy::Shrink);
-    const SizePolicy::Policy SizePolicy::Preferred(SizePolicy::Grow | SizePolicy::Policy::Shrink);
-    const SizePolicy::Policy SizePolicy::Expanding(SizePolicy::Policy::Grow | SizePolicy::Policy::Shrink | SizePolicy::Policy::Expand);
-    const SizePolicy::Policy SizePolicy::MinimumExpanding(SizePolicy::Policy::Grow | SizePolicy::Policy::Expand);
-    const SizePolicy::Policy SizePolicy::Ignored(SizePolicy::Policy::Grow | SizePolicy::Policy::Shrink | SizePolicy::Policy::Ignore);
+    SizePolicy::SizePolicyFlag
+    SizePolicy::initFromName(const Name& name) {
+      bool valid = true;
+
+      SizePolicyFlag out;
+
+      switch (name) {
+        case Name::Fixed:
+          // Do nothing: neither growth nor shrink are desirable in this
+          // strategy.
+          break;
+        case Name::Minimum:
+          out |= SizePolicyFlag(size::Policy::Grow);
+          break;
+        case Name::Maximum:
+          out |= SizePolicyFlag(size::Policy::Shrink);
+          break;
+        case Name::Preferred:
+          out |= SizePolicyFlag(size::Policy::Grow);
+          out |= SizePolicyFlag(size::Policy::Shrink);
+          break;
+        case Name::Expanding:
+          out |= initFromName(Name::Preferred);
+          out |= SizePolicyFlag(size::Policy::Expand);
+          break;
+        case Name::MinimumExpanding:
+          out |= initFromName(Name::Minimum);
+          out |= SizePolicyFlag(size::Policy::Expand);
+          break;
+        case Name::Ignored:
+          out |= initFromName(Name::Preferred);
+          out |= SizePolicyFlag(size::Policy::Ignore);
+          break;
+        default:
+          valid = false;
+          break;
+      }
+
+      if (!valid) {
+        throw utils::CoreException(
+          std::string("Could not init size policy flag from name ") + std::to_string(static_cast<int>(name)),
+          std::string("initFromName"),
+          std::string("SizePolicy"),
+          std::string("Unhandled policy name")
+        );
+      }
+
+      return out;
+    }
 
   }
 }

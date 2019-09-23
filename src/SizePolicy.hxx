@@ -6,33 +6,126 @@
 namespace sdl {
   namespace core {
 
-    inline
-    SizePolicy::SizePolicy():
-      m_hPolicy(SizePolicy::Fixed),
-      m_hStretch(0),
-      m_vPolicy(SizePolicy::Fixed),
-      m_vStretch(0)
-    {}
+    namespace size {
+
+      inline
+      std::string
+      getNameFromPolicy(const Policy& policy) noexcept {
+          switch (policy) {
+            case Policy::Grow:
+              return std::string("Grow");
+            case Policy::Expand:
+              return std::string("Expand");
+            case Policy::Shrink:
+              return std::string("Shrink");
+            case Policy::Ignore:
+              return std::string("Ignore");
+            default:
+              return std::string("Unknown");
+          }
+      }
+
+    }
 
     inline
-    SizePolicy::SizePolicy(const Policy& hPolicy,
-                           const Policy& vPolicy):
-      m_hPolicy(hPolicy),
-      m_hStretch(0),
-      m_vPolicy(vPolicy),
-      m_vStretch(0)
-    {}
+    SizePolicy::SizePolicyFlag::SizePolicyFlag():
+      utils::CoreFlag<size::count>(std::string("size_policy_flag")),
+      m_strategiesToIDs()
+    {
+      init();
+    }
 
     inline
-    const SizePolicy::Policy&
-    SizePolicy::getHorizontalPolicy() const noexcept {
-      return m_hPolicy;
+    SizePolicy::SizePolicyFlag::SizePolicyFlag(const size::Policy& policy):
+      utils::CoreFlag<size::count>(std::string("size_policy_flag")),
+      m_strategiesToIDs()
+    {
+      init();
+
+      set(getBitID(policy));
+    }
+
+    inline
+    bool
+    SizePolicy::SizePolicyFlag::canShrink() const noexcept {
+      return isSet(getBitID(size::Policy::Shrink));
+    }
+
+    inline
+    bool
+    SizePolicy::SizePolicyFlag::canGrow() const noexcept {
+      return isSet(getBitID(size::Policy::Grow));
+    }
+
+    inline
+    bool
+    SizePolicy::SizePolicyFlag::canExpand() const noexcept {
+      return isSet(getBitID(size::Policy::Expand));
+    }
+
+    inline
+    bool
+    SizePolicy::SizePolicyFlag::canExtend() const noexcept {
+      return
+        isSet(getBitID(size::Policy::Grow)) ||
+        isSet(getBitID(size::Policy::Expand))
+      ;
     }
 
     inline
     void
-    SizePolicy::setHorizontalPolicy(const Policy& policy) noexcept {
-      m_hPolicy = policy;
+    SizePolicy::SizePolicyFlag::init() {
+      // Register all size strategies.
+      registerSizePolicy(size::Policy::Grow);
+      registerSizePolicy(size::Policy::Expand);
+      registerSizePolicy(size::Policy::Shrink);
+      registerSizePolicy(size::Policy::Ignore);
+    }
+
+    inline
+    int
+    SizePolicy::SizePolicyFlag::getBitID(const size::Policy& policy) const {
+      // Find the corresponding size strategy in the internal table.
+      StrategiesTable::const_iterator it = m_strategiesToIDs.find(policy);
+
+      // Check for errors.
+      if (it == m_strategiesToIDs.cend()) {
+        throw utils::CoreException(
+          std::string("Could not get bit index for \"") + size::getNameFromPolicy(policy) + "\"",
+          std::string("getBitID"),
+          std::string("SizePolicyFlag"),
+          std::string("No such bit registered")
+        );
+      }
+
+      // Return the corresponding index.
+      return it->second;
+    }
+
+    inline
+    void
+    SizePolicy::SizePolicyFlag::registerSizePolicy(const size::Policy& policy) {
+      // Register the name corresponding to the input strategy with false value and default
+      // value.
+      int id = addNamedBit(size::getNameFromPolicy(policy), false, false);
+
+      // Register the returned index to easily retrieve its value later on.
+      m_strategiesToIDs[policy] = id;
+    }
+
+    inline
+    SizePolicy::SizePolicy(const Name& hPolicy,
+                           const Name& vPolicy):
+      m_hPolicy(initFromName(hPolicy)),
+      m_hStretch(0.0f),
+      m_vPolicy(initFromName(vPolicy)),
+      m_vStretch(0.0f)
+    {}
+
+    inline
+    void
+    SizePolicy::setHorizontalPolicy(const Name& policy) noexcept {
+      m_hPolicy = initFromName(policy);
     }
 
     inline
@@ -48,15 +141,9 @@ namespace sdl {
     }
 
     inline
-    const SizePolicy::Policy&
-    SizePolicy::getVerticalPolicy() const noexcept {
-      return m_vPolicy;
-    }
-
-    inline
     void
-    SizePolicy::setVerticalPolicy(const Policy& policy) noexcept {
-      m_vPolicy = policy;
+    SizePolicy::setVerticalPolicy(const Name& policy) noexcept {
+      m_vPolicy = initFromName(policy);
     }
 
     inline
@@ -73,91 +160,65 @@ namespace sdl {
 
     inline
     bool
+    SizePolicy::isFixedHorizontally() const noexcept {
+      return !canShrinkHorizontally() && !canExtendHorizontally();
+    }
+
+    inline
+    bool
     SizePolicy::canShrinkHorizontally() const noexcept {
-      return m_hPolicy & Policy::Shrink;
+      return m_hPolicy.canShrink();
     }
 
     inline
     bool
     SizePolicy::canGrowHorizontally() const noexcept {
-      return m_hPolicy & Policy::Grow;
+      return m_hPolicy.canGrow();
     }
 
     inline
     bool
     SizePolicy::canExpandHorizontally() const noexcept {
-      return m_hPolicy & Policy::Expand;
+      return m_hPolicy.canExpand();
     }
 
     inline
     bool
     SizePolicy::canExtendHorizontally() const noexcept {
-      return canGrowHorizontally() || canExpandHorizontally();
+      return m_hPolicy.canExtend();
+    }
+
+    inline
+    bool
+    SizePolicy::isFixedVertically() const noexcept {
+      return !canShrinkVertically() && !canExtendVertically();
     }
 
     inline
     bool
     SizePolicy::canShrinkVertically() const noexcept {
-      return m_vPolicy & Policy::Shrink;
+      return m_vPolicy.canShrink();
     }
 
     inline
     bool
     SizePolicy::canGrowVertically() const noexcept {
-      return m_vPolicy & Policy::Grow;
+      return m_vPolicy.canGrow();
     }
 
     inline
     bool
     SizePolicy::canExpandVertically() const noexcept {
-      return m_vPolicy & Policy::Expand;
+      return m_vPolicy.canExpand();
     }
 
     inline
     bool
     SizePolicy::canExtendVertically() const noexcept {
-      return canGrowVertically() || canExpandVertically();
-    }
-
-    inline
-    std::string
-    SizePolicy::toString() const noexcept {
-      return std::string("[Policy: h=") + getNameFromPolicy(m_hPolicy) + ", v=" + getNameFromPolicy(m_vPolicy) + "]";
-    }
-
-    inline
-    std::string
-    SizePolicy::getNameFromPolicy(const Policy& policy) noexcept {
-      switch (policy) {
-        case None:
-          return "None";
-        case Grow:
-          return "Grow";
-        case Expand:
-          return "Expand";
-        case Shrink:
-          return "Shrink";
-        case Ignore:
-          return "Ignore";
-        default:
-          return "Unknown";
-      }
+      return m_vPolicy.canExtend();
     }
 
   }
-}
-
-inline
-std::ostream&
-operator<<(std::ostream& out, const sdl::core::SizePolicy& policy) noexcept {
-  out << policy.toString();
-  return out;
-}
-
-inline
-std::ostream&
-operator<<(const sdl::core::SizePolicy& policy, std::ostream& out) noexcept {
-  return operator<<(out, policy);
 }
 
 #endif    /* SIZE_POLICY_HXX */

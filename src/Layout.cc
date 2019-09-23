@@ -349,7 +349,7 @@ namespace sdl {
                          const float& tolerance) const
     {
       // Assume growing in both directions.
-      SizePolicy policy(SizePolicy::Fixed, SizePolicy::Fixed);
+      SizePolicy policy;
 
       // Compare the `achievedSize` to the `desiredSize` and determine the action
       // to apply both horizontally and vertically.
@@ -359,11 +359,11 @@ namespace sdl {
       }
       else if (desiredSize.w() < achievedSize.w()) {
         log(std::string("achieved.w() > desired.w() (") + std::to_string(achievedSize.w()) + " > " + std::to_string(desiredSize.w()) + "), shrinking", utils::Level::Notice);
-        policy.setHorizontalPolicy(SizePolicy::Policy::Shrink);
+        policy.setHorizontalPolicy(SizePolicy::Name::Maximum);
       }
       else if (desiredSize.w() > achievedSize.w()) {
         log(std::string("achieved.w() < desired.w() (") + std::to_string(achievedSize.w()) + " < " + std::to_string(desiredSize.w()) + "), growing", utils::Level::Notice);
-        policy.setHorizontalPolicy(SizePolicy::Policy::Grow);
+        policy.setHorizontalPolicy(SizePolicy::Name::Minimum);
       }
 
       if (std::abs(desiredSize.h() - achievedSize.h()) < tolerance) {
@@ -372,11 +372,11 @@ namespace sdl {
       }
       else if (desiredSize.h() < achievedSize.h()) {
         log(std::string("achieved.h() > desired.h() (") + std::to_string(achievedSize.h()) + " > " + std::to_string(desiredSize.h()) + "), shrinking", utils::Level::Notice);
-        policy.setVerticalPolicy(SizePolicy::Policy::Shrink);
+        policy.setVerticalPolicy(SizePolicy::Name::Maximum);
       }
       else if (desiredSize.h() > achievedSize.h()) {
         log(std::string("achieved.h() < desired.h() (") + std::to_string(achievedSize.h()) + " < " + std::to_string(desiredSize.h()) + "), growing", utils::Level::Notice);
-        policy.setVerticalPolicy(SizePolicy::Policy::Grow);
+        policy.setVerticalPolicy(SizePolicy::Name::Minimum);
       }
 
       return policy;
@@ -415,7 +415,7 @@ namespace sdl {
       // Check the policy for fixed size. If the policy is fixed, we should assign
       // the `hint` size whatever the input `delta`. Except of course if the
       // `hint` is not a valid size, in which case we can use the `sizeDelta`.
-      if (info.policy.getHorizontalPolicy() == SizePolicy::Fixed) {
+      if (info.policy.isFixedHorizontally()) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.
@@ -476,7 +476,7 @@ namespace sdl {
       // Check the policy for fixed size. If the policy is fixed, we should assign
       // the `hint` size whatever the input `delta`. Except of course if the
       // `hint` is not a valid size, in which case we can use the `sizeDelta`.
-      if (info.policy.getVerticalPolicy() == SizePolicy::Fixed) {
+      if (info.policy.isFixedVertically()) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `sizeDelta`.

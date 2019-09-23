@@ -6,105 +6,141 @@
 namespace sdl {
   namespace core {
 
-    inline
-    FocusPolicy::FocusPolicy():
-      m_policy(FocusPolicy::NoFocus)
-    {}
+    namespace focus {
 
-    inline
-    FocusPolicy::FocusPolicy(const Policy& policy):
-      m_policy(policy)
-    {}
+      inline
+      std::string
+      getNameFromType(const Type& type) noexcept {
+        switch (type) {
+          case Type::Hover:
+            return std::string("Hover");
+          case Type::Click:
+            return std::string("Click");
+          case Type::Tab:
+            return std::string("Tab");
+          case Type::Wheel:
+            return std::string("Wheel");
+          default:
+            return std::string("Unknown");
+        }
+      }
 
-    inline
-    const FocusPolicy::Policy&
-    FocusPolicy::getPolicy() const noexcept {
-      return m_policy;
     }
 
     inline
-    void
-    FocusPolicy::setPolicy(const Policy& policy) noexcept {
-      m_policy = policy;
+    FocusPolicy::FocusPolicy():
+      utils::CoreFlag<focus::count>(std::string("focus_policy")),
+      m_typesToIDs()
+    {
+      init();
+    }
+
+    inline
+    FocusPolicy::FocusPolicy(const focus::Type& type):
+      utils::CoreFlag<focus::count>(std::string("focus_policy")),
+      m_typesToIDs()
+    {
+      init();
+
+      set(getBitID(type));
+    }
+
+    inline
+    FocusPolicy::FocusPolicy(const Name& name):
+      utils::CoreFlag<focus::count>(std::string("focus_policy")),
+      m_typesToIDs()
+    {
+      init();
+
+      bool valid = true;
+      switch (name) {
+        case Name::StrongFocus:
+          set(getBitID(focus::Type::Hover));
+          set(getBitID(focus::Type::Click));
+          set(getBitID(focus::Type::Tab));
+          set(getBitID(focus::Type::Wheel));
+          break;
+        default:
+          valid = false;
+          break;
+      }
+
+      if (!valid) {
+        throw utils::CoreException(
+          std::string("Could not create focus policy with name ") + std::to_string(static_cast<int>(name)),
+          std::string("Constructor"),
+          std::string("FocusPolicy"),
+          std::string("Unhandled focus policy name")
+        );
+      }
     }
 
     inline
     bool
     FocusPolicy::canGrabHoverFocus() const noexcept {
-      return m_policy & Policy::Hover;
+      return isSet(getBitID(focus::Type::Hover));
     }
 
     inline
     bool
     FocusPolicy::canGrabClickFocus() const noexcept {
-      return m_policy & Policy::Click;
+      return isSet(getBitID(focus::Type::Click));
     }
 
     inline
     bool
     FocusPolicy::canGrabTabFocus() const noexcept {
-      return m_policy & Policy::Tab;
+      return isSet(getBitID(focus::Type::Tab));
     }
 
     inline
     bool
     FocusPolicy::canGrabWheelFocus() const noexcept {
-      return m_policy & Policy::Wheel;
+      return isSet(getBitID(focus::Type::Wheel));
     }
 
     inline
-    std::string
-    FocusPolicy::toString() const noexcept {
-      return std::string("[Policy: ") + getNameFromPolicy(*this) + "]";
+    void
+    FocusPolicy::init() {
+      // Register all focus types.
+      registerFocusType(focus::Type::Hover);
+      registerFocusType(focus::Type::Click);
+      registerFocusType(focus::Type::Tab);
+      registerFocusType(focus::Type::Wheel);
     }
 
     inline
-    std::string
-    FocusPolicy::getNameFromPolicy(const FocusPolicy& policy) noexcept {
-      std::string name;
-      if (policy.canGrabHoverFocus()) {
-        name += "Hover";
-      }
-      if (policy.canGrabHoverFocus()) {
-        if (!name.empty()) {
-          name += "|";
-        }
-        name += "Click";
-      }
-      if (policy.canGrabHoverFocus()) {
-        if (!name.empty()) {
-          name += "|";
-        }
-        name += "Tab";
-      }
-      if (policy.canGrabHoverFocus()) {
-        if (!name.empty()) {
-          name += "|";
-        }
-        name += "Wheel";
+    int
+    FocusPolicy::getBitID(const focus::Type& type) const {
+      // Find the corresponding focus type in the internal table.
+      FocusTypesTable::const_iterator it = m_typesToIDs.find(type);
+
+      // Check for errors.
+      if (it == m_typesToIDs.cend()) {
+        throw utils::CoreException(
+          std::string("Could not get bit index for \"") + focus::getNameFromType(type) + "\"",
+          std::string("getBitID"),
+          std::string("FocusPolicy"),
+          std::string("No such bit registered")
+        );
       }
 
-      if (name.empty()) {
-        name = "No focus";
-      }
+      // Return the corresponding index.
+      return it->second;
+    }
 
-      return name;
+    inline
+    void
+    FocusPolicy::registerFocusType(const focus::Type& type) {
+      // Register the name corresponding to the input type with false value and default
+      // value.
+      int id = addNamedBit(focus::getNameFromType(type), false, false);
+
+      // Register the returned index to easily retrieve its value later on.
+      m_typesToIDs[type] = id;
     }
 
   }
-}
-
-inline
-std::ostream&
-operator<<(std::ostream& out, const sdl::core::FocusPolicy& policy) noexcept {
-  out << policy.toString();
-  return out;
-}
-
-inline
-std::ostream&
-operator<<(const sdl::core::FocusPolicy& policy, std::ostream& out) noexcept {
-  return operator<<(out, policy);
 }
 
 #endif    /* FOCUS_POLICY_HXX */

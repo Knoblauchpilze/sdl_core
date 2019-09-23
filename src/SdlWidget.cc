@@ -39,7 +39,7 @@ namespace sdl {
       // Assign the service for this widget.
       setService(std::string("widget"));
 
-      setFocusPolicy(FocusPolicy::StrongFocus);
+      setFocusPolicy(FocusPolicy::Name::StrongFocus);
 
       // Assign the input `parent` to this widget: this will also share the engine
       // and events queue if any is defined in the parent widget.

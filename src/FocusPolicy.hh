@@ -24,7 +24,7 @@ namespace sdl {
       /**
        * @brief - Retrieves a human readable name from the input focus type.
        * @param modifiers - a flag containing several modifiers for which a
-       *                    a name should be provided.
+       *                    name should be provided.
        * @return - a string describing the names of the modifiers registered
        *           in the input argument.
        */
@@ -120,7 +120,7 @@ namespace sdl {
          *          focus type when registereing it through the `addNamedBit`
          *          interface. If no such information is available an error is
          *          raised.
-         * @param type - the focus type for which the bit index should be retrieved
+         * @param type - the focus type for which the bit index should be retrieved.
          * 
          * @return - the index of the bit in the base class as returned by the
          *           `addNamedBit` method.

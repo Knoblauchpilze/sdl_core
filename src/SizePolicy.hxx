@@ -28,92 +28,6 @@ namespace sdl {
     }
 
     inline
-    SizePolicy::SizePolicyFlag::SizePolicyFlag():
-      utils::CoreFlag<size::count>(std::string("size_policy_flag")),
-      m_strategiesToIDs()
-    {
-      init();
-    }
-
-    inline
-    SizePolicy::SizePolicyFlag::SizePolicyFlag(const size::Policy& policy):
-      utils::CoreFlag<size::count>(std::string("size_policy_flag")),
-      m_strategiesToIDs()
-    {
-      init();
-
-      set(getBitID(policy));
-    }
-
-    inline
-    bool
-    SizePolicy::SizePolicyFlag::canShrink() const noexcept {
-      return isSet(getBitID(size::Policy::Shrink));
-    }
-
-    inline
-    bool
-    SizePolicy::SizePolicyFlag::canGrow() const noexcept {
-      return isSet(getBitID(size::Policy::Grow));
-    }
-
-    inline
-    bool
-    SizePolicy::SizePolicyFlag::canExpand() const noexcept {
-      return isSet(getBitID(size::Policy::Expand));
-    }
-
-    inline
-    bool
-    SizePolicy::SizePolicyFlag::canExtend() const noexcept {
-      return
-        isSet(getBitID(size::Policy::Grow)) ||
-        isSet(getBitID(size::Policy::Expand))
-      ;
-    }
-
-    inline
-    void
-    SizePolicy::SizePolicyFlag::init() {
-      // Register all size strategies.
-      registerSizePolicy(size::Policy::Grow);
-      registerSizePolicy(size::Policy::Expand);
-      registerSizePolicy(size::Policy::Shrink);
-      registerSizePolicy(size::Policy::Ignore);
-    }
-
-    inline
-    int
-    SizePolicy::SizePolicyFlag::getBitID(const size::Policy& policy) const {
-      // Find the corresponding size strategy in the internal table.
-      StrategiesTable::const_iterator it = m_strategiesToIDs.find(policy);
-
-      // Check for errors.
-      if (it == m_strategiesToIDs.cend()) {
-        throw utils::CoreException(
-          std::string("Could not get bit index for \"") + size::getNameFromPolicy(policy) + "\"",
-          std::string("getBitID"),
-          std::string("SizePolicyFlag"),
-          std::string("No such bit registered")
-        );
-      }
-
-      // Return the corresponding index.
-      return it->second;
-    }
-
-    inline
-    void
-    SizePolicy::SizePolicyFlag::registerSizePolicy(const size::Policy& policy) {
-      // Register the name corresponding to the input strategy with false value and default
-      // value.
-      int id = addNamedBit(size::getNameFromPolicy(policy), false, false);
-
-      // Register the returned index to easily retrieve its value later on.
-      m_strategiesToIDs[policy] = id;
-    }
-
-    inline
     SizePolicy::SizePolicy(const Name& hPolicy,
                            const Name& vPolicy):
       m_hPolicy(initFromName(hPolicy)),
@@ -167,25 +81,25 @@ namespace sdl {
     inline
     bool
     SizePolicy::canShrinkHorizontally() const noexcept {
-      return m_hPolicy.canShrink();
+      return m_hPolicy.isSet(size::Policy::Shrink);
     }
 
     inline
     bool
     SizePolicy::canGrowHorizontally() const noexcept {
-      return m_hPolicy.canGrow();
+      return m_hPolicy.isSet(size::Policy::Grow);
     }
 
     inline
     bool
     SizePolicy::canExpandHorizontally() const noexcept {
-      return m_hPolicy.canExpand();
+      return m_hPolicy.isSet(size::Policy::Expand);
     }
 
     inline
     bool
     SizePolicy::canExtendHorizontally() const noexcept {
-      return m_hPolicy.canExtend();
+      return canGrowHorizontally() || canExpandHorizontally();
     }
 
     inline
@@ -197,25 +111,25 @@ namespace sdl {
     inline
     bool
     SizePolicy::canShrinkVertically() const noexcept {
-      return m_vPolicy.canShrink();
+      return m_vPolicy.isSet(size::Policy::Shrink);
     }
 
     inline
     bool
     SizePolicy::canGrowVertically() const noexcept {
-      return m_vPolicy.canGrow();
+      return m_vPolicy.isSet(size::Policy::Grow);
     }
 
     inline
     bool
     SizePolicy::canExpandVertically() const noexcept {
-      return m_vPolicy.canExpand();
+      return m_vPolicy.isSet(size::Policy::Expand);
     }
 
     inline
     bool
     SizePolicy::canExtendVertically() const noexcept {
-      return m_vPolicy.canExtend();
+      return canGrowVertically() || canExpandVertically();
     }
 
   }

@@ -224,12 +224,12 @@ namespace sdl {
     LayoutItem::canHandleFocusReason(const engine::FocusEvent::Reason& reason) const noexcept {
       switch (reason) {
         case engine::FocusEvent::Reason::HoverFocus:
-          return getFocusPolicy().canGrabHoverFocus();
+          return canGrabHoverFocus(getFocusPolicy());
         case engine::FocusEvent::Reason::MouseFocus:
-          return getFocusPolicy().canGrabClickFocus();
+          return canGrabClickFocus(getFocusPolicy());
         case engine::FocusEvent::Reason::TabFocus:
         case engine::FocusEvent::Reason::BacktabFocus:
-          return getFocusPolicy().canGrabTabFocus();
+          return canGrabTabFocus(getFocusPolicy());
         default:
           return false;
       }

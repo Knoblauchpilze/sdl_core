@@ -590,7 +590,7 @@ namespace sdl {
       postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::HoverFocus, true));
 
       // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::enterEvent(e);
+      return LayoutItem::enterEvent(e);
     }
 
     inline
@@ -702,7 +702,7 @@ namespace sdl {
       }
 
       // Use base handler to determine whether the event was recognized.
-      return engine::EngineObject::mouseMoveEvent(e);
+      return LayoutItem::mouseMoveEvent(e);
     }
 
     inline

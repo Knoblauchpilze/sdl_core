@@ -76,6 +76,32 @@ namespace sdl {
     }
 
     bool
+    LayoutItem::filterDragAndDropEvents(const engine::EngineObject* watched,
+                                        const engine::DropEventShPtr e) const noexcept
+    {
+      // A drag and drop events usually include moving the mouse from a position to
+      // another while keeping one or several buttons pressed. Elements might want
+      // to react to such events in various ways.
+      // We we want to achieve through this base behavior of filtering is to transmit
+      // the drag and drop event only to the source and destination of the drag and
+      // drop action. It could very well be the same element.
+      // We will follow a similar process to what is done to filter mouse event:
+      //  - determine the best item which is both at the source and at the destination
+      //    of the event.
+      //  - compare both source and destination with the `watched` object.
+      //  - filter if there's no correspondance.
+
+      // Retrieve the best fit for both the start position of the drag and drop operation
+      // and also for the end of it.
+      const LayoutItem* bestFitForStart = getItemAt(e->getStartPosition());
+      const LayoutItem* bestFitForStop = getItemAt(e->getEndPosition());
+
+      // The event is filtered if the input `watched` object is neither the start or the
+      // destination of the event.
+      return watched != bestFitForStart && watched != bestFitForStop;
+    }
+
+    bool
     LayoutItem::geometryUpdateEvent(const engine::Event& e) {
       // Perform the rebuild if the geometry has changed.
       // This check should not be really useful because

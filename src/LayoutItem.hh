@@ -3,11 +3,13 @@
 
 # include <mutex>
 # include <memory>
-
 # include <maths_utils/Box.hh>
 # include <maths_utils/Size.hh>
 # include <sdl_engine/EngineObject.hh>
 # include <sdl_engine/FocusEvent.hh>
+# include <sdl_engine/MouseEvent.hh>
+# include <sdl_engine/KeyEvent.hh>
+# include <sdl_engine/DropEvent.hh>
 # include "SizePolicy.hh"
 # include "FocusPolicy.hh"
 # include "FocusState.hh"
@@ -322,6 +324,23 @@ namespace sdl {
         virtual bool
         filterKeyboardEvents(const engine::EngineObject* watched,
                              const engine::KeyEventShPtr e) const noexcept;
+
+        /**
+         * @brief - Provide a base interface for inheriting classes to be able to filter
+         *          drag and drop events without need to cast anything. This method is called
+         *          by the base `filterEvent` method when a drag and drop event is detected.
+         *          Inheriting classes are encouraged to specialize this method to provide
+         *          custom filtering on drag and drop events on various conditions.
+         * @param watched - the element for which the drag and drop event should be filtered.
+         *                  If this method returns  `false` the event `e` will be transmitted
+         *                  to the `watched` object.
+         * @param e - the drag and drop event which should be filtered. If it is not the case
+         *            this method returns false.
+         * @return - `true` if this event should be filtered and `false` otherwise.
+         */
+        virtual bool
+        filterDragAndDropEvents(const engine::EngineObject* watched,
+                                const engine::DropEventShPtr e) const noexcept;
 
         bool
         geometryUpdateEvent(const engine::Event& e) override;

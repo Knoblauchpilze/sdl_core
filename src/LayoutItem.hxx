@@ -180,8 +180,14 @@ namespace sdl {
         return true;
       }
 
-      // Both the mouse and keyboard filtering failed to filter the event: use the
-      // base class method to provide a return value.
+      // Apply filtering on drag and drop events.
+      engine::DropEventShPtr de = std::dynamic_pointer_cast<engine::DropEvent>(e);
+      if (de != nullptr && filterDragAndDropEvents(watched, de)) {
+        return true;
+      }
+
+      // All the attempts at filtering the input event failed: use the base class
+      // method to provide a return value.
       return engine::EngineObject::filterEvent(watched, e);
     }
 

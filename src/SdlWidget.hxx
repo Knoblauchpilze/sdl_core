@@ -667,8 +667,8 @@ namespace sdl {
       // inside the widget and if no other child block the view.
       // In the case no child widget blocks the mouse we need to check if
       // this type of interaction is handled by `this` widget.
-      // This done automatically by the `FocusIn` events so let's just create
-      // one.
+      // This is done automatically by the `FocusIn` events so let's just
+      // create one.
 
       // If the mouse is blocked by a child, do nothing.
       if (isBlockedByChild(e.getMousePosition())) {

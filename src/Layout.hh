@@ -216,8 +216,10 @@ namespace sdl {
          *                 around the managed item. Note that a single value is
          *                 needed which means that both horizontal and vertical
          *                 margins will always be the same.
-         * @param type - the type of this layout: this value is transmitted to the
-         *               base `LayoutItem` class and indicates whether 
+         * @param format - the expected format for the bounding box. This is useful
+         *                 to determine whether the bounding boxes needs to be
+         *                 converted to engine format before being assigned to the
+         *                 items managed by this layout.
          */
         Layout(const std::string& name,
                SdlWidget* widget = nullptr,

@@ -288,7 +288,7 @@ namespace sdl {
         return engine::EngineObject::hideEvent(e);
       }
 
-      // Assign the corresponding visible status. 
+      // Assign the corresponding visible status.
       bool changed = false;
       {
         std::lock_guard<std::mutex> guard(m_visibleLocker);

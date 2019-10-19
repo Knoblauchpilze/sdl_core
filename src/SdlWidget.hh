@@ -315,7 +315,7 @@ namespace sdl {
          * @brief - Specialization of the base `EngineObject` method which allows to
          *          interpret the modification of the z order for this widget. These
          *          events can either originate from `this` widget or from one of its
-         *          children. 
+         *          children.
          *          In the case of a self emitted event we merely serve as a relay to
          *          notify the parent about the z order changed, and in case a child
          *          sent us the event we need to rebuild the z ordering to produce an

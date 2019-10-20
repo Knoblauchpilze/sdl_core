@@ -190,7 +190,7 @@ namespace sdl {
       }
 
       // Collect valid children which spans the position.
-      std::vector<std::pair<int, const SdlWidget*>> elements;
+      std::vector<std::pair<std::string, const SdlWidget*>> elements;
       {
         Guard guard(m_childrenLocker);
 
@@ -198,9 +198,10 @@ namespace sdl {
           const SdlWidget* wig = child->widget->getItemAt(pos);
 
           if (wig != nullptr) {
-            // TODO: We should probably get a more complex way to handle z ordering, building it
-            // along the chain of children.
-            elements.push_back(std::make_pair(wig->getZOrder(), wig));
+            // Do not use the `z` order alone but rather the `z` order string which allows to
+            // take the order up until this parent in order to easily detect which widget needs
+            // to be stacked on top.
+            elements.push_back(std::make_pair(wig->getZOrderString(this), wig));
           }
         }
       }
@@ -209,7 +210,7 @@ namespace sdl {
       std::sort(
         elements.begin(),
         elements.end(),
-        [](const std::pair<int, const SdlWidget*>& lhs, const std::pair<int, const SdlWidget*>& rhs) {
+        [](const std::pair<std::string, const SdlWidget*>& lhs, const std::pair<std::string, const SdlWidget*>& rhs) {
           return lhs.first < rhs.first;
         }
       );

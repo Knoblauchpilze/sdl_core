@@ -59,7 +59,14 @@ namespace sdl {
       // we need to retrieve the last one first.
       std::sort(items.begin(), items.end(),
         [](const LayoutItem* lhs, const LayoutItem* rhs) {
-          return lhs->getZOrder() < rhs->getZOrder();
+          // Similarly to what is done in the `getItemAt` method for the `SdlWidget`
+          // class the goal here is to sort the items based on their total order in
+          // the hierarchy of this layout and not only based on their own proper `z`
+          // order: indeed when comparing two elements of a distinct hierarchy we
+          // wouldn't know how to interpret the order as both elements might be
+          // nested at very different levels in the hierarchy. Using the `z` order
+          // string helps put some context on these numbers.
+          return lhs->getZOrderString() < rhs->getZOrderString();
         }
       );
 
@@ -70,9 +77,9 @@ namespace sdl {
         const LayoutItem* last = *items.rbegin();
         const LayoutItem* secondToLast = *std::next(items.rbegin());
 
-        if (last->getZOrder() == secondToLast->getZOrder()) {
+        if (last->getZOrderString() == secondToLast->getZOrderString()) {
           log(
-            "Several items have the same z order and spans the same position, discarding \"" + secondToLast->getName() + "\"" +
+            "Several items have the same z order (\"" + last->getZOrderString() + "\" and spans the same position, discarding \"" + secondToLast->getName() + "\"" +
             " and possibly more in favor of \"" + last->getName() + "\"",
             utils::Level::Warning
           );

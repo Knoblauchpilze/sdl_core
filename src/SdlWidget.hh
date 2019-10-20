@@ -37,6 +37,19 @@ namespace sdl {
         virtual ~SdlWidget();
 
         /**
+         * @brief - Returns the rendering area of this widget relatively to its parent
+         *          widget. This area does take into account the transformation applied
+         *          to this widget in the parent's coordinate frame but no more. It can
+         *          be used by parent widgets to draw their children during the caching
+         *          process where each child is repainted within a texture representing
+         *          the parent.
+         * @return - the area representing the position of this widget in the parent's
+         *           coordinate frame.
+         */
+        utils::Boxf
+        getRenderingArea() const noexcept override;
+
+        /**
          * @brief - Specialization of the base `LayoutItem` method which returns the
          *          area to use to represent this widget on the screen.
          *          It slightly differ from the rendering area in the sense that it
@@ -54,17 +67,17 @@ namespace sdl {
         getDrawingArea() const noexcept override;
 
         /**
-         * @brief - Returns the rendering area of this widget relatively to its parent
-         *          widget. This area does take into account the transformation applied
-         *          to this widget in the parent's coordinate frame but no more. It can
-         *          be used by parent widgets to draw their children during the caching
-         *          process where each child is repainted within a texture representing
-         *          the parent.
-         * @return - the area representing the position of this widget in the parent's
-         *           coordinate frame.
+         * @brief - Reimplementation of the parent `LayoutItem` method which allows to
+         *          provide specific behavior to concatenate the `z` order string used
+         *          by this widget with the parent's string if any.
+         * @param stop - the item at which the z ordering string should stop, the process
+         *               continue until the root item if this value is left empty.
+         * @return - a string representing the successive `z` orders of the ancestors of
+         *           this item up until the `stop` item starting with the top most
+         *           ancestor.
          */
-        utils::Boxf
-        getRenderingArea() const noexcept override;
+        std::string
+        getZOrderString(const LayoutItem* stop = nullptr) const noexcept override;
 
         void
         setLayout(std::shared_ptr<Layout> layout) noexcept;

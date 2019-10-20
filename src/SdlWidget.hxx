@@ -21,6 +21,16 @@ namespace sdl {
 
     inline
     utils::Boxf
+    SdlWidget::getRenderingArea() const noexcept {
+      // Lock this widget.
+      Guard guard(m_contentLocker);
+
+      // Return the value provided by the base handler.
+      return LayoutItem::getRenderingArea();
+    }
+
+    inline
+    utils::Boxf
     SdlWidget::getDrawingArea() const noexcept {
       // We need to retrieve the position of the parent and factor in its
       // position in order to compute the position of this widget.
@@ -37,13 +47,23 @@ namespace sdl {
     }
 
     inline
-    utils::Boxf
-    SdlWidget::getRenderingArea() const noexcept {
-      // Lock this widget.
-      Guard guard(m_contentLocker);
+    std::string
+    SdlWidget::getZOrderString(const LayoutItem* stop) const noexcept {
+      // Create the output string.
+      std::string orders;
 
-      // Return the value provided by the base handler.
-      return LayoutItem::getRenderingArea();
+      // Gather the information from the parent if needed (i.e. if
+      // the parent exists and if we're not the `stop` widget).
+      if (hasParent() && this != stop) {
+        orders = m_parent->getZOrderString(stop);
+      }
+
+      // Append the `z` order from this widget as computed by the base
+      // class.
+      orders += LayoutItem::getZOrderString();
+
+      // Return the built-in string.
+      return orders;
     }
 
     inline

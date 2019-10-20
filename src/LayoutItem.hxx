@@ -104,6 +104,12 @@ namespace sdl {
     }
 
     inline
+    std::string
+    LayoutItem::getZOrderString(const LayoutItem* /*stop*/) const noexcept {
+      return std::to_string(getZOrder());
+    }
+
+    inline
     void
     LayoutItem::setZOrder(const int order) {
       // Assign the new z order value.

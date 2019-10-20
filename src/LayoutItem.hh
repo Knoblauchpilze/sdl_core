@@ -125,6 +125,31 @@ namespace sdl {
         getZOrder() const noexcept;
 
         /**
+         * @brief - Returns a string describing the successvie `Z` order of this item
+         *          and its parents, until we reach the `stop` item if this value is
+         *          not empty. Typically, in the case of the following hierarchy:
+         *          `                  `Z` order  `
+         *          `  Item 1              1      `
+         *          `    +- Item 2         0      `
+         *          `          + Item 3    2      `
+         *          A call to this method like `getZOrderString` will return "102" while
+         *          a call like `getZOrderString(Item 2)` will return "02".
+         *          This is particularly useful to sort and compare items which are not
+         *          part of the exact same parent.
+         *          Note that this method are encouraged to reimplement this method as
+         *          this one is exactly similar to the `getZOrder` one, except it returns
+         *          a string rather than an integer.
+         * @param stop - the item at which the z ordering string should stop, the process
+         *               continue until the root item if this value is left empty.
+         * @return - a string representing the successive `z` orders of the ancestors of
+         *           this item up until the `stop` item starting with the top most
+         *           ancestor.
+         */
+        virtual
+        std::string
+        getZOrderString(const LayoutItem* stop = nullptr) const noexcept;
+
+        /**
          * @brief - Assigns a new z order for this item. A new `ZOrderChanged` event will
          *          be issued and directed towards this item.
          *          Note that the value of the z order (i.e. the `m_zOrder` value) gets

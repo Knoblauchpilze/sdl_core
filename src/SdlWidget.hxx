@@ -334,6 +334,9 @@ namespace sdl {
       // not impossible.
       m_childrenRepaints.erase(widget->getName());
 
+      // Delete the widget to release the memory.
+      delete widget;
+
       // Rebuild the internal list of associations.
       rebuildZOrdering();
     }

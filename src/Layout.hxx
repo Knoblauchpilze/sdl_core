@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     Layout::addItem(LayoutItem* item,
-                    const int& /*index*/)
+                    int /*index*/)
     {
       // Insert the item.
       addItem(item);
@@ -18,10 +18,10 @@ namespace sdl {
     inline
     void
     Layout::addItem(LayoutItem* item,
-                    const unsigned& /*x*/,
-                    const unsigned& /*y*/,
-                    const unsigned& /*w*/,
-                    const unsigned& /*h*/)
+                    unsigned /*x*/,
+                    unsigned /*y*/,
+                    unsigned /*w*/,
+                    unsigned /*h*/)
     {
       // No specialization at this level, use the base
       // insertion method.
@@ -215,7 +215,7 @@ namespace sdl {
 
     inline
     LayoutItem*
-    Layout::getItemAt(const int& item) {
+    Layout::getItemAt(int item) {
       // Check whether the identifier is valid.
       if (!isValidIndex(item)) {
         error(
@@ -230,7 +230,7 @@ namespace sdl {
 
     inline
     const LayoutItem*
-    Layout::getItemAt(const int& item) const {
+    Layout::getItemAt(int item) const {
       // Check whether the identifier is valid.
       if (!isValidIndex(item)) {
         error(
@@ -245,7 +245,7 @@ namespace sdl {
 
     inline
     bool
-    Layout::isValidIndex(const int& id) const noexcept {
+    Layout::isValidIndex(int id) const noexcept {
       return id >= 0 && id < getItemsCount();
     }
 
@@ -265,8 +265,8 @@ namespace sdl {
 
     inline
     float
-    Layout::allocateFairly(const float& space,
-                               const unsigned& count) const noexcept
+    Layout::allocateFairly(float space,
+                           unsigned count) const noexcept
     {
       return space / count;
     }

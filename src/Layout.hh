@@ -82,7 +82,7 @@ namespace sdl {
          */
         virtual void
         addItem(LayoutItem* item,
-                const int& index);
+                int index);
 
         /**
          * @brief - Adds the specified `item` to this layout and returns the index of the item
@@ -98,10 +98,10 @@ namespace sdl {
          */
         virtual void
         addItem(LayoutItem* item,
-                const unsigned& x,
-                const unsigned& y,
-                const unsigned& w,
-                const unsigned& h);
+                unsigned x,
+                unsigned y,
+                unsigned w,
+                unsigned h);
 
         /**
          * @brief - Performs the deletion of the onput `item` from the layout if it exists. The
@@ -223,7 +223,7 @@ namespace sdl {
          */
         Layout(const std::string& name,
                SdlWidget* widget = nullptr,
-               const float& margin = 0.0f,
+               float margin = 0.0f,
                const BoxesFormat& format = BoxesFormat::Engine);
 
         /**
@@ -401,13 +401,13 @@ namespace sdl {
                        const int physID);
 
         LayoutItem*
-        getItemAt(const int& item);
+        getItemAt(int item);
 
         const LayoutItem*
-        getItemAt(const int& item) const;
+        getItemAt(int item) const;
 
         bool
-        isValidIndex(const int& id) const noexcept;
+        isValidIndex(int id) const noexcept;
 
         virtual utils::Sizef
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept;
@@ -442,7 +442,7 @@ namespace sdl {
         SizePolicy
         shrinkOrGrow(const utils::Sizef& desiredSize,
                      const utils::Sizef& achievedSize,
-                     const float& tolerance) const;
+                     float tolerance) const;
 
       protected:
 
@@ -459,17 +459,17 @@ namespace sdl {
         computeItemsInfo() const noexcept;
 
         float
-        allocateFairly(const float& space,
-                       const unsigned& count) const noexcept;
+        allocateFairly(float space,
+                       unsigned count) const noexcept;
 
         float
         computeWidthFromPolicy(const utils::Boxf& currentSize,
-                               const float& delta,
+                               float delta,
                                const WidgetInfo& info) const;
 
         float
         computeHeightFromPolicy(const utils::Boxf& currentSize,
-                                const float& delta,
+                                float delta,
                                 const WidgetInfo& info) const;
 
         utils::Sizef

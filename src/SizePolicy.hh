@@ -79,7 +79,7 @@ namespace sdl {
          * @brief - Retrievs the horizontal stretch for this policy.
          * @return - the horizontal stretch value.
          */
-        const float&
+        float
         getHorizontalStretch() const noexcept;
 
         /**
@@ -87,7 +87,7 @@ namespace sdl {
          * @param stretch - the new horizontal stretch value to assign.
          */
         void
-        setHorizontalStretch(const float& stretch) noexcept;
+        setHorizontalStretch(float stretch) noexcept;
 
         /**
          * @brief - Assigns a new vertical policy for this object.
@@ -101,7 +101,7 @@ namespace sdl {
          * @brief - Retrievs the vertical stretch for this policy.
          * @return - the vertical stretch value.
          */
-        const float&
+        float
         getVerticalStretch() const noexcept;
 
         /**
@@ -109,7 +109,7 @@ namespace sdl {
          * @param stretch - the new vertical stretch value to assign.
          */
         void
-        setVerticalStretch(const float& stretch) noexcept;
+        setVerticalStretch(float stretch) noexcept;
 
         /**
          * @brief - Determines whether this size policy object is fixed

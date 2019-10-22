@@ -7,7 +7,7 @@ namespace sdl {
 
     Layout::Layout(const std::string& name,
                    SdlWidget* widget,
-                   const float& margin,
+                   float margin,
                    const BoxesFormat& format):
       LayoutItem(name, utils::Sizef()),
       m_items(),
@@ -353,7 +353,7 @@ namespace sdl {
     SizePolicy
     Layout::shrinkOrGrow(const utils::Sizef& desiredSize,
                          const utils::Sizef& achievedSize,
-                         const float& tolerance) const
+                         float tolerance) const
     {
       // Assume growing in both directions.
       SizePolicy policy;
@@ -411,7 +411,7 @@ namespace sdl {
 
     float
     Layout::computeWidthFromPolicy(const utils::Boxf& currentSize,
-                                   const float& delta,
+                                   float delta,
                                    const WidgetInfo& info) const
     {
       // Create the return width and assume the desired width is valid.
@@ -472,7 +472,7 @@ namespace sdl {
 
     float
     Layout::computeHeightFromPolicy(const utils::Boxf& currentSize,
-                                    const float& delta,
+                                    float delta,
                                     const WidgetInfo& info) const
     {
       // Create the return height and assume the desired height is valid.

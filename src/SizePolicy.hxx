@@ -43,14 +43,14 @@ namespace sdl {
     }
 
     inline
-    const float&
+    float
     SizePolicy::getHorizontalStretch() const noexcept {
       return m_hStretch;
     }
 
     inline
     void
-    SizePolicy::setHorizontalStretch(const float& stretch) noexcept {
+    SizePolicy::setHorizontalStretch(float stretch) noexcept {
       m_hStretch = stretch;
     }
 
@@ -61,14 +61,14 @@ namespace sdl {
     }
 
     inline
-    const float&
+    float
     SizePolicy::getVerticalStretch() const noexcept {
       return m_vStretch;
     }
 
     inline
     void
-    SizePolicy::setVerticalStretch(const float& stretch) noexcept {
+    SizePolicy::setVerticalStretch(float stretch) noexcept {
       m_vStretch = stretch;
     }
 

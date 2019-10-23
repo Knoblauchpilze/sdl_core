@@ -37,6 +37,23 @@ namespace sdl {
     {}
 
     inline
+    bool
+    SizePolicy::operator==(const SizePolicy& rhs) const noexcept {
+      return
+        m_hPolicy == rhs.m_hPolicy &&
+        m_vPolicy == rhs.m_vPolicy &&
+        m_hStretch == rhs.m_hStretch &&
+        m_vStretch == rhs.m_vStretch
+      ;
+    }
+
+    inline
+    bool
+    SizePolicy::operator!=(const SizePolicy& rhs) const noexcept {
+      return !operator==(rhs);
+    }
+
+    inline
     void
     SizePolicy::setHorizontalPolicy(const Name& policy) noexcept {
       m_hPolicy = initFromName(policy);

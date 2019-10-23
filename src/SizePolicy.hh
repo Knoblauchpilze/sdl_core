@@ -68,6 +68,22 @@ namespace sdl {
         ~SizePolicy() = default;
 
         /**
+         * @brief - Checks if `this` and `rhs` are equal.
+         * @param rhs - the other element to check against `this`.
+         * @return - `true` if both elements are equal, `false` otherwise.
+         */
+        bool
+        operator==(const SizePolicy& rhs) const noexcept;
+
+        /**
+         * @brief - Checks if `this` and `rhs` are different.
+         * @param rhs - the other element to check against `this`.
+         * @return - `true` if both elements are different, `false` otherwise.
+         */
+        bool
+        operator!=(const SizePolicy& rhs) const noexcept;
+
+        /**
          * @brief - Assigns a new horizontal policy for this object.
          * @param policy - the name of the policy to assign as vertical strategy
          *                 to this object.

@@ -18,8 +18,11 @@ namespace sdl {
     inline
     void
     LayoutItem::setMinSize(const utils::Sizef& size) noexcept {
-      m_minSize = size;
-      makeGeometryDirty();
+      // Update only if both sizes are different.
+      if (size != m_minSize) {
+        m_minSize = size;
+        makeGeometryDirty();
+      }
     }
 
     inline
@@ -31,8 +34,11 @@ namespace sdl {
     inline
     void
     LayoutItem::setSizeHint(const utils::Sizef& hint) noexcept {
-      m_sizeHint = hint;
-      makeGeometryDirty();
+      // Update only if both sizes are different.
+      if (hint != m_sizeHint) {
+        m_sizeHint = hint;
+        makeGeometryDirty();
+      }
     }
 
     inline
@@ -44,8 +50,11 @@ namespace sdl {
     inline
     void
     LayoutItem::setMaxSize(const utils::Sizef& size) noexcept {
-      m_maxSize = size;
-      makeGeometryDirty();
+      // Update only if both sizes are different.
+      if (size != m_maxSize) {
+        m_maxSize = size;
+        makeGeometryDirty();
+      }
     }
 
     inline
@@ -57,8 +66,10 @@ namespace sdl {
     inline
     void
     LayoutItem::setSizePolicy(const SizePolicy& policy) noexcept {
-      m_sizePolicy = policy;
-      makeGeometryDirty();
+      if (policy != m_sizePolicy) {
+        m_sizePolicy = policy;
+        makeGeometryDirty();
+      }
     }
 
     inline
@@ -70,7 +81,9 @@ namespace sdl {
     inline
     void
     LayoutItem::setFocusPolicy(const FocusPolicy& policy) noexcept {
-      m_focusPolicy = policy;
+      if (policy != m_focusPolicy) {
+        m_focusPolicy = policy;
+      }
     }
 
     inline

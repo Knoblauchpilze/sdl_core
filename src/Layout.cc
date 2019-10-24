@@ -135,16 +135,16 @@ namespace sdl {
 
     bool
     Layout::gainFocusEvent(const engine::FocusEvent& e) {
-      log("Handling gain focus from " + e.getEmitter()->getName());
+      log("Handling gain focus from " + e.getEmitter()->getName(), utils::Level::Verbose);
 
       // Traverse the list of items handled by this layout and
       // propagate a leave event to corresponding children which
       // still are focused.
       for (Items::const_iterator item = m_items.cbegin() ; item != m_items.cend() ; ++item) {
-        log("Item " + (*item)->getName() + ((*item)->hasFocus() ? " has " : " has not ") + "focus");
+        log("Item " + (*item)->getName() + ((*item)->hasFocus() ? " has " : " has not ") + "focus", utils::Level::Verbose);
         // If the child is not the source of the event and is focused, unfocus it.
         if (!e.isEmittedBy(*item) && (*item)->hasFocus()) {
-          log("Posting focus out event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
+          log("Posting focus out event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus", utils::Level::Verbose);
           postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), false, *item), false);
         }
       }

@@ -375,7 +375,11 @@ namespace sdl {
       // now focus.
       // We also need to focus ourselves so that the chain of widgets
       // which lead to the deepest focused child can be built.
-      log("Handling gain focus from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())));
+      log(
+        "Handling gain focus from " + e.getEmitter()->getName() +
+        " with reason " + std::to_string(static_cast<int>(e.getReason())),
+        utils::Level::Verbose
+      );
 
       // Apply the focus modification if needed: we also optimize a bit
       // by checking whether the event is produced by `this` widget: if
@@ -414,10 +418,10 @@ namespace sdl {
         Guard guard(m_childrenLocker);
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
 
-          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
+          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus", utils::Level::Verbose);
           // If the child is not the source of the event and is focused, unfocus it.
           if (!e.isEmittedBy(child->widget) && child->widget->hasFocus()) {
-            log("Posting focus out event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
+            log("Posting focus out event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus", utils::Level::Verbose);
             postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), isEmitter(e), child->widget), false);
           }
         }
@@ -724,7 +728,7 @@ namespace sdl {
       }
 
       if (o == nullptr) {
-        log("Do not post repaint event, no need to do so", utils::Level::Info);
+        log("Do not post repaint event, no need to do so", utils::Level::Debug);
       }
 
       // Post the event if we have an object where to post it.
@@ -802,7 +806,7 @@ namespace sdl {
         // Convert the region from global to local coordinate frame.
         const utils::Boxf region = mapFromGlobal(regions[id]);
 
-        // log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")");
+        log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")", utils::Level::Verbose);
 
         // Update the content of `this` widget: first clear the content and
         // then perform the draw operation.

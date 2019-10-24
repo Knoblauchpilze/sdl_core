@@ -307,7 +307,7 @@ namespace sdl {
         geometryRecomputed() noexcept;
 
         /**
-         * @brief - This method is guaranteed to be called upon handling a meaningful `GeoemtryUpdate`
+         * @brief - This method is guaranteed to be called upon handling a meaningful `GeometryUpdate`
          *          event. Inheriting classes are encouraged to specialize this method in order to
          *          provide custom behavior when their size is modified.
          *          The input argument describes the new size to be assigned to the item.

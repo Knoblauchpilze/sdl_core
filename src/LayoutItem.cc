@@ -122,6 +122,12 @@ namespace sdl {
       // We need to assign the area for this layout item based on the size
       // provided in the event The required size is the `new` size and
       // the `old` size should correspond to the current size of the item.
+      // Also to prevent production of too many events we will only launch
+      // the update process if the new size described by the input event
+      // is different from the existing one.
+      if (e.getNewSize() == m_area) {
+        return engine::EngineObject::resizeEvent(e);
+      }
 
       // Assign the area.
       m_area = e.getNewSize();

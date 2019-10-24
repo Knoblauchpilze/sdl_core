@@ -284,10 +284,8 @@ namespace sdl {
 
     inline
     void
-    LayoutItem::updatePrivate(const utils::Boxf& window) {
-      if (m_area != window) {
-        m_area = window;
-      }
+    LayoutItem::updatePrivate(const utils::Boxf& /*window*/) {
+      // Empty implementation.
     }
 
     inline

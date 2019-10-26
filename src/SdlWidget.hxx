@@ -763,17 +763,20 @@ namespace sdl {
       // area into a valid local area.
 
       // Retrieve the internal area.
-      utils::Boxf thisSize = LayoutItem::getRenderingArea();
+      utils::Boxf thisBox = LayoutItem::getRenderingArea();
 
-      if (thisSize == area) {
+      if (thisBox == area) {
         // Just fill the whole texture.
         getEngine().fillTexture(uuid, getPalette(), nullptr);
       }
       else {
         // Compute the intersection between the area and the area described by
-        // this widget: if  no intersection are found we can skip everything
+        // this widget: if no intersection are found we can skip everything
         // and otherwise we only want to repaint the needed area.
-        utils::Boxf inter = thisSize.intersect(area);
+        // Note that we want to retrieve the size of this area and not the
+        // box expressed in the parent's coordinate frame.
+        utils::Boxf thisArea = thisBox.toOrigin();
+        utils::Boxf inter = thisArea.intersect(area);
 
         if (!inter.valid()) {
           // Nothing to repaint, the area to clear does not intersect the area
@@ -783,7 +786,7 @@ namespace sdl {
 
         // We need to convert the input area to a valid coordinate frame
         // which can be interpreted by the engine.
-        utils::Boxf converted = convertToEngineFormat(inter, thisSize);
+        utils::Boxf converted = convertToEngineFormat(inter, thisBox);
 
         // Perform the repaint.
         getEngine().fillTexture(uuid, getPalette(), &converted);

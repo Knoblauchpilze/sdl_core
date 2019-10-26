@@ -162,7 +162,7 @@ namespace sdl {
       // the event to it when we encounter it.
       // In order to not flood the children with unneeded areas, we create a new paint event for
       // each one which contains only the relevant areas.
-      const std::vector<utils::Boxf>& regions = e.getUpdateRegions();
+      const std::vector<engine::update::Region>& regions = e.getUpdateRegions();
 
       // TODO: This actually works quite well by repainting elements on siblings widgets if needed
       // but there's still a little flickering of the repaint in the following situation.
@@ -208,8 +208,22 @@ namespace sdl {
         // Select only update areas which spans at least a portion
         // of this child's area.
         for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-          if (regions[id].intersects((*child)->getDrawingArea(), true)) {
-            log("Area " + regions[id].toString() + " intersects area of " + (*child)->getName() + " (area: " + (*child)->getDrawingArea().toString() + ")");
+          // At this step we can only handle update regions expressed in global coordinate
+          // frame as we don't have any means to convert it to local.
+          if (regions[id].frame == engine::update::Frame::Local) {
+            log(
+              std::string("Cannot determine whether update region " + regions[id].toString() +
+              " interesects \"") + (*child)->getName() + "\", region is in local coordinate frame",
+              utils::Level::Error
+            );
+
+            // Move on to the next region and don't add this one for the current event.
+            continue;
+          }
+
+          // The region is in global coordinate frame, check intersections.
+          if (regions[id].area.intersects((*child)->getDrawingArea(), true)) {
+            log("Area " + std::to_string(id) + " (" + regions[id].toString() + ") intersects area of " + (*child)->getName() + " (area: " + (*child)->getDrawingArea().toString() + ")");
             pe->addUpdateRegion(regions[id]);
           }
         }
@@ -217,6 +231,9 @@ namespace sdl {
         // Send this event if it contains at least an update area.
         if (pe->hasUpdateRegions()) {
           postEvent(pe, false, false);
+        }
+        else {
+          log("Ignoring child " + (*child)->getName() + " not intersecting any update region");
         }
       }
 

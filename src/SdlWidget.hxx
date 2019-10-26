@@ -676,6 +676,12 @@ namespace sdl {
       // that has just been hidden.
       SdlWidget* child = getChildAs<SdlWidget>(e.getEmitter()->getName());
 
+      // TODO: In the case of a combobox, we are getting the rendering
+      // area of a children which probably does not have a valid position
+      // as its position was computed when the size of the combobox was
+      // dropped which leads to inconsistent repaints.
+      log("Handling hide for " + child->getName() + " with area " + child->getRenderingArea().toString() + " (global: " + mapToGlobal(child->getRenderingArea(), true).toString() + ")");
+
       engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(mapToGlobal(child->getRenderingArea(), true));
       postEvent(pe, true, true);
 
@@ -764,9 +770,20 @@ namespace sdl {
         getEngine().fillTexture(uuid, getPalette(), nullptr);
       }
       else {
+        // Compute the intersection between the area and the area described by
+        // this widget: if  no intersection are found we can skip everything
+        // and otherwise we only want to repaint the needed area.
+        utils::Boxf inter = thisSize.intersect(area);
+
+        if (!inter.valid()) {
+          // Nothing to repaint, the area to clear does not intersect the area
+          // assigned to this widget.
+          return;
+        }
+
         // We need to convert the input area to a valid coordinate frame
         // which can be interpreted by the engine.
-        utils::Boxf converted = convertToEngineFormat(area, thisSize);
+        utils::Boxf converted = convertToEngineFormat(inter, thisSize);
 
         // Perform the repaint.
         getEngine().fillTexture(uuid, getPalette(), &converted);

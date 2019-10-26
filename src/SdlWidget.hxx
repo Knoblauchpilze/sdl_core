@@ -619,7 +619,7 @@ namespace sdl {
     inline
     bool
     SdlWidget::hideEvent(const engine::Event& e) {
-      // Handling a hide event as a widget comes with a double responability.
+      // Handling a hide event as a widget comes with a double responsability.
       // Indeed the hide event can either originate from `this` widget or be
       // sent by a child of ours. In the first case we of course need to handle
       // the necessary operations to hide ourselves, but also notify our parent

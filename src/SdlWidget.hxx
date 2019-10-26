@@ -663,7 +663,7 @@ namespace sdl {
       // of the widget which has just been hidden displayed which
       // would not be cool.
 
-      // Determine whether the event comes from on of the child
+      // Determine whether the event comes from one of the children
       // of `this` widget.
       if (e.isSpontaneous() || !hasChild(e.getEmitter()->getName())) {
         // The hide event should probably not have been sent to
@@ -680,9 +680,21 @@ namespace sdl {
       // area of a children which probably does not have a valid position
       // as its position was computed when the size of the combobox was
       // dropped which leads to inconsistent repaints.
+      // Maybe we should instead reimplement the `mapToGlobal` to be specific
+      // when it is a children area and use a boolean as parameter. The combobox
+      // would use this.
+      // We could also assign the rendering area to be matching the new position
+      // of the combobox when chaning the state.
       log("Handling hide for " + child->getName() + " with area " + child->getRenderingArea().toString() + " (global: " + mapToGlobal(child->getRenderingArea(), true).toString() + ")");
 
-      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(mapToGlobal(child->getRenderingArea(), true));
+      // engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(
+      //   mapToGlobal(child->getRenderingArea(), true),
+      //   engine::update::Frame::Global
+      // );
+      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(
+        child->getRenderingArea(),
+        engine::update::Frame::Local
+      );
       postEvent(pe, true, true);
 
       // Transmit the return value.

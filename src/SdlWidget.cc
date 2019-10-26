@@ -697,7 +697,7 @@ namespace sdl {
       const utils::Boxf toRepaint = mapToGlobal(local);
 
       // Once we have the coordinates, create the paint event.
-      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint, nullptr);
+      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(toRepaint);
       pe->setEmitter(this);
 
       // Don't forget to add the input paint regions. We need to do that only if
@@ -722,7 +722,7 @@ namespace sdl {
         pe->setReceiver(m_parent);
         o = m_parent;
       }
-      else if (isManaged() && !pe->isContained(global)) {
+      else if (isManaged() && !pe->isContained(global, engine::update::Frame::Global)) {
         pe->setReceiver(getManager());
         o = getManager();
       }
@@ -798,15 +798,23 @@ namespace sdl {
       // Not that in order to redraw only what's really necessary we process
       // for each region in a single pass both the update of `this` widget's
       // content and the update of the children intersecting this area.
-      const std::vector<utils::Boxf> regions = e.getUpdateRegions();
+      const std::vector<engine::update::Region> regions = e.getUpdateRegions();
 
       utils::Sizef dims = area.toSize();
 
       for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
-        // Convert the region from global to local coordinate frame.
-        const utils::Boxf region = mapFromGlobal(regions[id]);
+        // Convert the region from global to local coordinate frame if needed.
+        const utils::Boxf region = (
+          regions[id].frame == engine::update::Frame::Global ?
+          mapFromGlobal(regions[id].area) :
+          regions[id].area
+        );
 
-        log("Updating region " + region.toString() + " from " + regions[id].toString() + " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")", utils::Level::Verbose);
+        log(
+          "Updating region " + region.toString() + " from " + regions[id].toString() +
+          " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")",
+          utils::Level::Verbose
+        );
 
         // Update the content of `this` widget: first clear the content and
         // then perform the draw operation.
@@ -882,8 +890,12 @@ namespace sdl {
 
           for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
             // Convert the input region expressed in global coordinate frame
-            // into local frame.
-            const utils::Boxf region = mapFromGlobal(regions[id]);
+            // into local frame if needed.
+            const utils::Boxf region = (
+              regions[id].frame == engine::update::Frame::Global ?
+              mapFromGlobal(regions[id].area) :
+              regions[id].area
+            );
 
             // The `dst` region of the repaint area corresponds to this region
             // converted into engine format. Indeed the `region` is already in

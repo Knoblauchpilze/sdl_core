@@ -618,7 +618,7 @@ namespace sdl {
 
     inline
     bool
-    SdlWidget::hideEvent(const engine::Event& e) {
+    SdlWidget::hideEvent(const engine::HideEvent& e) {
       // Handling a hide event as a widget comes with a double responsability.
       // Indeed the hide event can either originate from `this` widget or be
       // sent by a child of ours. In the first case we of course need to handle
@@ -636,7 +636,7 @@ namespace sdl {
         toReturn = LayoutItem::hideEvent(e);
 
         // Also notify the parent from this hide operation.
-        engine::EventShPtr he = std::make_shared<engine::Event>(engine::Event::Type::Hide);
+        engine::EventShPtr he = std::make_shared<engine::HideEvent>(LayoutItem::getRenderingArea());
         engine::EngineObject* o = nullptr;
 
         if (hasParent()) {

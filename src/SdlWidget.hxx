@@ -635,8 +635,13 @@ namespace sdl {
         // Trigger the process to hide `this` widget.
         toReturn = LayoutItem::hideEvent(e);
 
-        // Also notify the parent from this hide operation.
-        engine::EventShPtr he = std::make_shared<engine::HideEvent>(LayoutItem::getRenderingArea());
+        // Also notify the parent from this hide operation: we need to build the
+        // global representation of the current rendering area is of now. We can't
+        // really use the `getDrawingArea` method even though it's kind of what we
+        // are trying to achieve because the `m_contentLocker` is already locked
+        // due to use being in an event handling method. So we will convert the
+        // area manually.
+        engine::HideEventShPtr he = std::make_shared<engine::HideEvent>(e.getHiddenRegion());
         engine::EngineObject* o = nullptr;
 
         if (hasParent()) {
@@ -655,6 +660,9 @@ namespace sdl {
         if (o != nullptr) {
           postEvent(he, false, true);
         }
+
+        // Return as we now nothing more will be done here.
+        return toReturn;
       }
 
       // In case the event comes from one of the child of this
@@ -671,30 +679,12 @@ namespace sdl {
         return toReturn;
       }
 
-      // Query the rendering area for this widget and request a
-      // repaint operation on it to erase remains of the widget
-      // that has just been hidden.
-      SdlWidget* child = getChildAs<SdlWidget>(e.getEmitter()->getName());
-
-      // TODO: In the case of a combobox, we are getting the rendering
-      // area of a children which probably does not have a valid position
-      // as its position was computed when the size of the combobox was
-      // dropped which leads to inconsistent repaints.
-      // Maybe we should instead reimplement the `mapToGlobal` to be specific
-      // when it is a children area and use a boolean as parameter. The combobox
-      // would use this.
-      // We could also assign the rendering area to be matching the new position
-      // of the combobox when chaning the state.
-      log("Handling hide for " + child->getName() + " with area " + child->getRenderingArea().toString() + " (global: " + mapToGlobal(child->getRenderingArea(), true).toString() + ")");
-
-      // engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(
-      //   mapToGlobal(child->getRenderingArea(), true),
-      //   engine::update::Frame::Global
-      // );
-      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(
-        child->getRenderingArea(),
-        engine::update::Frame::Local
-      );
+      // The hide event should embed the area which should be repainted.
+      // It is more robust to use it rather than to query the size of the
+      // child right now because some events might have modify the actual
+      // area occupied by the child: in this case we would not repaint a
+      // valid area and could be faced with remains of the hidden child.
+      engine::PaintEventShPtr pe = std::make_shared<engine::PaintEvent>(e.getHiddenRegion());
       postEvent(pe, true, true);
 
       // Transmit the return value.

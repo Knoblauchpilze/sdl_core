@@ -282,7 +282,7 @@ namespace sdl {
          * @return - `true` if the event was recognized, `false` otherwise.
          */
         bool
-        hideEvent(const engine::Event& e) override;
+        hideEvent(const engine::HideEvent& e) override;
 
         bool
         lostFocusEvent(const engine::FocusEvent& e) override;

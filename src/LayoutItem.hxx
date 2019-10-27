@@ -168,7 +168,7 @@ namespace sdl {
         e = std::make_shared<engine::Event>(engine::Event::Type::Show);
       }
       else {
-        e = std::make_shared<engine::Event>(engine::Event::Type::Hide);
+        e = std::make_shared<engine::HideEvent>(getRenderingArea());
       }
 
       // Post this event.
@@ -299,7 +299,7 @@ namespace sdl {
 
     inline
     bool
-    LayoutItem::hideEvent(const engine::Event& e) {
+    LayoutItem::hideEvent(const engine::HideEvent& e) {
       // We only want to do that in case the event originates from this item.
       if (!isEmitter(e)) {
         return engine::EngineObject::hideEvent(e);

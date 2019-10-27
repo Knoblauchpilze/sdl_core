@@ -168,7 +168,7 @@ namespace sdl {
         e = std::make_shared<engine::Event>(engine::Event::Type::Show);
       }
       else {
-        e = std::make_shared<engine::HideEvent>(getRenderingArea());
+        e = std::make_shared<engine::HideEvent>(getDrawingArea());
       }
 
       // Post this event.

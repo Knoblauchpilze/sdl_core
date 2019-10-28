@@ -145,8 +145,7 @@ namespace sdl {
          *           this item up until the `stop` item starting with the top most
          *           ancestor.
          */
-        virtual
-        std::string
+        virtual std::string
         getZOrderString(const LayoutItem* stop = nullptr) const noexcept;
 
         /**

@@ -306,10 +306,21 @@ namespace sdl {
          *          of such events outside the main thread, we have to save them
          *          internally.
          * @param e - the paint event to process.
+         * @return - `true` if the event was recognized and `false` otherwise.
          */
         bool
         repaintEvent(const engine::PaintEvent& e) override;
 
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` class in order to provide
+         *          custom behavior upon resizing. We want to clear any existing repaint
+         *          events as they will be overriden by the new size brought by this
+         *          event.
+         *          We also want to indicate the the content should be completely redrawn
+         *          which prevents even more old repaint events to have any meaning.
+         * @param e - the resize event to process.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
         bool
         resizeEvent(engine::ResizeEvent& e) override;
 

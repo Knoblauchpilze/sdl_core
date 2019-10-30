@@ -586,8 +586,17 @@ namespace sdl {
       // Clear existing events as well.
       removeEvents(engine::Event::Type::Repaint);
 
-      // Mark the content as dirty.
-      makeContentDirty();
+      // Mark the content as dirty: we only want to do this
+      // if the size is different in terms of dimensions.
+      utils::Sizef oldDims = e.getOldSize().toSize();
+      utils::Sizef newDims = e.getNewSize().toSize();
+
+      if (oldDims == newDims) {
+        requestRepaint();
+      }
+      else {
+        makeContentDirty();
+      }
 
       // Return the value provided by the base handler.
       return toReturn;

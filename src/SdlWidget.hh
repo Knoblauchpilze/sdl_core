@@ -441,7 +441,7 @@ namespace sdl {
 
         template <typename LayoutType>
         LayoutType*
-        getLayoutAs() noexcept;
+        getLayoutAs() const;
 
         engine::Engine&
         getEngine() const;

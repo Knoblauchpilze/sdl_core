@@ -422,7 +422,7 @@ namespace sdl {
     template <typename LayoutType>
     inline
     LayoutType*
-    SdlWidget::getLayoutAs() noexcept {
+    SdlWidget::getLayoutAs() const {
       if (!hasLayout()) {
         error(
           std::string("Could not retrieve layout as \"") + typeid(LayoutType).name() + "\"",
@@ -960,8 +960,6 @@ namespace sdl {
         log("Trashing texture role update because content is not valid", utils::Level::Warning);
         return;
       }
-
-      log("Texture role is now " + std::to_string(static_cast<int>(state.getColorRole())) + " " + getPalette().getColorForRole(state.getColorRole()).toString());
 
       // Assign the texture role based on the color associated to the input
       // state: there's a handler which conveniently provide the color role

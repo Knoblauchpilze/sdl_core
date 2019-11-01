@@ -656,7 +656,7 @@ namespace sdl {
          *          Note that the area is expressed in LOCAL coordinate so no conversion
          *          is required to use it.
          * @param uuid - an identifier provided by the internal enigne representing the
-         *               canvas to drawn onto.
+         *               canvas to draw onto.
          * @param area - a box representing the area which should be redrawn. Note that
          *               the area might represent the entirety of the canvas.
          */

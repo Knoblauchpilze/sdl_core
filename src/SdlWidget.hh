@@ -722,7 +722,7 @@ namespace sdl {
          */
         virtual void
         stateUpdatedFromFocus(const FocusState& state,
-                              const bool gainedFocus);
+                              bool gainedFocus);
 
         /**
          * @brief - Used to determine whether the input focus reason can trigger a keyboard

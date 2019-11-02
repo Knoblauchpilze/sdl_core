@@ -947,7 +947,7 @@ namespace sdl {
     inline
     void
     SdlWidget::stateUpdatedFromFocus(const FocusState& state,
-                                     const bool /*gainedFocus*/)
+                                     bool /*gainedFocus*/)
     {
       // The default implementation specifies that the content's texture role
       // should be updated to reflect the internal focus state of the widget.

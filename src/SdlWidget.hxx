@@ -964,10 +964,12 @@ namespace sdl {
       // Assign the texture role based on the color associated to the input
       // state: there's a handler which conveniently provide the color role
       // associated to its current value.
-      getEngine().setTextureRole(m_content, state.getColorRole());
+      if (getEngine().getTextureRole(m_content) != state.getColorRole()) {
+        getEngine().setTextureRole(m_content, state.getColorRole());
 
-      // Post a repaint event.
-      requestRepaint();
+        // Post a repaint event.
+        requestRepaint();
+      }
     }
 
     inline

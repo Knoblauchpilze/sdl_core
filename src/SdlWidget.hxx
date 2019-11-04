@@ -881,7 +881,7 @@ namespace sdl {
       // internal `stateUpdatedFromFocus` method as prescribed by the interface
       // of the method so that inheriting classes can perform some additional
       // modifications to the representation of this widget.
-      // This can either happen if the focus reason is effecitvely directed to
+      // This can either happen if the focus reason is effectively directed to
       // `this` widget OR if the update describes a focus lost. Indeed a focus
       // lost event is always by definition produced by another item in the tree.
       // Finally we also only trigger the `stateUpdatedFromFocus` in case the

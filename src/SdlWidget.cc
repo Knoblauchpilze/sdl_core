@@ -864,7 +864,10 @@ namespace sdl {
             const utils::Boxf src = convertToLocal(dst, childBox);
             const utils::Boxf srcEngine = convertToEngineFormat(src, childBox);
 
-            // log("Drawing child " + child->widget->getName() + " (src: " + src.toString() + ", dst: " + dst.toString() + "), intersect with " + region.toString());
+            log(
+              "Drawing child " + child->widget->getName() + " (src: " + src.toString() + ", dst: " + dst.toString() + "), intersect with " + region.toString(),
+              utils::Level::Verbose
+            );
             drawWidget(*child->widget, srcEngine, dstEngine);
 
             // Update the repaint timestamp for this child if the area contains

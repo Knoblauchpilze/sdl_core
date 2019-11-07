@@ -54,7 +54,7 @@ namespace sdl {
 
       // In order to get the list of items spanning the input position referenced by
       // the event we need to retrieve a position for the input mouse event. This can
-      // happen for all but the mouse wheel event where there's no real maning of
+      // happen for all but the mouse wheel event where there's no real meaning of
       // position.
       // Let's handle this first and move on to building the list.
       if (e->getType() == engine::Event::Type::MouseWheel) {

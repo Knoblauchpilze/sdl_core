@@ -217,7 +217,7 @@ namespace sdl {
          *               dirty. This value is ignored if `allArea` is `true` and the
          *               whole widget's area is used instead.
          */
-        void
+        virtual void
         requestRepaint(const bool allArea = true,
                        const utils::Boxf& area = utils::Boxf()) noexcept;
 

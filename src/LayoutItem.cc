@@ -72,7 +72,55 @@ namespace sdl {
         return true;
       }
 
-      return bestFit != watched;
+      if (bestFit == watched) {
+        return false;
+      }
+
+      // The input `watched` event is not directly under the current position of the
+      // mouse. We might still be okay in the case of drag events, where we want to
+      // transmit the events to the items where the event started.
+
+      if (e->getType() != engine::Event::Type::MouseDrag) {
+        // Not a drag event, we're done, the event should be filtered.
+        return true;
+      }
+
+      // Check whether the `watched` event was located where any of the drag motion
+      // started (i.e. any of the button).
+      engine::mouse::Buttons bs = e->getButtons();
+
+      engine::mouse::Button b = engine::mouse::Button::Left;
+      if (bs.isSet(b)) {
+        const LayoutItem* best = getItemAt(e->getInitMousePosition(b));
+
+        // The item is located where the button started to be dragged, this is enough
+        // to send it this event.
+        if (best == watched) {
+          return false;
+        }
+      }
+
+      b = engine::mouse::Button::Middle;
+      if (bs.isSet(b)) {
+        const LayoutItem* best = getItemAt(e->getInitMousePosition(b));
+
+        if (best == watched) {
+          return false;
+        }
+      }
+
+      b = engine::mouse::Button::Right;
+      if (bs.isSet(b)) {
+        const LayoutItem* best = getItemAt(e->getInitMousePosition(b));
+
+        if (best == watched) {
+          return false;
+        }
+      }
+
+      // The `watched` item was not located at the beginning of any of the current
+      // drag events, the event should be filtered.
+      return true;
     }
 
     bool

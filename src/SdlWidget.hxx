@@ -712,7 +712,16 @@ namespace sdl {
 
       // Fire a signal indicating that a click on this widget has been detected.
       log("Emitting on click for " + getName(), utils::Level::Notice);
-      onClick.emit(getName());
+
+      const std::string& name = getName();
+      utils::Signal<const std::string&>& ref = onClick;
+
+      withSafetyNet(
+        [&name, &ref](){
+          ref.emit(name);
+        },
+        std::string("onClick::emit(") + name + ")"
+      );
 
       // Use the base handler to provide a return value.
       return LayoutItem::mouseButtonReleaseEvent(e);

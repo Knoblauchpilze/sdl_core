@@ -852,8 +852,6 @@ namespace sdl {
         using WidgetsMap = std::vector<ChildWrapper>;
         using RepaintMap = std::unordered_map<std::string, Timestamp>;
 
-        using Guard = std::lock_guard<std::mutex>;
-
       private:
 
         /**

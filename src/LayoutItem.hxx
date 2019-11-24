@@ -153,7 +153,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::isVisible() const noexcept {
-      std::lock_guard<std::mutex> guard(m_visibleLocker);
+      Guard guard(m_visibleLocker);
       return m_visible;
     }
 
@@ -308,7 +308,7 @@ namespace sdl {
       // Assign the corresponding visible status.
       bool changed = false;
       {
-        std::lock_guard<std::mutex> guard(m_visibleLocker);
+        Guard guard(m_visibleLocker);
         changed = (m_visible != false);
         m_visible = false;
       }
@@ -358,7 +358,7 @@ namespace sdl {
       // Assign the corresponding visible status.
       bool changed = false;
       {
-        std::lock_guard<std::mutex> guard(m_visibleLocker);
+        Guard guard(m_visibleLocker);
         changed = (m_visible != true);
         m_visible = true;
       }

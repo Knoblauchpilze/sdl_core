@@ -16,7 +16,7 @@ namespace sdl {
       m_focusPolicy(),
 
       m_geometryDirty(true),
-      m_area(utils::Boxf::fromSize(sizeHint, true)),
+      m_area(),
 
       m_visible(true),
       m_visibleLocker(),

@@ -58,7 +58,7 @@ namespace sdl {
 
     inline
     void
-    Layout::removeItemFromIndex(const int item) {
+    Layout::removeItemFromIndex(int item) {
       // Check whether this item can be removed.
       if (!isValidIndex(item)) {
         error(
@@ -192,22 +192,22 @@ namespace sdl {
 
     inline
     int
-    Layout::getLogicalIDFromPhysicalID(const int physID) const noexcept {
+    Layout::getLogicalIDFromPhysicalID(int physID) const noexcept {
       // Return the input index.
       return physID;
     }
 
     inline
     int
-    Layout::getPhysicalIDFromLogicalID(const int logicID) const noexcept {
+    Layout::getPhysicalIDFromLogicalID(int logicID) const noexcept {
       // Return the input index.
       return logicID;
     }
 
     inline
     bool
-    Layout::onIndexRemoved(const int /*logicID*/,
-                           const int /*physID*/)
+    Layout::onIndexRemoved(int /*logicID*/,
+                           int /*physID*/)
     {
       // Assume a recomputation of the layout is needed.
       return true;

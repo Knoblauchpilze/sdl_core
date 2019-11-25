@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     SdlWidget::ChildWrapper::ChildWrapper(SdlWidget* wid,
-                                          const int zOrder):
+                                          int zOrder):
       widget(wid),
       zOrder(zOrder)
     {}

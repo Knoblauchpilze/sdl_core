@@ -129,7 +129,7 @@ namespace sdl {
          * @param index - the index of the item which should be removed, whatever that means.
          */
         virtual void
-        removeItemFromIndex(const int index);
+        removeItemFromIndex(int index);
 
         int
         getItemsCount() const noexcept;
@@ -368,7 +368,7 @@ namespace sdl {
          *           negative value if no such index exists in the layout.
          */
         virtual int
-        getLogicalIDFromPhysicalID(const int physID) const noexcept;
+        getLogicalIDFromPhysicalID(int physID) const noexcept;
 
         /**
          * @brief - Inverse method to `getLogicalIDFromPhysicalID`. Calling both methods
@@ -379,7 +379,7 @@ namespace sdl {
          *           negative value if no such index exists in the layout.
          */
         virtual int
-        getPhysicalIDFromLogicalID(const int logicID) const noexcept;
+        getPhysicalIDFromLogicalID( int logicID) const noexcept;
 
         /**
          * @brief - Called right after removing the logical index corresponding to the physical
@@ -397,8 +397,8 @@ namespace sdl {
          *           value is false no `GeometryUpdate` event will be posted for this layout.
          */
         virtual bool
-        onIndexRemoved(const int logicID,
-                       const int physID);
+        onIndexRemoved(int logicID,
+                       int physID);
 
         LayoutItem*
         getItemAt(int item);

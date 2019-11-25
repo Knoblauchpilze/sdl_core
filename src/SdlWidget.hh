@@ -834,7 +834,7 @@ namespace sdl {
            * @param zOrder - the z order for this widget.
            */
           ChildWrapper(SdlWidget* wid,
-                       const int zOrder = 0);
+                       int zOrder = 0);
 
           /**
            * @brief - Performs the comparison of `this` with the `rhs` value. The

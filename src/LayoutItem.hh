@@ -160,7 +160,7 @@ namespace sdl {
          * @param order - the new z order for this item.
          */
         void
-        setZOrder(const int order);
+        setZOrder(int order);
 
         /**
          * @brief - Used to determine whether this item has received the keyboard focus.

@@ -124,7 +124,7 @@ namespace sdl {
 
     inline
     void
-    LayoutItem::setZOrder(const int order) {
+    LayoutItem::setZOrder(int order) {
       // Assign the new z order value.
       m_zOrder = order;
 

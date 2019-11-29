@@ -542,6 +542,21 @@ namespace sdl {
 
     inline
     utils::Boxf
+    SdlWidget::convertToEngineFormat(const utils::Boxf& area,
+                                     const utils::Sizef& reference) const noexcept
+    {
+      // Convert the input `area` by shifting the x axis by half the dimension and
+      // by inverting the `y` axis.
+      utils::Boxf converted = area;
+      converted.x() += (reference.w() / 2.0f);
+      converted.y() = (reference.h() / 2.0f) - area.y();
+
+      // Return the converted area.
+      return converted;
+    }
+
+    inline
+    utils::Boxf
     SdlWidget::convertToLocal(const utils::Boxf& area,
                               const utils::Boxf& reference) const noexcept
     {

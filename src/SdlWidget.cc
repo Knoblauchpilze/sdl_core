@@ -913,7 +913,7 @@ namespace sdl {
             // converted into engine format. Indeed the `region` is already in
             // local coordinate frame.
             const utils::Boxf interD = utils::Boxf::fromSize(dims, true).intersect(region);
-            const utils::Boxf dst = convertToEngineFormat(interD, utils::Boxf::fromSize(dims));
+            const utils::Boxf dst = convertToEngineFormat(interD, dims);
 
             // Compute the intersection of the regions with `this` object's
             // area and convert it to global coordinate frame.

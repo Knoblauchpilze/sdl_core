@@ -532,6 +532,20 @@ namespace sdl {
                               const utils::Boxf& reference) const noexcept;
 
         /**
+         * @brief - Similar to `convertToEngineFormat` describes above but uses a size to
+         *          perform the conversion rather than a box.
+         * @param area - the area to convert. Note that this area should be expressed in a
+         *               coordinate frame relative to this widget where the center is at
+         *               `[0, 0]`.
+         * @param reference - the reference area to use to perform the conversion.
+         * @return - a converted version of the input `area` to a coordinate frame usable
+         *           by the engine.
+         */
+        utils::Boxf
+        convertToEngineFormat(const utils::Boxf& area,
+                              const utils::Sizef& reference) const noexcept;
+
+        /**
          * @brief - Used to convert the input `area` expressed in a coordinate frame similar
          *          to the `reference` into local coordinate frame.
          * @param area - the area to convert: this value is assumed to be expressed in a

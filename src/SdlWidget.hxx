@@ -701,12 +701,6 @@ namespace sdl {
       // This is done automatically by the `FocusIn` events so let's just
       // create one.
 
-      // If the mouse is blocked by a child, do nothing.
-      if (isBlockedByChild(e.getMousePosition())) {
-        // Return early using the base handler return value.
-        return LayoutItem::mouseButtonReleaseEvent(e);
-      }
-
       // The mouse is not blocked by any child: produce a focus event.
       postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::MouseFocus, true));
 

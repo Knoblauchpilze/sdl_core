@@ -814,7 +814,7 @@ namespace sdl {
 
       utils::Sizef dims = area.toSize();
 
-      for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+      for (unsigned id = 0u ; id < regions.size() ; ++id) {
         // Convert the region from global to local coordinate frame if needed.
         const utils::Boxf region = (
           regions[id].frame == engine::update::Frame::Global ?
@@ -903,7 +903,7 @@ namespace sdl {
           // of the `source` object.
           const utils::Boxf global = source->getDrawingArea();
 
-          for (int id = 0 ; id < static_cast<int>(regions.size()) ; ++id) {
+          for (unsigned id = 0u ; id < regions.size() ; ++id) {
             // Convert the input region expressed in global coordinate frame
             // into local frame if needed.
             const utils::Boxf region = (

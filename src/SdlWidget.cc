@@ -266,7 +266,10 @@ namespace sdl {
 
     bool
     SdlWidget::focusInEvent(const engine::FocusEvent& e) {
-      log("Handling focus in from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())) + " (policy: " + getFocusPolicy().toString() + ")");
+      log(
+        "Handling focus in from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())) + " (policy: " + getFocusPolicy().toString() + ")",
+        utils::Level::Verbose
+      );
 
       // A focus in event has been raised with a specific reason. The first step
       // in processing this event is to actually determine whether this widget is
@@ -455,7 +458,7 @@ namespace sdl {
 
     bool
     SdlWidget::lostFocusEvent(const engine::FocusEvent& e) {
-      log("Handling lost focus from " + e.getEmitter()->getName());
+      log("Handling lost focus from " + e.getEmitter()->getName(), utils::Level::Verbose);
 
       // A lost focus event comes after a leave event and means that the
       // focus has been removed from this widget. It also means that no
@@ -465,10 +468,10 @@ namespace sdl {
         Guard guard(m_childrenLocker);
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
 
-          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
+          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus", utils::Level::Verbose);
           // If the child is not the source of the event and is focused, unfocus it.
           if (child->widget->hasFocus()) {
-            log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus");
+            log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus", utils::Level::Verbose);
             postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), isEmitter(e), child->widget), false);
           }
         }
@@ -537,7 +540,7 @@ namespace sdl {
           if (lastRepaint != m_childrenRepaints.cend() && lastRepaint->second >= e.getTimestamp()) {
             // We repainted this widget after the event has been emitted,
             // no need to paint it again.
-            log("Trashing repaint from " + e.getEmitter()->getName() + " posterior to last refresh", utils::Level::Info);
+            log("Trashing repaint from " + e.getEmitter()->getName() + " posterior to last refresh", utils::Level::Verbose);
 
             // Use base handler to provide a return value.
             return LayoutItem::repaintEvent(e);
@@ -737,7 +740,7 @@ namespace sdl {
       }
 
       if (o == nullptr) {
-        log("Do not post repaint event, no need to do so", utils::Level::Debug);
+        log("Do not post repaint event, no need to do so", utils::Level::Verbose);
       }
 
       // Post the event if we have an object where to post it.

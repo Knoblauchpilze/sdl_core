@@ -324,7 +324,7 @@ namespace sdl {
 
     bool
     SdlWidget::focusOutEvent(const engine::FocusEvent& e) {
-      log("Handling focus out from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())));
+      log("Handling focus out from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())), utils::Level::Verbose);
 
       // A focus out event has been raised with a specific reason. The process to
       // follow is very similar to the one used in `focusInEvent` except the event

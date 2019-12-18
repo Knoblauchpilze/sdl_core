@@ -326,7 +326,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::keyboardGrabbedEvent(const engine::Event& e) {
-      log("Item now has keyboard focus", utils::Level::Notice);
+      log("Item now has keyboard focus", utils::Level::Verbose);
 
       // Update the keyboard focus status.
       m_keyboardFocus = true;
@@ -338,7 +338,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::keyboardReleasedEvent(const engine::Event& e) {
-      log("Item has lost keyboard focus", utils::Level::Notice);
+      log("Item has lost keyboard focus", utils::Level::Verbose);
 
       // Update the keyboard focus status.
       m_keyboardFocus = false;

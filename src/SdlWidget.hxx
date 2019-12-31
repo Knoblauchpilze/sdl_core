@@ -720,7 +720,7 @@ namespace sdl {
       postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::MouseFocus, true));
 
       // Fire a signal indicating that a click on this widget has been detected.
-      log("Emitting on click for " + getName(), utils::Level::Notice);
+      log("Emitting on click for " + getName(), utils::Level::Verbose);
 
       onClick.safeEmit(
         std::string("onClick(") + getName() + ")",

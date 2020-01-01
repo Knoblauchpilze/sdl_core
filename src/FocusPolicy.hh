@@ -22,9 +22,9 @@ namespace sdl {
 
       /**
        * @brief - Retrieves a human readable name from the input focus type.
-       * @param modifiers - a flag containing several modifiers for which a
-       *                    name should be provided.
-       * @return - a string describing the names of the modifiers registered
+       * @param type - a flag containing the focus type for which a name
+       *               should be provided.
+       * @return - a string describing the names of the focus type registered
        *           in the input argument.
        */
       std::string

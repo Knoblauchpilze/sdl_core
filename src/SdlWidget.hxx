@@ -329,6 +329,22 @@ namespace sdl {
       // Remove the widget from the children list.
       m_children.erase(m_children.begin() + child->second);
 
+      // Remove the widget from the tab ordering.
+      TabOrdering::iterator it = m_tabOrder.begin();
+      while (it != m_tabOrder.end() && *it != widget->getName()) {
+        ++it;
+      }
+
+      if (it ==  m_tabOrder.end()) {
+        log(
+          std::string("Could not find widget \"") + widget->getName() + "\" in tab ordering",
+          utils::Level::Error
+        );
+      }
+      else {
+        m_tabOrder.erase(it);
+      }
+
       // Remove the widget from the repaints' timestamps. We might fail to
       // find this widget if it has not been repainted at all. Weird but
       // not impossible.
@@ -858,6 +874,9 @@ namespace sdl {
           }
         );
 
+        // Insert into the tab ordering.
+        m_tabOrder.push_back(widget->getName());
+
         // And now rebuilt the `m_names` array after sorting items in ascending
         // z order.
         rebuildZOrdering();
@@ -865,7 +884,7 @@ namespace sdl {
     }
 
     inline
-    void
+    bool
     SdlWidget::updateStateFromFocus(const engine::FocusEvent& e) {
       // We need to update the widget's content to match the new focus state.
       // We will use the dedicated focus state and determine whether we need
@@ -900,7 +919,7 @@ namespace sdl {
       // Finally we also only trigger the `stateUpdatedFromFocus` in case the
       // focus reason can be handled.
       if (!canHandleFocusReason(e.getReason())) {
-        return;
+        return false;
       }
 
       // We now want to handle the modification of the internal state as we are
@@ -955,6 +974,8 @@ namespace sdl {
       if (updated) {
         stateUpdatedFromFocus(m_internalFocusState, gainedFocus);
       }
+
+      return true;
     }
 
     inline

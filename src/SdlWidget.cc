@@ -14,6 +14,7 @@ namespace sdl {
       m_names(),
       m_children(),
       m_childrenRepaints(),
+      m_tabOrder(),
       m_repaint(),
       m_childrenLocker(),
 
@@ -38,8 +39,6 @@ namespace sdl {
     {
       // Assign the service for this widget.
       setService(std::string("widget"));
-
-      setFocusPolicy(createFocusFromName(focus::Name::StrongFocus));
 
       // Assign the input `parent` to this widget: this will also share the engine
       // and events queue if any is defined in the parent widget.
@@ -69,6 +68,7 @@ namespace sdl {
           }
         }
 
+        m_tabOrder.clear();
         m_childrenRepaints.clear();
       }
     }
@@ -304,6 +304,23 @@ namespace sdl {
         postEvent(std::make_shared<engine::Event>(engine::Event::Type::KeyboardGrabbed));
       }
 
+      // Handle focusing of children if needed: we only want to do so if we can't
+      // handle it ourselves.
+      bool childFocused = false;
+
+      if ((e.getReason() == engine::FocusEvent::Reason::TabFocus ||
+          e.getReason() == engine::FocusEvent::Reason::BacktabFocus) &&
+          !canHandleFocusReason(e.getReason()))
+      {
+        childFocused = focusNextChild(e.getReason() == engine::FocusEvent::Reason::BacktabFocus);
+      }
+
+      // If a child was focused, we don't need to update the internal focus, it will
+      // be reset anyways when the associated `gainFocus` will be received.
+      if (childFocused) {
+        return LayoutItem::focusInEvent(e);
+      }
+
       // Perform an update of the internal state of this widget. We can safely call
       // the dedicated method which will just update the internal state and trigger
       // the needed repaints only if the focus policy allows for handling of the
@@ -454,6 +471,19 @@ namespace sdl {
 
       // Use the base handler to provide a return value.
       return LayoutItem::gainFocusEvent(e);
+    }
+
+    bool
+    SdlWidget::keyPressEvent(const engine::KeyEvent& e) {
+      // Check whether the event corresponds to a tab key.
+      if (e.getRawKey() == engine::RawKey::Tab) {
+        // Use the dedicated handler after protecting from concurrent accesses.
+        Guard guard(m_childrenLocker);
+
+        focusNextChild(engine::shiftEnabled(e.getModifiers()));
+      }
+
+      return LayoutItem::keyPressEvent(e);
     }
 
     bool
@@ -1004,6 +1034,129 @@ namespace sdl {
       for (int id = 0 ; id < getChildrenCount() ; ++id) {
         m_names[m_children[id].widget->getName()] = id;
       }
+    }
+
+    bool
+    SdlWidget::focusNextChild(bool reverse) {
+      // Determine which one of the child has the focus and cycle to the
+      // next one which can handle focus.
+      // In case no child has the focus yet we will start at the first
+      // one and if no children can handle a `Tab` focus we will just
+      // stop the processing here.
+      bool focus = false;
+      unsigned id = 0;
+      TabOrdering::const_iterator it = m_tabOrder.cbegin();
+
+      while (it != m_tabOrder.cend() && focus == false) {
+        // Attempt to retrieve the corresponding child.
+        ChildrenMap::const_iterator ch = m_names.find(*it);
+
+        if (ch == m_names.cend()) {
+          // Should not happen but it does not hurt to remove the corresponding
+          // item in the tab ordering.
+          log(
+            std::string("Found widget \"") + *it + "\" without associated child, removing it",
+            utils::Level::Error
+          );
+
+          it = m_tabOrder.erase(it);
+        }
+        else {
+          // Fetch the child and check whether it has focus.
+          const ChildWrapper& child = m_children[ch->second];
+          focus = child.widget->hasKeyboardFocus();
+
+          if (!focus) {
+            ++it;
+            ++id;
+          }
+        }
+      }
+
+      // Check whether we could find a child with the focus.
+      bool canHandle = false;
+      SdlWidget* wid = nullptr;
+
+      if (it == m_tabOrder.cend()) {
+        // No child currently has the focus: traverse the list and try to
+        // find the first one which can handle such a focus.
+        id = 0u;
+
+        while (id < m_tabOrder.size() && !canHandle) {
+          // We assume that the name can be found because we checked it in
+          // the previous loop0
+          ChildrenMap::const_iterator ch = m_names.find(m_tabOrder[id]);
+          const ChildWrapper& child = m_children[ch->second];
+
+          canHandle = child.widget->canHandleFocusReason(engine::FocusEvent::Reason::TabFocus);
+          wid = child.widget;
+          if (!canHandle) {
+            ++id;
+          }
+        }
+      }
+      else {
+        // We need to find either the next or previous child which can handle the
+        // focus (depending on whether the shift modifier is pressed).
+        unsigned cur = id;
+        unsigned size = m_tabOrder.size();
+
+        auto toNext = [&reverse, &size](unsigned id) {
+          if (reverse) {
+            return (id - 1 + size) % size;
+          }
+          else {
+            return (id + 1) % size;
+          }
+        };
+
+        id = toNext(id);
+
+        // Loop until we reach the current id again or until we find a suitable
+        // other child.
+        while (id != cur && !canHandle) {
+          // We assume that the name can be found because we checked it in
+          // the previous loop0
+          ChildrenMap::const_iterator ch = m_names.find(m_tabOrder[id]);
+          const ChildWrapper& child = m_children[ch->second];
+
+          canHandle = child.widget->canHandleFocusReason(engine::FocusEvent::Reason::TabFocus);
+          wid = child.widget;
+          if (!canHandle) {
+            id = toNext(id);
+          }
+        }
+      }
+
+      // Focus this child if any was found.
+      if (canHandle && wid != nullptr) {
+        postEvent(
+          engine::FocusEvent::createFocusInEvent(
+            engine::FocusEvent::Reason::TabFocus,
+            true,
+            wid
+          )
+        );
+      }
+      else {
+        // Either we couldn't find any child which can handle `Tab` focus
+        // or the child was `null` (which cannot happen).
+        // We can create a `Tab` focus event for the parent (if any) so
+        // that we can maybe propagate the event to someone which can do
+        // something about it.
+        // This also plays nicely with the overall cycling order of `Tab`s.
+        if (hasParent()) {
+          engine::FocusEvent::Reason r =
+            reverse ?
+            engine::FocusEvent::Reason::BacktabFocus :
+            engine::FocusEvent::Reason::TabFocus
+          ;
+
+          postEvent(engine::FocusEvent::createFocusInEvent(r, true, m_parent));
+        }
+      }
+
+      return canHandle;
     }
 
   }

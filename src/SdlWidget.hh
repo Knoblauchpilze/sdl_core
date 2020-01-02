@@ -284,6 +284,15 @@ namespace sdl {
         bool
         hideEvent(const engine::HideEvent& e) override;
 
+        /**
+         * @brief - Used to handle the tab cycling. We only detect a key stroke on the `Tab` key and
+         *          attempts to focus the next child in the hierarchy.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyPressEvent(const engine::KeyEvent& e) override;
+
         bool
         lostFocusEvent(const engine::FocusEvent& e) override;
 
@@ -713,8 +722,10 @@ namespace sdl {
          *          rather that method compared to this one.
          * @param e - the focus event which triggered the update of the state in the
          *            first place.
+         * @return - `true` if the internal state was updated from the input focus reason
+         *           and `false` otherwise.
          */
-        void
+        bool
         updateStateFromFocus(const engine::FocusEvent& e);
 
         /**
@@ -829,6 +840,16 @@ namespace sdl {
         void
         rebuildZOrdering();
 
+        /**
+         * @brief - Helper method allowing to handle the research and creation of the event
+         *          related to a child getting tab focus.
+         *          The return value indicates whether a child could be selected.
+         * @param reverse - a boolean indicating whether the event is a `Tab` or a `BackTab`.
+         * @return - `true` if a focus event was sent to one of the children of this widget.
+         */
+        bool
+        focusNextChild(bool reverse);
+
       protected:
 
         friend class Layout;
@@ -865,6 +886,7 @@ namespace sdl {
         using ChildrenMap = std::unordered_map<std::string, int>;
         using WidgetsMap = std::vector<ChildWrapper>;
         using RepaintMap = std::unordered_map<std::string, Timestamp>;
+        using TabOrdering = std::vector<std::string>;
 
       private:
 
@@ -888,6 +910,19 @@ namespace sdl {
          *          some particular child.
          */
         RepaintMap m_childrenRepaints;
+
+        /**
+         * @brief - Hold the ordering of the children widgets regarding the tab cycling. Each
+         *          time a new widget is added it will be appended at the end of this list and
+         *          will be proposed focus in order. The widget will check whether the focus
+         *          can be handled before proposing it to the child though so as not to waste
+         *          cycles.
+         *          This cycle cannot be modified yet and is not affected by `z` order modifs.
+         *          Note that when a child is removed from the widget its corresponding tab
+         *          entry is removed as well and the following children are moved to occupy
+         *          the free spot.
+         */
+        TabOrdering m_tabOrder;
 
         /**
          * @brief - Holds the timestamp of the last successful repaint for this widget. Allows

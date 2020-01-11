@@ -191,13 +191,13 @@ namespace sdl {
       {
         // Discard this child if the emitter belongs to its hierarchy.
         if (e.isEmittedBy(*child)) {
-          log("Ignoring child " + (*child)->getName() + " which is the source of the paint event");
+          log("Ignoring child " + (*child)->getName() + " which is the source of the paint event", utils::Level::Verbose);
           continue;
         }
 
         // Also disacrd the child if it is not visible.
         if (!(*child)->isVisible()) {
-          log("Ignoring child " + (*child)->getName() + " which is not visible");
+          log("Ignoring child " + (*child)->getName() + " which is not visible", utils::Level::Verbose);
           continue;
         }
 

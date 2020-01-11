@@ -158,7 +158,12 @@ namespace sdl {
           // Convert the `src` area in terms of child coordinate frame and
           // perform the draw on operation.
           const utils::Boxf childSrc = convertToLocal(*src, child->widget->getRenderingArea());
-          log("Requesting child " + child->widget->getName() + " with area " + childSrc.toString() + " (from " + src->toString() + ", child: " + child->widget->getRenderingArea().toString() + ")");
+          log(
+            "Requesting child " + child->widget->getName() +
+            " with area " + childSrc.toString() +
+            " (from " + src->toString() + ", child: " + child->widget->getRenderingArea().toString() + ")",
+            utils::Level::Verbose
+          );
           const bool valid = child->widget->drawOn(on, &childSrc, dst);
 
           // Update the status boolean.

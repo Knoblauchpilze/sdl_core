@@ -588,6 +588,15 @@ namespace sdl {
     }
 
     inline
+    utils::Vector2f
+    SdlWidget::convertToLocal(const utils::Vector2f& pos,
+                              const utils::Boxf& reference) const noexcept
+    {
+      // See `convertToLoca` with box parameters for more details.
+      return utils::Vector2f(pos.x() - reference.x(), pos.y() - reference.y());
+    }
+
+    inline
     bool
     SdlWidget::isMouseInside() const noexcept {
       return m_mouseInside;

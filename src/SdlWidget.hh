@@ -569,6 +569,17 @@ namespace sdl {
                        const utils::Boxf& reference) const noexcept;
 
         /**
+         * @brief - Similar to the `convertToLocal` method but converts the position rather
+         *          than the box to the `reference`'s coordinate frame.
+         * @param pos - the position to convert.
+         * @param reference - the reference area to use to convert the `pos` into.
+         * @return - a position in the coordinate frame described by `reference`.
+         */
+        utils::Vector2f
+        convertToLocal(const utils::Vector2f& pos,
+                       const utils::Boxf& reference) const noexcept;
+
+        /**
          * @brief - Used to determine whether the mouse is currently inside this widget or not.
          * @return - true if the mouse is inside this widget, false otherwise.
          */

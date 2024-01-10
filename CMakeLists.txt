@@ -25,8 +25,6 @@ add_subdirectory(
 	)
 
 target_include_directories (sdl_core PUBLIC
-	${SDL2_INCLUDE_DIRS}
-	${SDL2_TTF_INCLUDE_DIRS}
 	)
 
 target_link_libraries (sdl_core

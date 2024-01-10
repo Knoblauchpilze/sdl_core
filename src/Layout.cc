@@ -78,10 +78,9 @@ namespace sdl {
         const LayoutItem* secondToLast = *std::next(items.rbegin());
 
         if (last->getZOrderString() == secondToLast->getZOrderString()) {
-          log(
+          warn(
             "Several items have the same z order (\"" + last->getZOrderString() + "\" and spans the same position, discarding \"" + secondToLast->getName() + "\"" +
-            " and possibly more in favor of \"" + last->getName() + "\"",
-            utils::Level::Warning
+            " and possibly more in favor of \"" + last->getName() + "\""
           );
         }
       }
@@ -135,16 +134,16 @@ namespace sdl {
 
     bool
     Layout::gainFocusEvent(const engine::FocusEvent& e) {
-      log("Handling gain focus from " + e.getEmitter()->getName(), utils::Level::Verbose);
+      verbose("Handling gain focus from " + e.getEmitter()->getName());
 
       // Traverse the list of items handled by this layout and
       // propagate a leave event to corresponding children which
       // still are focused.
       for (Items::const_iterator item = m_items.cbegin() ; item != m_items.cend() ; ++item) {
-        log("Item " + (*item)->getName() + ((*item)->hasFocus() ? " has " : " has not ") + "focus", utils::Level::Verbose);
+        verbose("Item " + (*item)->getName() + ((*item)->hasFocus() ? " has " : " has not ") + "focus");
         // If the child is not the source of the event and is focused, unfocus it.
         if (!e.isEmittedBy(*item) && (*item)->hasFocus()) {
-          log("Posting focus out event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus", utils::Level::Verbose);
+          verbose("Posting focus out event on " + (*item)->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
           postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), false, *item), false);
         }
       }
@@ -178,10 +177,9 @@ namespace sdl {
       // - `B` updates its representation to include the content of `A` which is on top of it.
       // During this operation we get a flickering of the representation which could be improved.
 
-      log(
+      notice(
         "Handling repaint for event containing " + std::to_string(regions.size()) + " region(s) to update (source: " +
-        (e.getEmitter() == nullptr ? "null" : e.getEmitter()->getName()) + ")",
-        utils::Level::Notice
+        (e.getEmitter() == nullptr ? "null" : e.getEmitter()->getName()) + ")"
       );
 
       // Traverse the internal array of children.
@@ -191,13 +189,13 @@ namespace sdl {
       {
         // Discard this child if the emitter belongs to its hierarchy.
         if (e.isEmittedBy(*child)) {
-          log("Ignoring child " + (*child)->getName() + " which is the source of the paint event", utils::Level::Verbose);
+          verbose("Ignoring child " + (*child)->getName() + " which is the source of the paint event");
           continue;
         }
 
         // Also disacrd the child if it is not visible.
         if (!(*child)->isVisible()) {
-          log("Ignoring child " + (*child)->getName() + " which is not visible", utils::Level::Verbose);
+          verbose("Ignoring child " + (*child)->getName() + " which is not visible");
           continue;
         }
 
@@ -211,10 +209,9 @@ namespace sdl {
           // At this step we can only handle update regions expressed in global coordinate
           // frame as we don't have any means to convert it to local.
           if (regions[id].frame == engine::update::Frame::Local) {
-            log(
+            warn(
               std::string("Cannot determine whether update region " + regions[id].toString() +
-              " interesects \"") + (*child)->getName() + "\", region is in local coordinate frame",
-              utils::Level::Error
+              " interesects \"") + (*child)->getName() + "\", region is in local coordinate frame"
             );
 
             // Move on to the next region and don't add this one for the current event.
@@ -223,7 +220,7 @@ namespace sdl {
 
           // The region is in global coordinate frame, check intersections.
           if (regions[id].area.intersects((*child)->getDrawingArea(), true)) {
-            log("Area " + std::to_string(id) + " (" + regions[id].toString() + ") intersects area of " + (*child)->getName() + " (area: " + (*child)->getDrawingArea().toString() + ")");
+            debug("Area " + std::to_string(id) + " (" + regions[id].toString() + ") intersects area of " + (*child)->getName() + " (area: " + (*child)->getDrawingArea().toString() + ")");
             pe->addUpdateRegion(regions[id]);
           }
         }
@@ -233,7 +230,7 @@ namespace sdl {
           postEvent(pe, false, false);
         }
         else {
-          log("Ignoring child " + (*child)->getName() + " not intersecting any update region");
+          debug("Ignoring child " + (*child)->getName() + " not intersecting any update region");
         }
       }
 
@@ -352,8 +349,8 @@ namespace sdl {
           converted = utils::Boxf(offsetX, offsetY, boxes[index].w(), boxes[index].h());
         }
 
-        // log("Area for " + m_items[index]->getName() + " is " + converted.toString() + " from " + boxes[index].toString() + " (window: " + window.toString() + ")");
-        log("Area for " + m_items[index]->getName() + " is " + converted.toString());
+        // debug("Area for " + m_items[index]->getName() + " is " + converted.toString() + " from " + boxes[index].toString() + " (window: " + window.toString() + ")");
+        debug("Area for " + m_items[index]->getName() + " is " + converted.toString());
 
         postEvent(std::make_shared<engine::ResizeEvent>(converted, m_items[index]->getRenderingArea(), m_items[index]));
       }
@@ -382,11 +379,11 @@ namespace sdl {
         // to keep it.
       }
       else if (desiredSize.w() < achievedSize.w()) {
-        log(std::string("achieved.w() > desired.w() (") + std::to_string(achievedSize.w()) + " > " + std::to_string(desiredSize.w()) + "), shrinking", utils::Level::Notice);
+        notice(std::string("achieved.w() > desired.w() (") + std::to_string(achievedSize.w()) + " > " + std::to_string(desiredSize.w()) + "), shrinking");
         policy.setHorizontalPolicy(SizePolicy::Name::Maximum);
       }
       else if (desiredSize.w() > achievedSize.w()) {
-        log(std::string("achieved.w() < desired.w() (") + std::to_string(achievedSize.w()) + " < " + std::to_string(desiredSize.w()) + "), growing", utils::Level::Notice);
+        notice(std::string("achieved.w() < desired.w() (") + std::to_string(achievedSize.w()) + " < " + std::to_string(desiredSize.w()) + "), growing");
         policy.setHorizontalPolicy(SizePolicy::Name::Minimum);
       }
 
@@ -395,11 +392,11 @@ namespace sdl {
         // to keep it.
       }
       else if (desiredSize.h() < achievedSize.h()) {
-        log(std::string("achieved.h() > desired.h() (") + std::to_string(achievedSize.h()) + " > " + std::to_string(desiredSize.h()) + "), shrinking", utils::Level::Notice);
+        notice(std::string("achieved.h() > desired.h() (") + std::to_string(achievedSize.h()) + " > " + std::to_string(desiredSize.h()) + "), shrinking");
         policy.setVerticalPolicy(SizePolicy::Name::Maximum);
       }
       else if (desiredSize.h() > achievedSize.h()) {
-        log(std::string("achieved.h() < desired.h() (") + std::to_string(achievedSize.h()) + " < " + std::to_string(desiredSize.h()) + "), growing", utils::Level::Notice);
+        notice(std::string("achieved.h() < desired.h() (") + std::to_string(achievedSize.h()) + " < " + std::to_string(desiredSize.h()) + "), growing");
         policy.setVerticalPolicy(SizePolicy::Name::Minimum);
       }
 

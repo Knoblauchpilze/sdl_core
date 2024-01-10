@@ -7,6 +7,10 @@ release:
 clean:
 	rm -rf build
 
+cleanInstall:
+	sudo rm -rf /usr/local/include/sdl_core
+	sudo rm -rf /usr/local/lib/libsdl_core.so
+
 r: release
 
 d: debug

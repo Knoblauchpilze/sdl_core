@@ -1,6 +1,6 @@
 
 # include "SdlWidget.hh"
-# include <core_utils/CoreWrapper.hh>
+# include <core_utils/SafetyNet.hh>
 
 namespace sdl {
   namespace core {
@@ -47,15 +47,15 @@ namespace sdl {
 
     SdlWidget::~SdlWidget() {
       {
-        Guard guard(m_contentLocker);
+        const std::lock_guard guard(m_contentLocker);
         clearTexture();
 
-        Guard cacheGuard(m_cacheLocker);
+        const std::lock_guard cacheGuard(m_cacheLocker);
         clearCachedTexture();
       }
 
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
 
         m_names.clear();
 
@@ -86,7 +86,7 @@ namespace sdl {
       {
         utils::Sizef area = getRenderingArea().toSize();
 
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
 
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
           if (child->widget->isVisible()) {
@@ -108,7 +108,7 @@ namespace sdl {
       // of this widget on the specified target. If this widget does not
       // cover the desired `src` area we need to transmit the request to
       // children in order to find the one covering the area.
-      Guard guard(m_cacheLocker);
+      const std::lock_guard guard(m_cacheLocker);
 
       // If this widget is hidden, do nothing.
       if (!isVisible()) {
@@ -135,7 +135,7 @@ namespace sdl {
         // Draw the internal content at the specified position and call
         // it done. We need to only draw the area which intersects the
         // actual `src` area.
-        log("Widget contains area " + src->toString() + " (total: " + spanned.toString() + ", intersect: " + inter.toString() + ")");
+        debug("Widget contains area " + src->toString() + " (total: " + spanned.toString() + ", intersect: " + inter.toString() + ")");
 
         const utils::Boxf srcEngine = convertToEngineFormat(inter, spanned);
 
@@ -148,7 +148,7 @@ namespace sdl {
       // handle the request.
       bool drawn = false;
       {
-        Guard cguard(m_childrenLocker);
+        const std::lock_guard cguard(m_childrenLocker);
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
           // Do not request children which are not visible.
           if (!child->widget->isVisible()) {
@@ -158,11 +158,10 @@ namespace sdl {
           // Convert the `src` area in terms of child coordinate frame and
           // perform the draw on operation.
           const utils::Boxf childSrc = convertToLocal(*src, child->widget->getRenderingArea());
-          log(
+          verbose(
             "Requesting child " + child->widget->getName() +
             " with area " + childSrc.toString() +
-            " (from " + src->toString() + ", child: " + child->widget->getRenderingArea().toString() + ")",
-            utils::Level::Verbose
+            " (from " + src->toString() + ", child: " + child->widget->getRenderingArea().toString() + ")"
           );
           const bool valid = child->widget->drawOn(on, &childSrc, dst);
 
@@ -197,7 +196,7 @@ namespace sdl {
       // Collect valid children which spans the position.
       std::vector<std::pair<std::string, const SdlWidget*>> elements;
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
 
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
           const SdlWidget* wig = child->widget->getItemAt(pos);
@@ -252,7 +251,7 @@ namespace sdl {
       // it otherwise we need to filter it.
       // If the watched object cannot be found in the internal array, we consider that
       // the event is not filtered.
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
 
       // Traverse the internal list of items and stop as soon as we find the input
       // `watched` object.
@@ -271,9 +270,8 @@ namespace sdl {
 
     bool
     SdlWidget::focusInEvent(const engine::FocusEvent& e) {
-      log(
-        "Handling focus in from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())) + " (policy: " + getFocusPolicy().toString() + ")",
-        utils::Level::Verbose
+      verbose(
+        "Handling focus in from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())) + " (policy: " + getFocusPolicy().toString() + ")"
       );
 
       // A focus in event has been raised with a specific reason. The first step
@@ -346,7 +344,7 @@ namespace sdl {
 
     bool
     SdlWidget::focusOutEvent(const engine::FocusEvent& e) {
-      log("Handling focus out from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())), utils::Level::Verbose);
+      verbose("Handling focus out from " + e.getEmitter()->getName() + " with reason " + std::to_string(static_cast<int>(e.getReason())));
 
       // A focus out event has been raised with a specific reason. The process to
       // follow is very similar to the one used in `focusInEvent` except the event
@@ -400,10 +398,9 @@ namespace sdl {
       // now focus.
       // We also need to focus ourselves so that the chain of widgets
       // which lead to the deepest focused child can be built.
-      log(
+      verbose(
         "Handling gain focus from " + e.getEmitter()->getName() +
-        " with reason " + std::to_string(static_cast<int>(e.getReason())),
-        utils::Level::Verbose
+        " with reason " + std::to_string(static_cast<int>(e.getReason()))
       );
 
       // Apply the focus modification if needed: we also optimize a bit
@@ -440,13 +437,13 @@ namespace sdl {
       // Traverse the internal array of children and unfocus any widget
       // which is not the source of the event.
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
 
-          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus", utils::Level::Verbose);
+          verbose("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
           // If the child is not the source of the event and is focused, unfocus it.
           if (!e.isEmittedBy(child->widget) && child->widget->hasFocus()) {
-            log("Posting focus out event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus", utils::Level::Verbose);
+            verbose("Posting focus out event on " + child->widget->getName() + " due to " + e.getEmitter()->getName() + " gaining focus");
             postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), isEmitter(e), child->widget), false);
           }
         }
@@ -467,7 +464,7 @@ namespace sdl {
       }
 
       if (o == nullptr) {
-        log("Do not post gain focus event, no need to do so", utils::Level::Info);
+        info("Do not post gain focus event, no need to do so");
       }
 
       if (o != nullptr) {
@@ -483,7 +480,7 @@ namespace sdl {
       // Check whether the event corresponds to a tab key.
       if (e.getRawKey() == engine::RawKey::Tab) {
         // Use the dedicated handler after protecting from concurrent accesses.
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
 
         focusNextChild(engine::shiftEnabled(e.getModifiers()));
       }
@@ -493,20 +490,20 @@ namespace sdl {
 
     bool
     SdlWidget::lostFocusEvent(const engine::FocusEvent& e) {
-      log("Handling lost focus from " + e.getEmitter()->getName(), utils::Level::Verbose);
+      verbose("Handling lost focus from " + e.getEmitter()->getName());
 
       // A lost focus event comes after a leave event and means that the
       // focus has been removed from this widget. It also means that no
       // children can keep the focus, so we should transmit the leave event
       // to all the children of `this` widget.
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
         for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
 
-          log("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus", utils::Level::Verbose);
+          verbose("Child " + child->widget->getName() + (child->widget->hasFocus() ? " has " : " has not ") + "focus");
           // If the child is not the source of the event and is focused, unfocus it.
           if (child->widget->hasFocus()) {
-            log("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus", utils::Level::Verbose);
+            verbose("Posting focus out event on " + child->widget->getName() + " due to " + getName() + " losing focus");
             postEvent(engine::FocusEvent::createFocusOutEvent(e.getReason(), isEmitter(e), child->widget), false);
           }
         }
@@ -575,7 +572,7 @@ namespace sdl {
           if (lastRepaint != m_childrenRepaints.cend() && lastRepaint->second >= e.getTimestamp()) {
             // We repainted this widget after the event has been emitted,
             // no need to paint it again.
-            log("Trashing repaint from " + e.getEmitter()->getName() + " posterior to last refresh", utils::Level::Verbose);
+            verbose("Trashing repaint from " + e.getEmitter()->getName() + " posterior to last refresh");
 
             // Use base handler to provide a return value.
             return LayoutItem::repaintEvent(e);
@@ -642,7 +639,7 @@ namespace sdl {
 
     bool
     SdlWidget::zOrderChanged(const engine::Event& e) {
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
 
       // We first need to check whether this event was emitter by us:
       // in this case we need to transmit it to our parent if any.
@@ -687,7 +684,7 @@ namespace sdl {
     void
     SdlWidget::refreshPrivate(const engine::PaintEvent& e) {
       // Replace the cached content.
-      Guard guard(m_cacheLocker);
+      const std::lock_guard guard(m_cacheLocker);
 
       // Create a new cached texture if the size of the cached content is
       // different from the current size of the content.
@@ -775,7 +772,7 @@ namespace sdl {
       }
 
       if (o == nullptr) {
-        log("Do not post repaint event, no need to do so", utils::Level::Verbose);
+        verbose("Do not post repaint event, no need to do so");
       }
 
       // Post the event if we have an object where to post it.
@@ -857,10 +854,9 @@ namespace sdl {
           regions[id].area
         );
 
-        log(
+        verbose(
           "Updating region " + region.toString() + " from " + regions[id].toString() +
-          " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")",
-          utils::Level::Verbose
+          " (ref: " + area.toString() + ") (source: " + e.getEmitter()->getName() + ")"
         );
 
         // Update the content of `this` widget: first clear the content and
@@ -871,7 +867,7 @@ namespace sdl {
         // Now iterate over children and draw them if needed (i.e. if they
         // intersect the current area).
         {
-          Guard guard(m_childrenLocker);
+          const std::lock_guard guard(m_childrenLocker);
 
           for (WidgetsMap::const_iterator child = m_children.cbegin() ; child != m_children.cend() ; ++child) {
             // The child needs to be repainted if:
@@ -902,9 +898,8 @@ namespace sdl {
             const utils::Boxf src = convertToLocal(dst, childBox);
             const utils::Boxf srcEngine = convertToEngineFormat(src, childBox);
 
-            log(
-              "Drawing child " + child->widget->getName() + " (src: " + src.toString() + ", dst: " + dst.toString() + "), intersect with " + region.toString(),
-              utils::Level::Verbose
+            verbose(
+              "Drawing child " + child->widget->getName() + " (src: " + src.toString() + ", dst: " + dst.toString() + "), intersect with " + region.toString()
             );
             drawWidget(*child->widget, srcEngine, dstEngine);
 
@@ -917,7 +912,7 @@ namespace sdl {
         }
       }
 
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
 
       // Finally let's handle the repaint of the source of the repaint event
       // if it is not part of our children. This allows to actually display
@@ -959,7 +954,7 @@ namespace sdl {
             const utils::Boxf interG = mapToGlobal(inter);
             const utils::Boxf src = convertToLocal(interG, global);
 
-            log("Drawing " + source->getName() + " from " + src.toString() + " to " + dst.toString() + " (raw: " + interD.toString() + ")", utils::Level::Info);
+            info("Drawing " + source->getName() + " from " + src.toString() + " to " + dst.toString() + " (raw: " + interD.toString() + ")");
             drawWidgetOn(*source, m_content, src, dst);
           }
         }
@@ -1014,7 +1009,7 @@ namespace sdl {
         // repaint the content of `this` widget at the specified `dst` area so that
         // it erases the old and now irrelevant content of the `widget` which used to
         // span the area. In this case the warning message is not really important.
-        log("Widget " + widget.getName() + " does not seem to span area " + src.toString(), utils::Level::Warning);
+        warn("Widget " + widget.getName() + " does not seem to span area " + src.toString());
       }
     }
 
@@ -1059,10 +1054,7 @@ namespace sdl {
         if (ch == m_names.cend()) {
           // Should not happen but it does not hurt to remove the corresponding
           // item in the tab ordering.
-          log(
-            std::string("Found widget \"") + *it + "\" without associated child, removing it",
-            utils::Level::Error
-          );
+          warn("Found widget \"" + *it + "\" without associated child, removing it");
 
           it = m_tabOrder.erase(it);
         }

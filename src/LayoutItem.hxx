@@ -153,7 +153,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::isVisible() const noexcept {
-      Guard guard(m_visibleLocker);
+      const std::lock_guard guard(m_visibleLocker);
       return m_visible;
     }
 
@@ -308,7 +308,7 @@ namespace sdl {
       // Assign the corresponding visible status.
       bool changed = false;
       {
-        Guard guard(m_visibleLocker);
+        const std::lock_guard guard(m_visibleLocker);
         changed = (m_visible != false);
         m_visible = false;
       }
@@ -326,7 +326,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::keyboardGrabbedEvent(const engine::Event& e) {
-      log("Item now has keyboard focus", utils::Level::Verbose);
+      verbose("Item now has keyboard focus");
 
       // Update the keyboard focus status.
       m_keyboardFocus = true;
@@ -338,7 +338,7 @@ namespace sdl {
     inline
     bool
     LayoutItem::keyboardReleasedEvent(const engine::Event& e) {
-      log("Item has lost keyboard focus", utils::Level::Verbose);
+      verbose("Item has lost keyboard focus");
 
       // Update the keyboard focus status.
       m_keyboardFocus = false;
@@ -358,7 +358,7 @@ namespace sdl {
       // Assign the corresponding visible status.
       bool changed = false;
       {
-        Guard guard(m_visibleLocker);
+        const std::lock_guard guard(m_visibleLocker);
         changed = (m_visible != true);
         m_visible = true;
       }

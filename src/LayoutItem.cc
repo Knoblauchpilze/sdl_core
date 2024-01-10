@@ -180,7 +180,7 @@ namespace sdl {
       // Assign the area.
       m_area = e.getNewSize();
 
-      log(std::string("Area is now ") + m_area.toString(), utils::Level::Info);
+      info(std::string("Area is now ") + m_area.toString());
 
       // Once the internal size has been updated, we need to both recompute
       // the geometry and then perform a repaint. Post both events.

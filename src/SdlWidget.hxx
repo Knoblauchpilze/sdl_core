@@ -23,7 +23,7 @@ namespace sdl {
     utils::Boxf
     SdlWidget::getRenderingArea() const noexcept {
       // Lock this widget.
-      Guard guard(m_contentLocker);
+      const std::lock_guard guard(m_contentLocker);
 
       // Return the value provided by the base handler.
       return LayoutItem::getRenderingArea();
@@ -34,7 +34,7 @@ namespace sdl {
     SdlWidget::getDrawingArea() const noexcept {
       // We need to retrieve the position of the parent and factor in its
       // position in order to compute the position of this widget.
-      Guard guard(m_contentLocker);
+      const std::lock_guard guard(m_contentLocker);
 
       // Retrieve the internal box for this widget.
       utils::Boxf thisBox = LayoutItem::getDrawingArea();
@@ -107,7 +107,7 @@ namespace sdl {
 
       // Also: assign the engine to children widgets if any.
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
         for (WidgetsMap::const_iterator child = m_children.cbegin() ;
             child != m_children.cend() ;
             ++child)
@@ -124,7 +124,7 @@ namespace sdl {
     SdlWidget::getContentUuid() {
       // Acquire the lock on the cached content uuid and return it.
       // If the cached content is not valid, raise an error.
-      Guard guard(m_cacheLocker);
+      const std::lock_guard guard(m_cacheLocker);
 
       if (!m_cachedContent.valid()) {
         error(std::string("Cannot get content uuid"), std::string("Invalid content uuid"));
@@ -173,7 +173,7 @@ namespace sdl {
         registerToSameQueue(m_layout.get());
       }
 
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
       // Also assign the queue to the children of this widget.
       for (WidgetsMap::const_iterator child = m_children.cbegin() ;
            child != m_children.cend() ;
@@ -271,7 +271,7 @@ namespace sdl {
     inline
     bool
     SdlWidget::handleEvent(engine::EventShPtr e) {
-      Guard guard(m_contentLocker);
+      const std::lock_guard guard(m_contentLocker);
       return LayoutItem::handleEvent(e);
     }
 
@@ -307,7 +307,7 @@ namespace sdl {
         );
       }
 
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
 
       // Check whether we can find this widget in the internal table.
       ChildrenMap::const_iterator child = m_names.find(widget->getName());
@@ -336,10 +336,7 @@ namespace sdl {
       }
 
       if (it ==  m_tabOrder.end()) {
-        log(
-          std::string("Could not find widget \"") + widget->getName() + "\" in tab ordering",
-          utils::Level::Error
-        );
+        warn("Could not find widget \"" + widget->getName() + "\" in tab ordering");
       }
       else {
         m_tabOrder.erase(it);
@@ -417,7 +414,7 @@ namespace sdl {
     template <typename WidgetType>
     WidgetType*
     SdlWidget::getChildOrNull(const std::string& name) const {
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
 
       ChildrenMap::const_iterator child = m_names.find(name);
       if (child == m_names.cend()) {
@@ -605,7 +602,7 @@ namespace sdl {
     inline
     bool
     SdlWidget::isBlockedByChild(const utils::Vector2f& global) const noexcept {
-      Guard guard(m_childrenLocker);
+      const std::lock_guard guard(m_childrenLocker);
 
       // Compute the local position of the mouse.
       utils::Vector2f local = mapFromGlobal(global);
@@ -625,7 +622,7 @@ namespace sdl {
     void
     SdlWidget::handleGraphicOperations() {
       // Lock the drawing locker in order to perform pending operations.
-      Guard guard(m_contentLocker);
+      const std::lock_guard guard(m_contentLocker);
 
       // Perform both repaint and refresh operations registered internally.
       // We need to clear the existing pending operations before starting
@@ -694,7 +691,7 @@ namespace sdl {
         }
 
         if (o == nullptr) {
-          log("Do not post hide event to parent, no need to do so", utils::Level::Info);
+          info("Do not post hide event to parent, no need to do so");
         }
 
         if (o != nullptr) {
@@ -745,7 +742,7 @@ namespace sdl {
       postEvent(engine::FocusEvent::createFocusInEvent(engine::FocusEvent::Reason::MouseFocus, true));
 
       // Fire a signal indicating that a click on this widget has been detected.
-      log("Emitting on click for " + getName(), utils::Level::Verbose);
+      verbose("Emitting on click for " + getName());
 
       onClick.safeEmit(
         std::string("onClick(") + getName() + ")",
@@ -852,7 +849,7 @@ namespace sdl {
       // Lock the widget to prevent concurrent modifications of the
       // internal children table.
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
 
         // Check for duplicated widget
         if (m_names.find(widget->getName()) != m_names.cend()) {
@@ -874,7 +871,7 @@ namespace sdl {
       // Populate internal arrays: first insert the item in the `m_children`
       // array.
       {
-        Guard guard(m_childrenLocker);
+        const std::lock_guard guard(m_childrenLocker);
 
         m_children.push_back(
           ChildWrapper{
@@ -1000,7 +997,7 @@ namespace sdl {
 
       // If the content is not valid, nothing can be done.
       if (!m_content.valid()) {
-        log("Trashing texture role update because content is not valid", utils::Level::Warning);
+        warn("Trashing texture role update because content is not valid");
         return;
       }
 
